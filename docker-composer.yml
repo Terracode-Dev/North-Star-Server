@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hr_management_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mariadb
+    environment:
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=hrapp
+      - DB_PASSWORD=hrpassword
+      - DB_NAME=hr_management
+    networks:
+      - hr_network
+    volumes:
+      - .:/app
+    command: go run cmd/main.go
+
+  mariadb:
+    image: mariadb:latest
+    container_name: hr_management_db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: hr_management
+      MYSQL_USER: hrapp
+      MYSQL_PASSWORD: hrpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - hr_network
+    command:
+      [
+        "mysqld",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+      ]
+
+networks:
+  hr_network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
