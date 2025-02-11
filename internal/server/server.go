@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/config"
+	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,6 +19,7 @@ func InitServer() {
 	cfg := config.LoadConfig()
 	// Setup
 	e := echo.New()
+	db := database.CreateNewDB(cfg.DBString)
 	e.Logger.SetLevel(log.INFO)
 
 	// middleware
@@ -31,6 +33,7 @@ func InitServer() {
 	e.Use(middleware.CORS())
 
 	// service Registation
+	RegisterService(e, db)
 
 	e.GET("/", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)

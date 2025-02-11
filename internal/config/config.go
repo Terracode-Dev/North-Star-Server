@@ -12,6 +12,7 @@ import (
 type Config struct {
 	AppName    string
 	Port       string
+	DBString   string
 	DBHost     string
 	DBPort     int
 	DBUser     string
@@ -37,6 +38,7 @@ func LoadConfig() *Config {
 		AppName:    getEnv("APP_NAME", "EchoApp"),
 		Port:       getEnv("PORT", ":8080"),
 		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBString:   getEnv("DB_STR", "user:0000@tcp(127.0.0.1:3306)/NS_db"),
 		DBPort:     dbPort,
 		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", ""),
