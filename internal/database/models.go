@@ -4,9 +4,187 @@
 
 package database
 
+import (
+	"database/sql"
+	"time"
+
+	"github.com/shopspring/decimal"
+)
+
 type HrAdmin struct {
 	ID    int64  `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Role  string `json:"role"`
+}
+
+type HrCreateAllowance struct {
+	ID            int64           `json:"id"`
+	AllowanceType string          `json:"allowance_type"`
+	Amount        decimal.Decimal `json:"amount"`
+	UpdatedBy     sql.NullInt64   `json:"updated_by"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
+	UpdatedAt     sql.NullTime    `json:"updated_at"`
+}
+
+type HrCreateService struct {
+	ID        int64         `json:"id"`
+	Category  string        `json:"category"`
+	Value     string        `json:"value"`
+	UpdatedBy sql.NullInt64 `json:"updated_by"`
+	CreatedAt sql.NullTime  `json:"created_at"`
+	UpdatedAt sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpAccessiability struct {
+	ID                int64         `json:"id"`
+	Accessibility     bool          `json:"accessibility"`
+	AccessibilityFrom time.Time     `json:"accessibility_from"`
+	AccessibilityTill time.Time     `json:"accessibility_till"`
+	Enable            bool          `json:"enable"`
+	UpdatedBy         sql.NullInt64 `json:"updated_by"`
+	EmployeeID        int64         `json:"employee_id"`
+	CreatedAt         sql.NullTime  `json:"created_at"`
+	UpdatedAt         sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpAllowance struct {
+	ID         int64           `json:"id"`
+	Name       string          `json:"name"`
+	Amount     decimal.Decimal `json:"amount"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
+	EmployeeID int64           `json:"employee_id"`
+	CreatedAt  sql.NullTime    `json:"created_at"`
+	UpdatedAt  sql.NullTime    `json:"updated_at"`
+}
+
+type HrEmpBankDetail struct {
+	ID            int64         `json:"id"`
+	BankName      string        `json:"bank_name"`
+	BranchName    string        `json:"branch_name"`
+	AccountNumber string        `json:"account_number"`
+	AccountHolder string        `json:"account_holder"`
+	UpdatedBy     sql.NullInt64 `json:"updated_by"`
+	EmployeeID    int64         `json:"employee_id"`
+	CreatedAt     sql.NullTime  `json:"created_at"`
+	UpdatedAt     sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpBenifit struct {
+	ID                 int64         `json:"id"`
+	LeaveStatus        bool          `json:"leave_status"`
+	LeaveType          string        `json:"leave_type"`
+	LeaveCount         int32         `json:"leave_count"`
+	HealthInsurance    string        `json:"health_insurance"`
+	InsuranceFrom      time.Time     `json:"insurance_from"`
+	InsuranceTill      time.Time     `json:"insurance_till"`
+	RetainmentPlan     string        `json:"retainment_plan"`
+	RetainmentPlanFrom time.Time     `json:"retainment_plan_from"`
+	RetainmentPlanTill time.Time     `json:"retainment_plan_till"`
+	Benifits           string        `json:"benifits"`
+	BenifitsFrom       time.Time     `json:"benifits_from"`
+	BenifitsTill       time.Time     `json:"benifits_till"`
+	UpdatedBy          sql.NullInt64 `json:"updated_by"`
+	EmployeeID         int64         `json:"employee_id"`
+	CreatedAt          sql.NullTime  `json:"created_at"`
+	UpdatedAt          sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpCertificate struct {
+	ID         int64         `json:"id"`
+	Date       time.Time     `json:"date"`
+	Name       string        `json:"name"`
+	ImagePath  string        `json:"image_path"`
+	UpdatedBy  sql.NullInt64 `json:"updated_by"`
+	EmployeeID int64         `json:"employee_id"`
+	CreatedAt  sql.NullTime  `json:"created_at"`
+	UpdatedAt  sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpEmergencyDetail struct {
+	ID           int64         `json:"id"`
+	FirstName    string        `json:"first_name"`
+	LastName     string        `json:"last_name"`
+	Relationship string        `json:"relationship"`
+	Contact      string        `json:"contact"`
+	UpdatedBy    sql.NullInt64 `json:"updated_by"`
+	EmployeeID   int64         `json:"employee_id"`
+	CreatedAt    sql.NullTime  `json:"created_at"`
+	UpdatedAt    sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpExpatriate struct {
+	ID            int64           `json:"id"`
+	Expatriate    bool            `json:"expatriate"`
+	Nationality   string          `json:"nationality"`
+	VisaType      string          `json:"visa_type"`
+	VisaFrom      time.Time       `json:"visa_from"`
+	VisaTill      time.Time       `json:"visa_till"`
+	VisaNumber    string          `json:"visa_number"`
+	VisaFee       decimal.Decimal `json:"visa_fee"`
+	VisaImagePath string          `json:"visa_image_path"`
+	UpdatedBy     sql.NullInt64   `json:"updated_by"`
+	EmployeeID    int64           `json:"employee_id"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
+	UpdatedAt     sql.NullTime    `json:"updated_at"`
+}
+
+type HrEmpSalary struct {
+	ID                      int64           `json:"id"`
+	SalaryType              string          `json:"salary_type"`
+	Amount                  decimal.Decimal `json:"amount"`
+	TotalOfSalaryAllowances int32           `json:"total_of_salary_allowances"`
+	PensionEmployer         int32           `json:"pension_employer"`
+	PensionEmployee         int32           `json:"pension_employee"`
+	TotalNetSalary          int32           `json:"total_net_salary"`
+	UpdatedBy               sql.NullInt64   `json:"updated_by"`
+	EmployeeID              int64           `json:"employee_id"`
+	CreatedAt               sql.NullTime    `json:"created_at"`
+	UpdatedAt               sql.NullTime    `json:"updated_at"`
+}
+
+type HrEmpStatus struct {
+	ID          int64         `json:"id"`
+	Status      string        `json:"status"`
+	Department  string        `json:"department"`
+	Designation string        `json:"designation"`
+	ValidFrom   time.Time     `json:"valid_from"`
+	ValidTill   time.Time     `json:"valid_till"`
+	UpdatedBy   sql.NullInt64 `json:"updated_by"`
+	EmployeeID  int64         `json:"employee_id"`
+	CreatedAt   sql.NullTime  `json:"created_at"`
+	UpdatedAt   sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmpUser struct {
+	ID         int64         `json:"id"`
+	Email      string        `json:"email"`
+	Password   string        `json:"password"`
+	UpdatedBy  sql.NullInt64 `json:"updated_by"`
+	EmployeeID int64         `json:"employee_id"`
+	CreatedAt  sql.NullTime  `json:"created_at"`
+	UpdatedAt  sql.NullTime  `json:"updated_at"`
+}
+
+type HrEmployee struct {
+	ID                int64         `json:"id"`
+	FirstName         string        `json:"first_name"`
+	LastName          string        `json:"last_name"`
+	Gender            string        `json:"gender"`
+	Dob               time.Time     `json:"dob"`
+	Religion          string        `json:"religion"`
+	PrimaryNumber     string        `json:"primary_number"`
+	SecondaryNumber   string        `json:"secondary_number"`
+	PassportID        string        `json:"passport_id"`
+	Nationality       string        `json:"nationality"`
+	PassportValidTill time.Time     `json:"passport_valid_till"`
+	Nic               string        `json:"nic"`
+	Country           string        `json:"country"`
+	NicValidTill      time.Time     `json:"nic_valid_till"`
+	Address           string        `json:"address"`
+	CurrentCountry    string        `json:"current_country"`
+	Email             string        `json:"email"`
+	UpdatedBy         sql.NullInt64 `json:"updated_by"`
+	CreatedAt         sql.NullTime  `json:"created_at"`
+	UpdatedAt         sql.NullTime  `json:"updated_at"`
 }
