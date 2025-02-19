@@ -19,7 +19,7 @@ func InitServer() {
 	cfg := config.LoadConfig()
 	// Setup
 	e := echo.New()
-	db := database.CreateNewDB(cfg.DBString)
+	queries, db := database.CreateNewDB(cfg.DBString)
 	e.Logger.SetLevel(log.INFO)
 
 	// middleware
@@ -33,7 +33,7 @@ func InitServer() {
 	e.Use(middleware.CORS())
 
 	// service Registation
-	RegisterService(e, db)
+	RegisterService(e, queries, db)
 
 	e.GET("/", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)

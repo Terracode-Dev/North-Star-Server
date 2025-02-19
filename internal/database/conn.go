@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func CreateNewDB(connStr string) *Queries {
+func CreateNewDB(connStr string) (*Queries, *sql.DB) {
 	db, err := sql.Open("mysql", connStr)
 	if err != nil {
 		log.Fatalf("Error opening database: %v", err)
@@ -26,5 +26,5 @@ func CreateNewDB(connStr string) *Queries {
 
 	dbq := New(db)
 
-	return dbq
+	return dbq, db
 }

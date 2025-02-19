@@ -7,10 +7,57 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 type Querier interface {
+	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
+	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
+	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
+	CreateEmpBankDetails(ctx context.Context, arg CreateEmpBankDetailsParams) error
+	CreateEmpBenifits(ctx context.Context, arg CreateEmpBenifitsParams) error
+	CreateEmpCertificates(ctx context.Context, arg CreateEmpCertificatesParams) error
+	CreateEmpEmergencyDetails(ctx context.Context, arg CreateEmpEmergencyDetailsParams) error
+	CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatriateParams) error
+	CreateEmpSalary(ctx context.Context, arg CreateEmpSalaryParams) error
+	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
+	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
+	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateServices(ctx context.Context, arg CreateServicesParams) error
 	Create_HR_Admin(ctx context.Context, arg Create_HR_AdminParams) (sql.Result, error)
+	DeleteAllowance(ctx context.Context, id int64) error
+	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
+	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
+	DeleteEmpBankDetails(ctx context.Context, employeeID int64) error
+	DeleteEmpBenifits(ctx context.Context, employeeID int64) error
+	DeleteEmpCertificates(ctx context.Context, employeeID int64) error
+	DeleteEmpEmergencyDetails(ctx context.Context, employeeID int64) error
+	DeleteEmpExpatriate(ctx context.Context, employeeID int64) error
+	DeleteEmpSalary(ctx context.Context, employeeID int64) error
+	DeleteEmpStatus(ctx context.Context, employeeID int64) error
+	DeleteEmpUser(ctx context.Context, employeeID int64) error
+	DeleteEmployee(ctx context.Context, id int64) error
+	DeleteService(ctx context.Context, id int64) error
+	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
+	GetAllowances(ctx context.Context) ([]HrCreateAllowance, error)
+	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]HrEmployee, error)
+	GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error)
+	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
+	GetService(ctx context.Context, category string) (HrCreateService, error)
+	GetServices(ctx context.Context) ([]HrCreateService, error)
+	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
+	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
+	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
+	UpdateEmpBankDetails(ctx context.Context, arg UpdateEmpBankDetailsParams) error
+	UpdateEmpBenifits(ctx context.Context, arg UpdateEmpBenifitsParams) error
+	UpdateEmpCertificates(ctx context.Context, arg UpdateEmpCertificatesParams) error
+	UpdateEmpEmergencyDetails(ctx context.Context, arg UpdateEmpEmergencyDetailsParams) error
+	UpdateEmpExpatriate(ctx context.Context, arg UpdateEmpExpatriateParams) error
+	UpdateEmpSalary(ctx context.Context, arg UpdateEmpSalaryParams) error
+	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
+	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error
+	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) error
+	UpdateService(ctx context.Context, arg UpdateServiceParams) error
 }
 
 var _ Querier = (*Queries)(nil)
