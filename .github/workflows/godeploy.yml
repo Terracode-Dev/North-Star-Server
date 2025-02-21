@@ -31,6 +31,14 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ubuntu
+          DB_STR: ${{ secrets.DB_STR }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          GOOSE_DRIVER: ${{ secrets.GOOSE_DRIVER }}
+          GOOSE_DBSTRING: ${{ secrets.GOOSE_DBSTRING }}
+          GOOSE_MIGRATION_DIR: ${{ secrets.GOOSE_MIGRATION_DIR }}
+
         run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -57,6 +65,16 @@ jobs:
           Restart=always
           User=ubuntu
           WorkingDirectory=/home/ubuntu
+
+
+          #.env content -> service environemtn
+          Environment=DB_STR=$DB_STR
+          Environment=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+          Environment=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+          Environment=AWS_REGION=$AWS_REGION
+          Environment=GOOSE_DRIVER=$GOOSE_DRIVER
+          Environment=GOOSE_DBSTRING=$GOOSE_DBSTRING
+          Environment=GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR
 
 
           [Install]
