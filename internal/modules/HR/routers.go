@@ -1,5 +1,9 @@
 package hr
 
+import (
+	rba "github.com/Terracode-Dev/North-Star-Server/internal/pkg/RBA"
+)
+
 func (S *HRService) registerRoutes() {
 	// route gorup name
 	hrRoute := S.e.Group("/hr-api")
@@ -14,7 +18,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.PUT("/admin/payroll/:id", S.updatePayroll)
 	hrRoute.PUT("/admin/suspend", S.suspendAdmin)
 
-	//employee routes
+	// employee routes
 	hrRoute.POST("/employee", S.createEmployee)
 	hrRoute.GET("/employee", S.getEmployee)
 	hrRoute.GET("/employee/:id", S.getEmployeeOne)
@@ -32,18 +36,21 @@ func (S *HRService) registerRoutes() {
 	hrRoute.DELETE("/employee/:id", S.deleteEmployee)
 	hrRoute.GET("/employee/login", S.employeeLogin)
 
-	//service routes
+	// service routes
 	hrRoute.POST("/service", S.createAdminService)
 	hrRoute.GET("/service", S.getAdminServices)
 	hrRoute.GET("/service/:category", S.getOneAdminService)
 	hrRoute.PUT("/service/:id", S.updateAdminService)
 	hrRoute.DELETE("/service/:id", S.deleteAdminService)
 
-	//allowance routes
+	// allowance routes
 	hrRoute.POST("/allowance", S.createAllowances)
 	hrRoute.GET("/allowance", S.getAllowances)
 	hrRoute.GET("/allowance/:id", S.getOneAllowance)
 	hrRoute.PUT("/allowance/:id", S.updateAllowance)
 	hrRoute.DELETE("/allowance/:id", S.deleteAllowance)
 
+	hrRoute.POST("/testlogin", S.TestLogin)
+	hrRoute.GET("/testauth", S.TestAuth, rba.AuthMiddelware([]string{"admin", "emp"}))
+	hrRoute.POST("/testS3upload", S.TestS3Upload)
 }
