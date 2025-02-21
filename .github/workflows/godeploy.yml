@@ -47,7 +47,7 @@ jobs:
           scp -i private_key.pem -o StrictHostKeyChecking=no nsserver $EC2_USER@$EC2_HOST:/home/ubuntu/nsserver
 
           # SSH into EC2 and restart the application
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOL
 
           sudo mv /home/ubuntu/nsserver /usr/local/bin/nsserver
           sudo chmod +x /usr/local/bin/nsserver
@@ -93,6 +93,6 @@ jobs:
 
           # Restart
           sudo systemctl restart nsserver
-          EOF
+          EOL
 
           rm -f private_key.pem  # Cleanup private key
