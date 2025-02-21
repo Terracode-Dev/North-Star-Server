@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AdminLogin(ctx context.Context, arg AdminLoginParams) (int64, error)
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
@@ -23,8 +24,11 @@ type Querier interface {
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
+	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
+	CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error
 	CreateServices(ctx context.Context, arg CreateServicesParams) error
-	Create_HR_Admin(ctx context.Context, arg Create_HR_AdminParams) (sql.Result, error)
+	CreateTax(ctx context.Context, arg CreateTaxParams) error
 	DeleteAllowance(ctx context.Context, id int64) error
 	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
 	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
@@ -37,14 +41,23 @@ type Querier interface {
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
 	DeleteEmployee(ctx context.Context, id int64) error
+	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteService(ctx context.Context, id int64) error
+	DeleteTax(ctx context.Context, id int64) error
+	EmployeeLogin(ctx context.Context, arg EmployeeLoginParams) (int64, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
 	GetAllowances(ctx context.Context) ([]HrCreateAllowance, error)
 	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]HrEmployee, error)
-	GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error)
+	GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeByIDRow, error)
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
+	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
+	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
 	GetService(ctx context.Context, category string) (HrCreateService, error)
 	GetServices(ctx context.Context) ([]HrCreateService, error)
+	GetTax(ctx context.Context) ([]HrTax, error)
+	SelectHrAdmin(ctx context.Context) ([]HrAdmin, error)
+	SelectOneHrAdmin(ctx context.Context, id int64) (HrAdmin, error)
+	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
 	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
 	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
@@ -57,7 +70,11 @@ type Querier interface {
 	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
 	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error
 	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) error
+	UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error
+	UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error
+	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
 	UpdateService(ctx context.Context, arg UpdateServiceParams) error
+	UpdateTax(ctx context.Context, arg UpdateTaxParams) error
 }
 
 var _ Querier = (*Queries)(nil)

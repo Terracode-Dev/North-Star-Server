@@ -12,10 +12,23 @@ import (
 )
 
 type HrAdmin struct {
-	ID    int64  `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	ID        int64         `json:"id"`
+	UserName  string        `json:"user_name"`
+	Email     string        `json:"email"`
+	Password  string        `json:"password"`
+	Role      string        `json:"role"`
+	Status    string        `json:"status"`
+	BranchID  int64         `json:"branch_id"`
+	CreatedBy sql.NullInt64 `json:"created_by"`
+	UpdatedBy sql.NullInt64 `json:"updated_by"`
+	CreatedAt sql.NullTime  `json:"created_at"`
+	UpdatedAt sql.NullTime  `json:"updated_at"`
+}
+
+type HrBranch struct {
+	ID        int64        `json:"id"`
+	Name      string       `json:"name"`
+	CreatedAt sql.NullTime `json:"created_at"`
 }
 
 type HrCreateAllowance struct {
@@ -133,10 +146,10 @@ type HrEmpSalary struct {
 	ID                      int64           `json:"id"`
 	SalaryType              string          `json:"salary_type"`
 	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances int32           `json:"total_of_salary_allowances"`
-	PensionEmployer         int32           `json:"pension_employer"`
-	PensionEmployee         int32           `json:"pension_employee"`
-	TotalNetSalary          int32           `json:"total_net_salary"`
+	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
+	PensionEmployer         decimal.Decimal `json:"pension_employer"`
+	PensionEmployee         decimal.Decimal `json:"pension_employee"`
+	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
 	UpdatedBy               sql.NullInt64   `json:"updated_by"`
 	EmployeeID              int64           `json:"employee_id"`
 	CreatedAt               sql.NullTime    `json:"created_at"`
@@ -162,6 +175,7 @@ type HrEmpUser struct {
 	Password   string        `json:"password"`
 	UpdatedBy  sql.NullInt64 `json:"updated_by"`
 	EmployeeID int64         `json:"employee_id"`
+	BranchID   int64         `json:"branch_id"`
 	CreatedAt  sql.NullTime  `json:"created_at"`
 	UpdatedAt  sql.NullTime  `json:"updated_at"`
 }
@@ -187,4 +201,40 @@ type HrEmployee struct {
 	UpdatedBy         sql.NullInt64 `json:"updated_by"`
 	CreatedAt         sql.NullTime  `json:"created_at"`
 	UpdatedAt         sql.NullTime  `json:"updated_at"`
+}
+
+type HrPayroll struct {
+	ID                      int64           `json:"id"`
+	Employee                string          `json:"employee"`
+	Date                    time.Time       `json:"date"`
+	SalaryType              string          `json:"salary_type"`
+	Amount                  decimal.Decimal `json:"amount"`
+	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
+	Pension                 bool            `json:"pension"`
+	PensionEmployer         sql.NullString  `json:"pension_employer"`
+	PensionEmployee         sql.NullString  `json:"pension_employee"`
+	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
+	Tax                     bool            `json:"tax"`
+	TaxPercentage           sql.NullString  `json:"tax_percentage"`
+	TotalNetSalaryAfterTax  decimal.Decimal `json:"total_net_salary_after_tax"`
+	UpdatedBy               sql.NullInt64   `json:"updated_by"`
+	CreatedAt               sql.NullTime    `json:"created_at"`
+	UpdatedAt               sql.NullTime    `json:"updated_at"`
+}
+
+type HrPayrollAllowance struct {
+	ID        int64           `json:"id"`
+	Name      string          `json:"name"`
+	Amount    decimal.Decimal `json:"amount"`
+	PayrollID int64           `json:"payroll_id"`
+	UpdatedBy sql.NullInt64   `json:"updated_by"`
+	CreatedAt sql.NullTime    `json:"created_at"`
+}
+
+type HrTax struct {
+	ID            int64           `json:"id"`
+	TaxFrom       decimal.Decimal `json:"tax_from"`
+	TaxTo         decimal.Decimal `json:"tax_to"`
+	TaxPercentage decimal.Decimal `json:"tax_percentage"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
 }
