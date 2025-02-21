@@ -12,7 +12,7 @@ func GenarateJWTkey(exp time.Duration, payload interface{}, sec []byte) (string,
 		"data": payload,
 		"exp":  time.Now().Add(exp).Unix(),
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claim)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	strToken, err := token.SignedString(sec)
 	if err != nil {
 		return "", err

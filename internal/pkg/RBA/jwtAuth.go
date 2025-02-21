@@ -10,9 +10,10 @@ import (
 )
 
 type RBAauth struct {
-	Id    int    `json:"id"`
-	Role  string `json:"role"`
-	Email string `json:"email"`
+	Id     int    `json:"id"`
+	Role   string `json:"role"`
+	Email  string `json:"email"`
+	Branch int    `json:"branch"`
 }
 
 type JWTPayload struct {
@@ -35,6 +36,8 @@ func AuthMiddelware(role []string) echo.MiddlewareFunc {
 			tokenRole := data.Data.Role
 			if contains(role, tokenRole) {
 				c.Set("user_id", data.Data.Id)
+				c.Set("branch", data.Data.Branch)
+				c.Set("role", data.Data.Role)
 				return next(c)
 			}
 			return c.JSON(http.StatusUnauthorized, "unauthorized route access")

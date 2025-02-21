@@ -9,10 +9,13 @@ import (
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/config"
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
+	aws "github.com/Terracode-Dev/North-Star-Server/internal/pkg/aws"
 
+	_ "github.com/Terracode-Dev/North-Star-Server/docs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func InitServer() {
@@ -20,6 +23,8 @@ func InitServer() {
 	// Setup
 	e := echo.New()
 	queries, db := database.CreateNewDB(cfg.DBString)
+	s3client := aws.CreateS3Client()
+
 	e.Logger.SetLevel(log.INFO)
 
 	// middleware
@@ -33,12 +38,14 @@ func InitServer() {
 	e.Use(middleware.CORS())
 
 	// service Registation
-	RegisterService(e, queries, db)
+	RegisterService(e, cfg, queries, db, s3client)
 
 	e.GET("/", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
 	})
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	s := &http.Server{
 		Addr:         cfg.Port,

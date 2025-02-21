@@ -1,0 +1,100 @@
+basePath: /hr-api
+definitions:
+  hr.TUser:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: This is a sample server Petstore server.
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /testS3upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a file to S3 and returns the filename
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: File uploaded successfully
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Upload a file to S3
+      tags:
+      - upload-file
+  /testauth:
+    get:
+      consumes:
+      - application/json
+      description: Authenticates user and returns a JWT token in a cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: login
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: User Auth
+      tags:
+      - auth
+  /testlogin:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user and returns a JWT token in a cookie
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/hr.TUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: login
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: User login
+      tags:
+      - auth
+swagger: "2.0"
