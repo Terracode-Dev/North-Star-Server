@@ -36,12 +36,12 @@ jobs:
           chmod 600 private_key.pem
 
           # Copy bin -> EC2
-          scp -i private_key.pem -o StrictHostKeyChecking=no nsserver $EC2_USER@$EC2_HOST:/home/$EC2_USER/nsserver
+          scp -i private_key.pem -o StrictHostKeyChecking=no nsserver $EC2_USER@$EC2_HOST:/home/ubuntu/nsserver
 
           # SSH into EC2 and restart the application
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
 
-          sudo mv /home/$EC2_USER/nsserver /usr/local/bin/nsserver
+          sudo mv /home/ubuntu/nsserver /usr/local/bin/nsserver
           sudo chmod +x /usr/local/bin/nsserver
 
           # Check if the systemd service exists, and create it if it doesn't
