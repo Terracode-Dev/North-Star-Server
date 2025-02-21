@@ -52,9 +52,14 @@ jobs:
           sudo mv /home/ubuntu/nsserver /usr/local/bin/nsserver
           sudo chmod +x /usr/local/bin/nsserver
 
-          # Check if the systemd service exists, and create it if it doesn't
+
           if [ ! -f /etc/systemd/system/nsserver.service ]; then
-          echo "Creating systemd service for nsserver go bin..."
+            echo "Creating systemd service for nsserver go bin..."
+          else
+            echo "Updating systemd service for nsserver go bin..."
+          fi
+
+
           sudo bash -c 'cat > /etc/systemd/system/nsserver.service <<EOL
           [Unit]
           Description=ns-server-go application
@@ -84,7 +89,7 @@ jobs:
 
           sudo systemctl daemon-reload
           sudo systemctl enable nsserver
-          fi
+
 
           # Restart
           sudo systemctl restart nsserver
