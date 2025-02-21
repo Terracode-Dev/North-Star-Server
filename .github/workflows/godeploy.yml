@@ -1,0 +1,75 @@
+name: Deploy ns-server-go to EC2
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    #environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Build application
+        run: |
+          go mod tidy
+          go build -o nsserver cmd/main.go
+
+      - name: deploy to EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ubuntu
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Copy bin -> EC2
+          scp -i private_key.pem -o StrictHostKeyChecking=no nsserver $EC2_USER@$EC2_HOST:/home/$EC2_USER/nsserver
+
+          # SSH into EC2 and restart the application
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+
+          sudo mv /home/$EC2_USER/nsserver /usr/local/bin/nsserver
+          sudo chmod +x /usr/local/bin/nsserver
+
+          # Check if the systemd service exists, and create it if it doesn't
+          if [ ! -f /etc/systemd/system/nsserver.service ]; then
+          echo "Creating systemd service for nsserver go bin..."
+          sudo bash -c 'cat > /etc/systemd/system/nsserver.service <<EOL
+          [Unit]
+          Description=ns-server-go application
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/local/bin/nsserver
+          Restart=always
+          User=ubuntu
+          WorkingDirectory=/home/ubuntu
+
+
+          [Install]
+          WantedBy=multi-user.target
+          EOL'
+
+
+          sudo systemctl daemon-reload
+          sudo systemctl enable nsserver
+          fi
+
+          # Restart
+          sudo systemctl restart nsserver
+          EOF
+
+          rm -f private_key.pem  # Cleanup private key
