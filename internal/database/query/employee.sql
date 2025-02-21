@@ -52,9 +52,9 @@ INSERT INTO HR_EMP_Benifits (
 
 -- name: CreateEmpUser :exec
 INSERT INTO HR_EMP_User (
-    email, password, updated_by, employee_id 
+    email, password, updated_by, employee_id, branch_id 
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?,?
 );
 
 -- name: CreateEmpAllowances :exec
@@ -87,42 +87,89 @@ LIMIT ? OFFSET ?;
 -- name: GetEmployeeDOB :one
 SELECT dob FROM HR_Employee WHERE id = ?;
 
--- name: GetEmployeeByID :one
+-- name: GetEmployeeByID :many
 SELECT 
     e.id AS employee_id, 
-    e.first_name, e.last_name, e.gender, e.dob, e.religion, 
-    e.primary_number, e.secondary_number, e.passport_id, e.nationality, 
-    e.passport_valid_till, e.nic, e.country, e.nic_valid_till, 
-    e.address,e.current_country, e.email, e.updated_by, e.created_at, e.updated_at,
+    e.first_name, 
+    e.last_name, 
+    e.gender, 
+    e.dob, 
+    e.religion, 
+    e.primary_number, 
+    e.secondary_number, 
+    e.passport_id, 
+    e.nationality, 
+    e.passport_valid_till, 
+    e.nic, 
+    e.country, 
+    e.nic_valid_till, 
+    e.address,
+    e.current_country, 
+    e.email, 
+    e.updated_by, 
+    e.created_at, 
+    e.updated_at,
 
-    ed.first_name AS emergency_first_name, ed.last_name AS emergency_last_name, 
-    ed.relationship, ed.contact AS emergency_contact, 
+    ed.first_name AS emergency_first_name, 
+    ed.last_name AS emergency_last_name, 
+    ed.relationship, 
+    ed.contact AS emergency_contact, 
 
-    bd.bank_name, bd.branch_name, bd.account_number, bd.account_holder,
+    bd.bank_name, 
+    bd.branch_name, 
+    bd.account_number, 
+    bd.account_holder,
 
-    s.salary_type, s.amount, s.Total_of_salary_allowances, 
-    s.pension_employer, s.pension_employee, s.total_net_salary, 
+    s.salary_type, 
+    s.amount, 
+    s.Total_of_salary_allowances, 
+    s.pension_employer, 
+    s.pension_employee, 
+    s.total_net_salary, 
 
-    cert.date AS certificate_date, cert.name AS certificate_name, 
+    cert.date AS certificate_date, 
+    cert.name AS certificate_name, 
     cert.image_path AS certificate_image, 
 
-    stat.status, stat.department, stat.designation, 
-    stat.valid_from AS status_valid_from, stat.valid_till AS status_valid_till, 
+    stat.status, 
+    stat.department, 
+    stat.designation, 
+    stat.valid_from AS status_valid_from, 
+    stat.valid_till AS status_valid_till, 
 
-    ben.leave_status, ben.leave_type, ben.leave_count, 
-    ben.health_insurance, ben.insurance_from, ben.insurance_till, 
-    ben.retainment_plan, ben.retainment_plan_from, ben.retainment_plan_till, 
-    ben.benifits, ben.benifits_from, ben.benifits_till, 
+    ben.leave_status, 
+    ben.leave_type, 
+    ben.leave_count, 
+    ben.health_insurance, 
+    ben.insurance_from, 
+    ben.insurance_till, 
+    ben.retainment_plan, 
+    ben.retainment_plan_from, 
+    ben.retainment_plan_till, 
+    ben.benifits, 
+    ben.benifits_from, 
+    ben.benifits_till, 
 
-    usr.email AS user_email, usr.password AS user_password, 
+    usr.email AS user_email, 
+    usr.password AS user_password, 
+    usr.branch_id AS user_branch_id,
 
-    allw.name AS allowance_name, allw.amount AS allowance_amount, 
+    allw.name AS allowance_name, 
+    allw.amount AS allowance_amount, 
 
-    exp.expatriate, exp.nationality AS exp_nationality, 
-    exp.visa_type, exp.visa_from, exp.visa_till, exp.visa_number, 
-    exp.visa_fee, exp.visa_image_path, 
+    exp.expatriate, 
+    exp.nationality AS exp_nationality, 
+    exp.visa_type, 
+    exp.visa_from, 
+    exp.visa_till, 
+    exp.visa_number, 
+    exp.visa_fee, 
+    exp.visa_image_path, 
 
-    acc.accessibility, acc.accessibility_from, acc.accessibility_till, acc.enable 
+    acc.accessibility, 
+    acc.accessibility_from, 
+    acc.accessibility_till, 
+    acc.enable 
 
 FROM HR_Employee e
 LEFT JOIN HR_EMP_Emergency_Details ed ON e.id = ed.employee_id
@@ -233,7 +280,8 @@ DELETE FROM HR_EMP_Expatriate WHERE employee_id = ?;
 -- name: DeleteEmpAccessiability :exec
 DELETE FROM HR_EMP_Accessiability WHERE employee_id = ?;
 
-
+-- name: EmployeeLogin :one
+SELECT employee_id FROM HR_EMP_User WHERE email = ? AND password = ?;
 
 
 

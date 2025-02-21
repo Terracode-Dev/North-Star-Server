@@ -245,10 +245,10 @@ INSERT INTO HR_EMP_Salary (
 type CreateEmpSalaryParams struct {
 	SalaryType              string          `json:"salary_type"`
 	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances int32           `json:"total_of_salary_allowances"`
-	PensionEmployer         int32           `json:"pension_employer"`
-	PensionEmployee         int32           `json:"pension_employee"`
-	TotalNetSalary          int32           `json:"total_net_salary"`
+	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
+	PensionEmployer         decimal.Decimal `json:"pension_employer"`
+	PensionEmployee         decimal.Decimal `json:"pension_employee"`
+	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
 	EmployeeID              int64           `json:"employee_id"`
 	UpdatedBy               sql.NullInt64   `json:"updated_by"`
 }
@@ -300,9 +300,9 @@ func (q *Queries) CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams
 
 const createEmpUser = `-- name: CreateEmpUser :exec
 INSERT INTO HR_EMP_User (
-    email, password, updated_by, employee_id 
+    email, password, updated_by, employee_id, branch_id 
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?,?
 )
 `
 
@@ -311,6 +311,7 @@ type CreateEmpUserParams struct {
 	Password   string        `json:"password"`
 	UpdatedBy  sql.NullInt64 `json:"updated_by"`
 	EmployeeID int64         `json:"employee_id"`
+	BranchID   int64         `json:"branch_id"`
 }
 
 func (q *Queries) CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error {
@@ -319,6 +320,7 @@ func (q *Queries) CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) er
 		arg.Password,
 		arg.UpdatedBy,
 		arg.EmployeeID,
+		arg.BranchID,
 	)
 	return err
 }
@@ -474,6 +476,22 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
 	return err
 }
 
+const employeeLogin = `-- name: EmployeeLogin :one
+SELECT employee_id FROM HR_EMP_User WHERE email = ? AND password = ?
+`
+
+type EmployeeLoginParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (q *Queries) EmployeeLogin(ctx context.Context, arg EmployeeLoginParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, employeeLogin, arg.Email, arg.Password)
+	var employee_id int64
+	err := row.Scan(&employee_id)
+	return employee_id, err
+}
+
 const getEmployee = `-- name: GetEmployee :many
 SELECT id, first_name, last_name, gender, dob, religion, primary_number, secondary_number, passport_id, nationality, passport_valid_till, nic, country, nic_valid_till, address, current_country, email, updated_by, created_at, updated_at FROM HR_Employee
 ORDER BY id DESC
@@ -529,42 +547,89 @@ func (q *Queries) GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]HrE
 	return items, nil
 }
 
-const getEmployeeByID = `-- name: GetEmployeeByID :one
+const getEmployeeByID = `-- name: GetEmployeeByID :many
 SELECT 
     e.id AS employee_id, 
-    e.first_name, e.last_name, e.gender, e.dob, e.religion, 
-    e.primary_number, e.secondary_number, e.passport_id, e.nationality, 
-    e.passport_valid_till, e.nic, e.country, e.nic_valid_till, 
-    e.address,e.current_country, e.email, e.updated_by, e.created_at, e.updated_at,
+    e.first_name, 
+    e.last_name, 
+    e.gender, 
+    e.dob, 
+    e.religion, 
+    e.primary_number, 
+    e.secondary_number, 
+    e.passport_id, 
+    e.nationality, 
+    e.passport_valid_till, 
+    e.nic, 
+    e.country, 
+    e.nic_valid_till, 
+    e.address,
+    e.current_country, 
+    e.email, 
+    e.updated_by, 
+    e.created_at, 
+    e.updated_at,
 
-    ed.first_name AS emergency_first_name, ed.last_name AS emergency_last_name, 
-    ed.relationship, ed.contact AS emergency_contact, 
+    ed.first_name AS emergency_first_name, 
+    ed.last_name AS emergency_last_name, 
+    ed.relationship, 
+    ed.contact AS emergency_contact, 
 
-    bd.bank_name, bd.branch_name, bd.account_number, bd.account_holder,
+    bd.bank_name, 
+    bd.branch_name, 
+    bd.account_number, 
+    bd.account_holder,
 
-    s.salary_type, s.amount, s.Total_of_salary_allowances, 
-    s.pension_employer, s.pension_employee, s.total_net_salary, 
+    s.salary_type, 
+    s.amount, 
+    s.Total_of_salary_allowances, 
+    s.pension_employer, 
+    s.pension_employee, 
+    s.total_net_salary, 
 
-    cert.date AS certificate_date, cert.name AS certificate_name, 
+    cert.date AS certificate_date, 
+    cert.name AS certificate_name, 
     cert.image_path AS certificate_image, 
 
-    stat.status, stat.department, stat.designation, 
-    stat.valid_from AS status_valid_from, stat.valid_till AS status_valid_till, 
+    stat.status, 
+    stat.department, 
+    stat.designation, 
+    stat.valid_from AS status_valid_from, 
+    stat.valid_till AS status_valid_till, 
 
-    ben.leave_status, ben.leave_type, ben.leave_count, 
-    ben.health_insurance, ben.insurance_from, ben.insurance_till, 
-    ben.retainment_plan, ben.retainment_plan_from, ben.retainment_plan_till, 
-    ben.benifits, ben.benifits_from, ben.benifits_till, 
+    ben.leave_status, 
+    ben.leave_type, 
+    ben.leave_count, 
+    ben.health_insurance, 
+    ben.insurance_from, 
+    ben.insurance_till, 
+    ben.retainment_plan, 
+    ben.retainment_plan_from, 
+    ben.retainment_plan_till, 
+    ben.benifits, 
+    ben.benifits_from, 
+    ben.benifits_till, 
 
-    usr.email AS user_email, usr.password AS user_password, 
+    usr.email AS user_email, 
+    usr.password AS user_password, 
+    usr.branch_id AS user_branch_id,
 
-    allw.name AS allowance_name, allw.amount AS allowance_amount, 
+    allw.name AS allowance_name, 
+    allw.amount AS allowance_amount, 
 
-    exp.expatriate, exp.nationality AS exp_nationality, 
-    exp.visa_type, exp.visa_from, exp.visa_till, exp.visa_number, 
-    exp.visa_fee, exp.visa_image_path, 
+    exp.expatriate, 
+    exp.nationality AS exp_nationality, 
+    exp.visa_type, 
+    exp.visa_from, 
+    exp.visa_till, 
+    exp.visa_number, 
+    exp.visa_fee, 
+    exp.visa_image_path, 
 
-    acc.accessibility, acc.accessibility_from, acc.accessibility_till, acc.enable 
+    acc.accessibility, 
+    acc.accessibility_from, 
+    acc.accessibility_till, 
+    acc.enable 
 
 FROM HR_Employee e
 LEFT JOIN HR_EMP_Emergency_Details ed ON e.id = ed.employee_id
@@ -612,10 +677,10 @@ type GetEmployeeByIDRow struct {
 	AccountHolder           sql.NullString `json:"account_holder"`
 	SalaryType              sql.NullString `json:"salary_type"`
 	Amount                  sql.NullString `json:"amount"`
-	TotalOfSalaryAllowances sql.NullInt32  `json:"total_of_salary_allowances"`
-	PensionEmployer         sql.NullInt32  `json:"pension_employer"`
-	PensionEmployee         sql.NullInt32  `json:"pension_employee"`
-	TotalNetSalary          sql.NullInt32  `json:"total_net_salary"`
+	TotalOfSalaryAllowances sql.NullString `json:"total_of_salary_allowances"`
+	PensionEmployer         sql.NullString `json:"pension_employer"`
+	PensionEmployee         sql.NullString `json:"pension_employee"`
+	TotalNetSalary          sql.NullString `json:"total_net_salary"`
 	CertificateDate         sql.NullTime   `json:"certificate_date"`
 	CertificateName         sql.NullString `json:"certificate_name"`
 	CertificateImage        sql.NullString `json:"certificate_image"`
@@ -638,6 +703,7 @@ type GetEmployeeByIDRow struct {
 	BenifitsTill            sql.NullTime   `json:"benifits_till"`
 	UserEmail               sql.NullString `json:"user_email"`
 	UserPassword            sql.NullString `json:"user_password"`
+	UserBranchID            sql.NullInt64  `json:"user_branch_id"`
 	AllowanceName           sql.NullString `json:"allowance_name"`
 	AllowanceAmount         sql.NullString `json:"allowance_amount"`
 	Expatriate              sql.NullBool   `json:"expatriate"`
@@ -654,82 +720,99 @@ type GetEmployeeByIDRow struct {
 	Enable                  sql.NullBool   `json:"enable"`
 }
 
-func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error) {
-	row := q.db.QueryRowContext(ctx, getEmployeeByID, id)
-	var i GetEmployeeByIDRow
-	err := row.Scan(
-		&i.EmployeeID,
-		&i.FirstName,
-		&i.LastName,
-		&i.Gender,
-		&i.Dob,
-		&i.Religion,
-		&i.PrimaryNumber,
-		&i.SecondaryNumber,
-		&i.PassportID,
-		&i.Nationality,
-		&i.PassportValidTill,
-		&i.Nic,
-		&i.Country,
-		&i.NicValidTill,
-		&i.Address,
-		&i.CurrentCountry,
-		&i.Email,
-		&i.UpdatedBy,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.EmergencyFirstName,
-		&i.EmergencyLastName,
-		&i.Relationship,
-		&i.EmergencyContact,
-		&i.BankName,
-		&i.BranchName,
-		&i.AccountNumber,
-		&i.AccountHolder,
-		&i.SalaryType,
-		&i.Amount,
-		&i.TotalOfSalaryAllowances,
-		&i.PensionEmployer,
-		&i.PensionEmployee,
-		&i.TotalNetSalary,
-		&i.CertificateDate,
-		&i.CertificateName,
-		&i.CertificateImage,
-		&i.Status,
-		&i.Department,
-		&i.Designation,
-		&i.StatusValidFrom,
-		&i.StatusValidTill,
-		&i.LeaveStatus,
-		&i.LeaveType,
-		&i.LeaveCount,
-		&i.HealthInsurance,
-		&i.InsuranceFrom,
-		&i.InsuranceTill,
-		&i.RetainmentPlan,
-		&i.RetainmentPlanFrom,
-		&i.RetainmentPlanTill,
-		&i.Benifits,
-		&i.BenifitsFrom,
-		&i.BenifitsTill,
-		&i.UserEmail,
-		&i.UserPassword,
-		&i.AllowanceName,
-		&i.AllowanceAmount,
-		&i.Expatriate,
-		&i.ExpNationality,
-		&i.VisaType,
-		&i.VisaFrom,
-		&i.VisaTill,
-		&i.VisaNumber,
-		&i.VisaFee,
-		&i.VisaImagePath,
-		&i.Accessibility,
-		&i.AccessibilityFrom,
-		&i.AccessibilityTill,
-		&i.Enable,
-	)
-	return i, err
+func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeByIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployeeByID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmployeeByIDRow
+	for rows.Next() {
+		var i GetEmployeeByIDRow
+		if err := rows.Scan(
+			&i.EmployeeID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Gender,
+			&i.Dob,
+			&i.Religion,
+			&i.PrimaryNumber,
+			&i.SecondaryNumber,
+			&i.PassportID,
+			&i.Nationality,
+			&i.PassportValidTill,
+			&i.Nic,
+			&i.Country,
+			&i.NicValidTill,
+			&i.Address,
+			&i.CurrentCountry,
+			&i.Email,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.EmergencyFirstName,
+			&i.EmergencyLastName,
+			&i.Relationship,
+			&i.EmergencyContact,
+			&i.BankName,
+			&i.BranchName,
+			&i.AccountNumber,
+			&i.AccountHolder,
+			&i.SalaryType,
+			&i.Amount,
+			&i.TotalOfSalaryAllowances,
+			&i.PensionEmployer,
+			&i.PensionEmployee,
+			&i.TotalNetSalary,
+			&i.CertificateDate,
+			&i.CertificateName,
+			&i.CertificateImage,
+			&i.Status,
+			&i.Department,
+			&i.Designation,
+			&i.StatusValidFrom,
+			&i.StatusValidTill,
+			&i.LeaveStatus,
+			&i.LeaveType,
+			&i.LeaveCount,
+			&i.HealthInsurance,
+			&i.InsuranceFrom,
+			&i.InsuranceTill,
+			&i.RetainmentPlan,
+			&i.RetainmentPlanFrom,
+			&i.RetainmentPlanTill,
+			&i.Benifits,
+			&i.BenifitsFrom,
+			&i.BenifitsTill,
+			&i.UserEmail,
+			&i.UserPassword,
+			&i.UserBranchID,
+			&i.AllowanceName,
+			&i.AllowanceAmount,
+			&i.Expatriate,
+			&i.ExpNationality,
+			&i.VisaType,
+			&i.VisaFrom,
+			&i.VisaTill,
+			&i.VisaNumber,
+			&i.VisaFee,
+			&i.VisaImagePath,
+			&i.Accessibility,
+			&i.AccessibilityFrom,
+			&i.AccessibilityTill,
+			&i.Enable,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getEmployeeDOB = `-- name: GetEmployeeDOB :one
@@ -963,10 +1046,10 @@ WHERE employee_id = ?
 type UpdateEmpSalaryParams struct {
 	SalaryType              string          `json:"salary_type"`
 	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances int32           `json:"total_of_salary_allowances"`
-	PensionEmployer         int32           `json:"pension_employer"`
-	PensionEmployee         int32           `json:"pension_employee"`
-	TotalNetSalary          int32           `json:"total_net_salary"`
+	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
+	PensionEmployer         decimal.Decimal `json:"pension_employer"`
+	PensionEmployee         decimal.Decimal `json:"pension_employee"`
+	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
 	UpdatedBy               sql.NullInt64   `json:"updated_by"`
 	EmployeeID              int64           `json:"employee_id"`
 }

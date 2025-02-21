@@ -10,16 +10,162 @@ import (
 	"database/sql"
 )
 
-const create_HR_Admin = `-- name: Create_HR_Admin :execresult
-INSERT INTO HR_Admin ( Name, Email, Role ) VALUES (?, ?, ?)
+const adminLogin = `-- name: AdminLogin :one
+SELECT id FROM HR_Admin WHERE email = ? AND password = ?
 `
 
-type Create_HR_AdminParams struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
+type AdminLoginParams struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-func (q *Queries) Create_HR_Admin(ctx context.Context, arg Create_HR_AdminParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, create_HR_Admin, arg.Name, arg.Email, arg.Role)
+func (q *Queries) AdminLogin(ctx context.Context, arg AdminLoginParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, adminLogin, arg.Email, arg.Password)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createHrAdmin = `-- name: CreateHrAdmin :exec
+INSERT INTO HR_Admin (user_name, email, password, role, status, branch_id, created_by, updated_by
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?
+)
+`
+
+type CreateHrAdminParams struct {
+	UserName  string        `json:"user_name"`
+	Email     string        `json:"email"`
+	Password  string        `json:"password"`
+	Role      string        `json:"role"`
+	Status    string        `json:"status"`
+	BranchID  int64         `json:"branch_id"`
+	CreatedBy sql.NullInt64 `json:"created_by"`
+	UpdatedBy sql.NullInt64 `json:"updated_by"`
+}
+
+func (q *Queries) CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error {
+	_, err := q.db.ExecContext(ctx, createHrAdmin,
+		arg.UserName,
+		arg.Email,
+		arg.Password,
+		arg.Role,
+		arg.Status,
+		arg.BranchID,
+		arg.CreatedBy,
+		arg.UpdatedBy,
+	)
+	return err
+}
+
+const deleteHrAdmin = `-- name: DeleteHrAdmin :exec
+DELETE FROM HR_Admin WHERE id = ?
+`
+
+func (q *Queries) DeleteHrAdmin(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteHrAdmin, id)
+	return err
+}
+
+const selectHrAdmin = `-- name: SelectHrAdmin :many
+SELECT id, user_name, email, password, role, status, branch_id, created_by, updated_by, created_at, updated_at FROM HR_Admin
+`
+
+func (q *Queries) SelectHrAdmin(ctx context.Context) ([]HrAdmin, error) {
+	rows, err := q.db.QueryContext(ctx, selectHrAdmin)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HrAdmin
+	for rows.Next() {
+		var i HrAdmin
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserName,
+			&i.Email,
+			&i.Password,
+			&i.Role,
+			&i.Status,
+			&i.BranchID,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const selectOneHrAdmin = `-- name: SelectOneHrAdmin :one
+SELECT id, user_name, email, password, role, status, branch_id, created_by, updated_by, created_at, updated_at FROM HR_Admin WHERE id = ?
+`
+
+func (q *Queries) SelectOneHrAdmin(ctx context.Context, id int64) (HrAdmin, error) {
+	row := q.db.QueryRowContext(ctx, selectOneHrAdmin, id)
+	var i HrAdmin
+	err := row.Scan(
+		&i.ID,
+		&i.UserName,
+		&i.Email,
+		&i.Password,
+		&i.Role,
+		&i.Status,
+		&i.BranchID,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const suspendedHrAdmin = `-- name: SuspendedHrAdmin :exec
+UPDATE HR_Admin SET status = ? WHERE id = ?
+`
+
+type SuspendedHrAdminParams struct {
+	Status string `json:"status"`
+	ID     int64  `json:"id"`
+}
+
+func (q *Queries) SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error {
+	_, err := q.db.ExecContext(ctx, suspendedHrAdmin, arg.Status, arg.ID)
+	return err
+}
+
+const updateHrAdmin = `-- name: UpdateHrAdmin :exec
+UPDATE HR_Admin SET user_name = ?, email = ?, password = ?, role = ?, status = ?, branch_id = ? WHERE id = ?
+`
+
+type UpdateHrAdminParams struct {
+	UserName string `json:"user_name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
+	Status   string `json:"status"`
+	BranchID int64  `json:"branch_id"`
+	ID       int64  `json:"id"`
+}
+
+func (q *Queries) UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error {
+	_, err := q.db.ExecContext(ctx, updateHrAdmin,
+		arg.UserName,
+		arg.Email,
+		arg.Password,
+		arg.Role,
+		arg.Status,
+		arg.BranchID,
+		arg.ID,
+	)
+	return err
 }
