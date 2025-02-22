@@ -27,7 +27,7 @@ func AuthMiddelware(role []string) echo.MiddlewareFunc {
 			sec := config.LoadConfig().JWTSecret
 			t, err := c.Cookie("auth_token")
 			if err != nil {
-				return err
+				return c.JSON(http.StatusUnauthorized, "cookie paser issue")
 			}
 			data, err := ValidateJWTkey(t.Value, []byte(sec))
 			if err != nil {

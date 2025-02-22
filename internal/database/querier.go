@@ -44,10 +44,10 @@ type Querier interface {
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteService(ctx context.Context, id int64) error
 	DeleteTax(ctx context.Context, id int64) error
-	EmployeeLogin(ctx context.Context, arg EmployeeLoginParams) (int64, error)
+	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
 	GetAllowances(ctx context.Context) ([]HrCreateAllowance, error)
-	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]HrEmployee, error)
+	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error)
 	GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeByIDRow, error)
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
@@ -55,7 +55,7 @@ type Querier interface {
 	GetService(ctx context.Context, category string) (HrCreateService, error)
 	GetServices(ctx context.Context) ([]HrCreateService, error)
 	GetTax(ctx context.Context) ([]HrTax, error)
-	SelectHrAdmin(ctx context.Context) ([]HrAdmin, error)
+	SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([]SelectHrAdminRow, error)
 	SelectOneHrAdmin(ctx context.Context, id int64) (HrAdmin, error)
 	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error

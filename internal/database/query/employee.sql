@@ -80,8 +80,25 @@ INSERT INTO HR_EMP_Accessiability (
 
 
 -- name: GetEmployee :many
-SELECT * FROM HR_Employee
-ORDER BY id DESC
+SELECT
+  e.id AS employee_id,
+  e.first_name,
+  e.last_name,
+  usr.email AS user_email,
+  br.name AS branch_name
+FROM HR_Employee e
+LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
+LEFT JOIN HR_Branch br ON usr.branch_id = br.id
+WHERE 
+  (
+    CAST(e.id AS CHAR) LIKE CONCAT('%', ?, '%')
+    OR e.first_name LIKE CONCAT('%', ?, '%')
+    OR e.last_name  LIKE CONCAT('%', ?, '%')
+    OR usr.email    LIKE CONCAT('%', ?, '%')
+    OR br.name      LIKE CONCAT('%', ?, '%')
+  )
+  AND (? = '' OR br.id = ?)
+ORDER BY e.id DESC
 LIMIT ? OFFSET ?;
 
 -- name: GetEmployeeDOB :one
@@ -281,7 +298,8 @@ DELETE FROM HR_EMP_Expatriate WHERE employee_id = ?;
 DELETE FROM HR_EMP_Accessiability WHERE employee_id = ?;
 
 -- name: EmployeeLogin :one
-SELECT employee_id FROM HR_EMP_User WHERE email = ? AND password = ?;
-
+SELECT employee_id, password, email, branch_id
+FROM HR_EMP_User
+WHERE email = ?;
 
 

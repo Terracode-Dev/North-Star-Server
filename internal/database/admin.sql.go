@@ -68,28 +68,76 @@ func (q *Queries) DeleteHrAdmin(ctx context.Context, id int64) error {
 }
 
 const selectHrAdmin = `-- name: SelectHrAdmin :many
-SELECT id, user_name, email, password, role, status, branch_id, created_by, updated_by, created_at, updated_at FROM HR_Admin
+SELECT
+  a.id,
+  a.user_name,
+  a.email,
+  a.role,
+  a.status,
+  b.name AS branch_name,
+  a.created_at,
+  a.updated_at
+FROM HR_Admin a
+LEFT JOIN HR_Branch b ON a.branch_id = b.id
+WHERE 
+  (
+    a.user_name LIKE CONCAT('%', ?, '%')
+    OR a.email    LIKE CONCAT('%', ?, '%')
+    OR a.role     LIKE CONCAT('%', ?, '%')
+    OR a.status   LIKE CONCAT('%', ?, '%')
+  )
+  AND ( ? = '' OR a.branch_id = ? )
+ORDER BY a.id DESC
+LIMIT ? OFFSET ?
 `
 
-func (q *Queries) SelectHrAdmin(ctx context.Context) ([]HrAdmin, error) {
-	rows, err := q.db.QueryContext(ctx, selectHrAdmin)
+type SelectHrAdminParams struct {
+	CONCAT   interface{} `json:"CONCAT"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+	CONCAT_4 interface{} `json:"CONCAT_4"`
+	Column5  interface{} `json:"column_5"`
+	BranchID int64       `json:"branch_id"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+}
+
+type SelectHrAdminRow struct {
+	ID         int64          `json:"id"`
+	UserName   string         `json:"user_name"`
+	Email      string         `json:"email"`
+	Role       string         `json:"role"`
+	Status     string         `json:"status"`
+	BranchName sql.NullString `json:"branch_name"`
+	CreatedAt  sql.NullTime   `json:"created_at"`
+	UpdatedAt  sql.NullTime   `json:"updated_at"`
+}
+
+func (q *Queries) SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([]SelectHrAdminRow, error) {
+	rows, err := q.db.QueryContext(ctx, selectHrAdmin,
+		arg.CONCAT,
+		arg.CONCAT_2,
+		arg.CONCAT_3,
+		arg.CONCAT_4,
+		arg.Column5,
+		arg.BranchID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HrAdmin
+	var items []SelectHrAdminRow
 	for rows.Next() {
-		var i HrAdmin
+		var i SelectHrAdminRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserName,
 			&i.Email,
-			&i.Password,
 			&i.Role,
 			&i.Status,
-			&i.BranchID,
-			&i.CreatedBy,
-			&i.UpdatedBy,
+			&i.BranchName,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

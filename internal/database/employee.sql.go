@@ -477,62 +477,98 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
 }
 
 const employeeLogin = `-- name: EmployeeLogin :one
-SELECT employee_id FROM HR_EMP_User WHERE email = ? AND password = ?
+SELECT employee_id, password, email, branch_id
+FROM HR_EMP_User
+WHERE email = ?
 `
 
-type EmployeeLoginParams struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+type EmployeeLoginRow struct {
+	EmployeeID int64  `json:"employee_id"`
+	Password   string `json:"password"`
+	Email      string `json:"email"`
+	BranchID   int64  `json:"branch_id"`
 }
 
-func (q *Queries) EmployeeLogin(ctx context.Context, arg EmployeeLoginParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, employeeLogin, arg.Email, arg.Password)
-	var employee_id int64
-	err := row.Scan(&employee_id)
-	return employee_id, err
+func (q *Queries) EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error) {
+	row := q.db.QueryRowContext(ctx, employeeLogin, email)
+	var i EmployeeLoginRow
+	err := row.Scan(
+		&i.EmployeeID,
+		&i.Password,
+		&i.Email,
+		&i.BranchID,
+	)
+	return i, err
 }
 
 const getEmployee = `-- name: GetEmployee :many
-SELECT id, first_name, last_name, gender, dob, religion, primary_number, secondary_number, passport_id, nationality, passport_valid_till, nic, country, nic_valid_till, address, current_country, email, updated_by, created_at, updated_at FROM HR_Employee
-ORDER BY id DESC
+SELECT
+  e.id AS employee_id,
+  e.first_name,
+  e.last_name,
+  usr.email AS user_email,
+  br.name AS branch_name
+FROM HR_Employee e
+LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
+LEFT JOIN HR_Branch br ON usr.branch_id = br.id
+WHERE 
+  (
+    CAST(e.id AS CHAR) LIKE CONCAT('%', ?, '%')
+    OR e.first_name LIKE CONCAT('%', ?, '%')
+    OR e.last_name  LIKE CONCAT('%', ?, '%')
+    OR usr.email    LIKE CONCAT('%', ?, '%')
+    OR br.name      LIKE CONCAT('%', ?, '%')
+  )
+  AND (? = '' OR br.id = ?)
+ORDER BY e.id DESC
 LIMIT ? OFFSET ?
 `
 
 type GetEmployeeParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	CONCAT   interface{} `json:"CONCAT"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+	CONCAT_4 interface{} `json:"CONCAT_4"`
+	CONCAT_5 interface{} `json:"CONCAT_5"`
+	Column6  interface{} `json:"column_6"`
+	ID       int64       `json:"id"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
 }
 
-func (q *Queries) GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]HrEmployee, error) {
-	rows, err := q.db.QueryContext(ctx, getEmployee, arg.Limit, arg.Offset)
+type GetEmployeeRow struct {
+	EmployeeID int64          `json:"employee_id"`
+	FirstName  string         `json:"first_name"`
+	LastName   string         `json:"last_name"`
+	UserEmail  sql.NullString `json:"user_email"`
+	BranchName sql.NullString `json:"branch_name"`
+}
+
+func (q *Queries) GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployee,
+		arg.CONCAT,
+		arg.CONCAT_2,
+		arg.CONCAT_3,
+		arg.CONCAT_4,
+		arg.CONCAT_5,
+		arg.Column6,
+		arg.ID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HrEmployee
+	var items []GetEmployeeRow
 	for rows.Next() {
-		var i HrEmployee
+		var i GetEmployeeRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.EmployeeID,
 			&i.FirstName,
 			&i.LastName,
-			&i.Gender,
-			&i.Dob,
-			&i.Religion,
-			&i.PrimaryNumber,
-			&i.SecondaryNumber,
-			&i.PassportID,
-			&i.Nationality,
-			&i.PassportValidTill,
-			&i.Nic,
-			&i.Country,
-			&i.NicValidTill,
-			&i.Address,
-			&i.CurrentCountry,
-			&i.Email,
-			&i.UpdatedBy,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.UserEmail,
+			&i.BranchName,
 		); err != nil {
 			return nil, err
 		}

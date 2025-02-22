@@ -134,7 +134,6 @@ type CreateEmpEmergencyDetailsReqModel struct {
 }
 
 func (M CreateEmpEmergencyDetailsReqModel) convertToDbStruct() (db.CreateEmpEmergencyDetailsParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -152,7 +151,6 @@ func (M CreateEmpEmergencyDetailsReqModel) convertToDbStruct() (db.CreateEmpEmer
 }
 
 func (M CreateEmpEmergencyDetailsReqModel) convertToUpdateDbStruct() (db.UpdateEmpEmergencyDetailsParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -164,8 +162,8 @@ func (M CreateEmpEmergencyDetailsReqModel) convertToUpdateDbStruct() (db.UpdateE
 		LastName:     M.LastName,
 		Relationship: M.Relationship,
 		Contact:      M.Contact,
-		UpdatedBy:   updated_by,
-		EmployeeID:  M.EmployeeID,
+		UpdatedBy:    updated_by,
+		EmployeeID:   M.EmployeeID,
 	}, nil
 }
 
@@ -179,7 +177,6 @@ type CreateEmpBankDetailsReqModel struct {
 }
 
 func (M CreateEmpBankDetailsReqModel) convertToDbStruct() (db.CreateEmpBankDetailsParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -197,7 +194,6 @@ func (M CreateEmpBankDetailsReqModel) convertToDbStruct() (db.CreateEmpBankDetai
 }
 
 func (M CreateEmpBankDetailsReqModel) convertToUpdateDbStruct() (db.UpdateEmpBankDetailsParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -217,16 +213,15 @@ func (M CreateEmpBankDetailsReqModel) convertToUpdateDbStruct() (db.UpdateEmpBan
 type CreateEmpSalaryReqModel struct {
 	SalaryType              string `json:"salary_type"`
 	Amount                  string `json:"amount"`
-	TotalOfSalaryAllowances string  `json:"total_of_salary_allowances"`
-	PensionEmployer         string  `json:"pension_employer"`
+	TotalOfSalaryAllowances string `json:"total_of_salary_allowances"`
+	PensionEmployer         string `json:"pension_employer"`
 	PensionEmployee         string `json:"pension_employee"`
-	TotalNetSalary          string  `json:"total_net_salary"`
+	TotalNetSalary          string `json:"total_net_salary"`
 	EmployeeID              int64  `json:"employee_id"`
 	UpdatedBy               *int64 `json:"updated_by"`
 }
 
 func (M CreateEmpSalaryReqModel) convertToDbStruct() (db.CreateEmpSalaryParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -270,7 +265,6 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct() (db.CreateEmpSalaryParams, 
 }
 
 func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct() (db.UpdateEmpSalaryParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -308,7 +302,7 @@ func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct() (db.UpdateEmpSalaryPa
 		PensionEmployer:         pension_employer,
 		PensionEmployee:         pension_employee,
 		TotalNetSalary:          total_net_salary,
-		UpdatedBy: 			     updated_by,
+		UpdatedBy:               updated_by,
 		EmployeeID:              M.EmployeeID,
 	}, nil
 }
@@ -564,11 +558,10 @@ type CreateEmpUserReqModel struct {
 }
 
 func (M CreateEmpUserReqModel) convertToDbStruct(id int64) (db.CreateEmpUserParams, error) {
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(M.Password), bcrypt.DefaultCost)
-    if err != nil {
-        return db.CreateEmpUserParams{}, err
-    }
+	if err != nil {
+		return db.CreateEmpUserParams{}, err
+	}
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
@@ -581,12 +574,11 @@ func (M CreateEmpUserReqModel) convertToDbStruct(id int64) (db.CreateEmpUserPara
 		Password:   string(hashedPassword),
 		UpdatedBy:  updated_by,
 		EmployeeID: M.EmployeeID,
-		BranchID:  id,
+		BranchID:   id,
 	}, nil
 }
 
 func (M CreateEmpUserReqModel) convertToUpdateDbStruct() (db.UpdateEmpUserParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
 		updated_by.Int64 = *M.UpdatedBy
@@ -594,9 +586,9 @@ func (M CreateEmpUserReqModel) convertToUpdateDbStruct() (db.UpdateEmpUserParams
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(M.Password), bcrypt.DefaultCost)
-    if err != nil {
-        return db.UpdateEmpUserParams{}, err
-    }
+	if err != nil {
+		return db.UpdateEmpUserParams{}, err
+	}
 
 	return db.UpdateEmpUserParams{
 		Email:      M.Email,
@@ -614,7 +606,6 @@ type CreateEmpAllowancesReqModel struct {
 }
 
 func (M CreateEmpAllowancesReqModel) convertToDbStruct() (db.CreateEmpAllowancesParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy.Valid {
 		updated_by.Int64 = M.UpdatedBy.Int64
@@ -634,7 +625,6 @@ func (M CreateEmpAllowancesReqModel) convertToDbStruct() (db.CreateEmpAllowances
 }
 
 func (M CreateEmpAllowancesReqModel) convertToUpdateDbStruct() (db.UpdateEmpAllowancesParams, error) {
-
 	var updated_by sql.NullInt64
 	if M.UpdatedBy.Valid {
 		updated_by.Int64 = M.UpdatedBy.Int64
@@ -820,30 +810,18 @@ type EmpLoginReqModel struct {
 	Password string `json:"password"`
 }
 
-func (M EmpLoginReqModel) covertToDbStruct() (db.EmployeeLoginParams, error) {
-	
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(M.Password), bcrypt.DefaultCost)
-    if err != nil {
-        return db.EmployeeLoginParams{}, err
-    }
-
-	return db.EmployeeLoginParams{
-		Email:    M.Email,
-		Password: string(hashedPassword),
-	}, nil
-}
-
 type GetEmployeeReqModel struct {
-	Limit  int32 `json:"limit"`
-	PageNumber int32 `json:"page"`
+	Search     string `json:"search"`
+	Limit      int32  `json:"limit"`
+	PageNumber int32  `json:"page"`
 }
 
 func (M GetEmployeeReqModel) convertToDbStruct() (db.GetEmployeeParams, error) {
-
 	offset := (M.PageNumber - 1) * M.Limit
 
 	return db.GetEmployeeParams{
 		Limit:  M.Limit,
 		Offset: offset,
-	},nil
+	}, nil
 }
+
