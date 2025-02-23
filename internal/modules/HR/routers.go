@@ -54,6 +54,9 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 
+	hrRoute.POST("/fileupload", S.uploadFile, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod"}))
+
 	hrRoute.GET("/logout", S.Logout)
 
 	hrRoute.POST("/testlogin", S.TestLogin)
