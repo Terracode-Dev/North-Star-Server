@@ -9,17 +9,13 @@ func (S *HRService) registerRoutes() {
 	hrRoute := S.e.Group("/hr-api")
 
 	// admin routes
-	hrRoute.POST("/admin", S.createAdmin)
-	hrRoute.POST("/admin/tax", S.createTax)
-	hrRoute.POST("/admin/payroll", S.createPayroll)
-	hrRoute.GET("/admin/payroll", S.getPayroll)
-	hrRoute.GET("/admin/tax", S.getTax)
-	hrRoute.GET("/admin/payroll/:id", S.getOnePayroll)
-	hrRoute.PUT("/admin/payroll/:id", S.updatePayroll)
-	hrRoute.PUT("/admin/suspend", S.suspendAdmin)
+	hrRoute.GET("/admin", S.getAllAdmin, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/admin", S.createAdmin, rba.AuthMiddelware([]string{"admin"}))
+	hrRoute.PUT("/admin/suspend", S.suspendAdmin, rba.AuthMiddelware([]string{"admin"}))
+	hrRoute.POST("/admin/login", S.adminLogin)
 
 	// employee routes
-	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
+	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/all", S.getEmployee, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.GET("/employee/:id", S.getEmployeeOne, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.PUT("/employee/:id", S.updateEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
@@ -50,6 +46,13 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/allowance/:id", S.getOneAllowance, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/allowance/:id", S.updateAllowance, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/allowance/:id", S.deleteAllowance, rba.AuthMiddelware([]string{"admin", "mod"}))
+
+	hrRoute.GET("/tax", S.getTax, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/tax", S.createTax, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/payroll", S.createPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 
 	hrRoute.GET("/logout", S.Logout)
 

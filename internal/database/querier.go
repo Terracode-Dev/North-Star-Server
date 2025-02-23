@@ -11,7 +11,7 @@ import (
 )
 
 type Querier interface {
-	AdminLogin(ctx context.Context, arg AdminLoginParams) (int64, error)
+	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error

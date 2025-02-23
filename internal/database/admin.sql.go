@@ -11,19 +11,28 @@ import (
 )
 
 const adminLogin = `-- name: AdminLogin :one
-SELECT id FROM HR_Admin WHERE email = ? AND password = ?
+SELECT id, role, status, branch_id, password FROM HR_Admin WHERE email = ?
 `
 
-type AdminLoginParams struct {
-	Email    string `json:"email"`
+type AdminLoginRow struct {
+	ID       int64  `json:"id"`
+	Role     string `json:"role"`
+	Status   string `json:"status"`
+	BranchID int64  `json:"branch_id"`
 	Password string `json:"password"`
 }
 
-func (q *Queries) AdminLogin(ctx context.Context, arg AdminLoginParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, adminLogin, arg.Email, arg.Password)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) AdminLogin(ctx context.Context, email string) (AdminLoginRow, error) {
+	row := q.db.QueryRowContext(ctx, adminLogin, email)
+	var i AdminLoginRow
+	err := row.Scan(
+		&i.ID,
+		&i.Role,
+		&i.Status,
+		&i.BranchID,
+		&i.Password,
+	)
+	return i, err
 }
 
 const createHrAdmin = `-- name: CreateHrAdmin :exec

@@ -40,4 +40,4 @@ DELETE FROM HR_Admin WHERE id = ?;
 UPDATE HR_Admin SET status = ? WHERE id = ?;
 
 -- name: AdminLogin :one
-SELECT id FROM HR_Admin WHERE email = ? AND password = ?;
+SELECT id, role, status, branch_id, password FROM HR_Admin WHERE email = ?

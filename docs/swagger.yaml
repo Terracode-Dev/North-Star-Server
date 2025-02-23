@@ -1,5 +1,12 @@
 basePath: /hr-api
 definitions:
+  hr.AdminLoginReqModel:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
   hr.CreateEmpBankDetailsReqModel:
     properties:
       account_holder:
@@ -191,6 +198,36 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /admin/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates admin and returns a JWT token in a cookie
+      parameters:
+      - description: User credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/hr.AdminLoginReqModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: bad request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Admin login
+      tags:
+      - auth
   /employee:
     post:
       consumes:

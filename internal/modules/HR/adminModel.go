@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	db "github.com/Terracode-Dev/North-Star-Server/internal/database"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateHrAdminReqModel struct {
@@ -29,11 +30,14 @@ func (A *CreateHrAdminReqModel) convertToDbStruct() (db.CreateHrAdminParams, err
 		updated_by.Int64 = *A.UpdatedBy
 		updated_by.Valid = true
 	}
-
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(A.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return db.CreateHrAdminParams{}, err
+	}
 	return db.CreateHrAdminParams{
 		UserName:  A.UserName,
 		Email:     A.Email,
-		Password:  A.Password,
+		Password:  string(hashedPassword),
 		Role:      A.Role,
 		Status:    A.Status,
 		BranchID:  A.BranchID,
@@ -46,4 +50,9 @@ type GetAdminReqModel struct {
 	Search     string `json:"search"`
 	Limit      int32  `json:"limit"`
 	PageNumber int32  `json:"page"`
+}
+
+type AdminLoginReqModel struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
