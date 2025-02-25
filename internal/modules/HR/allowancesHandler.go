@@ -13,7 +13,8 @@ func (S *HRService) createAllowances(c echo.Context) error {
 		return c.JSON(400, err)
 	}
 
-	params, err := allow.ToCreateAllowancesParams()
+	updated_by := c.Get("user").(int)
+	params, err := allow.ToCreateAllowancesParams(int64(updated_by))
 	if err != nil {
 		return c.JSON(400, err)
 	}
@@ -63,7 +64,9 @@ func (S *HRService) updateAllowance(c echo.Context) error {
 		return c.JSON(400, err)
 	}
 
-	params := allow.ToUpdateAllowancesParams(int64(id))
+	updated_by := c.Get("user").(int)
+
+	params := allow.ToUpdateAllowancesParams(int64(id), int64(updated_by))
 	allowance := S.q.UpdateAllowance(c.Request().Context(), params)
 	if allowance != nil {
 		return c.JSON(500, allowance)

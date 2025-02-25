@@ -6,27 +6,18 @@ import (
 )
 
 type CreateTaxReqModel struct {
-	TaxFrom       string   `json:"tax_from"`
-	TaxTo         string   `json:"tax_to"`
-	TaxPercentage string   `json:"tax_percentage"`
+	TaxFrom       int   `json:"tax_from"`
+	TaxTo         int   `json:"tax_to"`
+	TaxPercentage int   `json:"tax_percentage"`
 }
 
 func (T *CreateTaxReqModel) ToCreateTaxParams() (db.CreateTaxParams, error) {
 
-	tax_from, err := decimal.NewFromString(T.TaxFrom)
-	if err != nil {
-		return db.CreateTaxParams{}, err
-	}
+	tax_from := decimal.NewFromInt(int64(T.TaxFrom))
 
-	tax_to, err := decimal.NewFromString(T.TaxTo)
-	if err != nil {
-		return db.CreateTaxParams{}, err
-	}
+	tax_to := decimal.NewFromInt(int64(T.TaxTo))
 
-	tax_percentage, err := decimal.NewFromString(T.TaxPercentage)
-	if err != nil {
-		return db.CreateTaxParams{}, err
-	}
+	tax_percentage := decimal.NewFromInt(int64(T.TaxPercentage))
 	
 	return db.CreateTaxParams{
 		TaxFrom:       tax_from,

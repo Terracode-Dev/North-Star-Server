@@ -2,7 +2,6 @@ package hr
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 
@@ -31,7 +30,7 @@ type CreateEmployeeReqModel struct {
 	UpdatedBy         *int64 `json:"updated_by"`
 }
 
-func (M CreateEmployeeReqModel) convertToDbStruct() (db.CreateEmployeeParams, error) {
+func (M CreateEmployeeReqModel) convertToDbStruct(admin_id int64) (db.CreateEmployeeParams, error) {
 	dob, err := time.Parse(time.RFC3339, M.Dob)
 	if err != nil {
 		log.Printf("Error parsing dob: %v", err)
@@ -52,7 +51,7 @@ func (M CreateEmployeeReqModel) convertToDbStruct() (db.CreateEmployeeParams, er
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -77,7 +76,7 @@ func (M CreateEmployeeReqModel) convertToDbStruct() (db.CreateEmployeeParams, er
 	}, nil
 }
 
-func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(id int64) (db.UpdateEmployeeParams, error) {
+func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(emp_id int64, admin_id int64 ) (db.UpdateEmployeeParams, error) {
 	dob, err := time.Parse(time.RFC3339, M.Dob)
 	if err != nil {
 		log.Printf("Error parsing dob: %v", err)
@@ -98,7 +97,7 @@ func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(id int64) (db.UpdateEmpl
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -120,7 +119,7 @@ func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(id int64) (db.UpdateEmpl
 		CurrentCountry:    M.CurrentCountry,
 		Email:             M.Email,
 		UpdatedBy:         updated_by,
-		ID:                id,
+		ID:                emp_id,
 	}, nil
 }
 
@@ -133,10 +132,10 @@ type CreateEmpEmergencyDetailsReqModel struct {
 	UpdatedBy    *int64 `json:"updated_by"`
 }
 
-func (M CreateEmpEmergencyDetailsReqModel) convertToDbStruct() (db.CreateEmpEmergencyDetailsParams, error) {
+func (M CreateEmpEmergencyDetailsReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpEmergencyDetailsParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -150,10 +149,10 @@ func (M CreateEmpEmergencyDetailsReqModel) convertToDbStruct() (db.CreateEmpEmer
 	}, nil
 }
 
-func (M CreateEmpEmergencyDetailsReqModel) convertToUpdateDbStruct() (db.UpdateEmpEmergencyDetailsParams, error) {
+func (M CreateEmpEmergencyDetailsReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpEmergencyDetailsParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -176,10 +175,10 @@ type CreateEmpBankDetailsReqModel struct {
 	UpdatedBy     *int64 `json:"updated_by"`
 }
 
-func (M CreateEmpBankDetailsReqModel) convertToDbStruct() (db.CreateEmpBankDetailsParams, error) {
+func (M CreateEmpBankDetailsReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpBankDetailsParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -193,10 +192,10 @@ func (M CreateEmpBankDetailsReqModel) convertToDbStruct() (db.CreateEmpBankDetai
 	}, nil
 }
 
-func (M CreateEmpBankDetailsReqModel) convertToUpdateDbStruct() (db.UpdateEmpBankDetailsParams, error) {
+func (M CreateEmpBankDetailsReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpBankDetailsParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -221,35 +220,35 @@ type CreateEmpSalaryReqModel struct {
 	UpdatedBy               *int64 `json:"updated_by"`
 }
 
-func (M CreateEmpSalaryReqModel) convertToDbStruct() (db.CreateEmpSalaryParams, error) {
+func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpSalaryParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
-	amount, err := decimal.NewFromString(M.Amount)
+	amount , err := decimal.NewFromString(M.Amount)
 	if err != nil {
-		return db.CreateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpSalaryParams{}, err
 	}
 
 	total_of_salary_allowances, err := decimal.NewFromString(M.TotalOfSalaryAllowances)
 	if err != nil {
-		return db.CreateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpSalaryParams{}, err
 	}
 
-	pension_employer, err := decimal.NewFromString(M.PensionEmployer)
+	pension_employer , err:= decimal.NewFromString(M.PensionEmployer)
 	if err != nil {
-		return db.CreateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpSalaryParams{}, err
 	}
 
 	pension_employee, err := decimal.NewFromString(M.PensionEmployee)
 	if err != nil {
-		return db.CreateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpSalaryParams{}, err
 	}
 
-	total_net_salary, err := decimal.NewFromString(M.TotalNetSalary)
+	total_net_salary , err:= decimal.NewFromString(M.TotalNetSalary)
 	if err != nil {
-		return db.CreateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpSalaryParams{}, err
 	}
 
 	return db.CreateEmpSalaryParams{
@@ -264,35 +263,35 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct() (db.CreateEmpSalaryParams, 
 	}, nil
 }
 
-func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct() (db.UpdateEmpSalaryParams, error) {
+func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpSalaryParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
-	amount, err := decimal.NewFromString(M.Amount)
+	amount , err:= decimal.NewFromString(M.Amount)
 	if err != nil {
-		return db.UpdateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpSalaryParams{}, err
 	}
 
 	total_of_salary_allowances, err := decimal.NewFromString(M.TotalOfSalaryAllowances)
 	if err != nil {
-		return db.UpdateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpSalaryParams{}, err
 	}
 
-	pension_employer, err := decimal.NewFromString(M.PensionEmployer)
+	pension_employer , err:= decimal.NewFromString(M.PensionEmployer)
 	if err != nil {
-		return db.UpdateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpSalaryParams{}, err
 	}
 
-	pension_employee, err := decimal.NewFromString(M.PensionEmployee)
+	pension_employee , err:= decimal.NewFromString(M.PensionEmployee)
 	if err != nil {
-		return db.UpdateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpSalaryParams{}, err
 	}
 
 	total_net_salary, err := decimal.NewFromString(M.TotalNetSalary)
 	if err != nil {
-		return db.UpdateEmpSalaryParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpSalaryParams{}, err
 	}
 
 	return db.UpdateEmpSalaryParams{
@@ -308,14 +307,14 @@ func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct() (db.UpdateEmpSalaryPa
 }
 
 type CreateEmpCertificatesReqModel struct {
-	Date       string `json:"date"`
-	Name       string `json:"name"`
-	ImagePath  string `json:"image_path"`
-	UpdatedBy  *int64 `json:"updated_by"`
-	EmployeeID int64  `json:"employee_id"`
+	Date       string `json:"date" form:"date"`
+	Name       string `json:"name" form:"name"`
+	ImagePath  string `json:"image_path" form:"image_path"`
+	UpdatedBy  *int64 `json:"updated_by" form:"updated_by"`
+	EmployeeID int64  `json:"employee_id" form:"employee_id"`
 }
 
-func (M CreateEmpCertificatesReqModel) convertToDbStruct() (db.CreateEmpCertificatesParams, error) {
+func (M CreateEmpCertificatesReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpCertificatesParams, error) {
 	date, err := time.Parse(time.RFC3339, M.Date)
 	if err != nil {
 		return db.CreateEmpCertificatesParams{}, err
@@ -323,7 +322,7 @@ func (M CreateEmpCertificatesReqModel) convertToDbStruct() (db.CreateEmpCertific
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -336,7 +335,7 @@ func (M CreateEmpCertificatesReqModel) convertToDbStruct() (db.CreateEmpCertific
 	}, nil
 }
 
-func (M CreateEmpCertificatesReqModel) convertToUpdateDbStruct() (db.UpdateEmpCertificatesParams, error) {
+func (M CreateEmpCertificatesReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpCertificatesParams, error) {
 	date, err := time.Parse(time.RFC3339, M.Date)
 	if err != nil {
 		return db.UpdateEmpCertificatesParams{}, err
@@ -344,7 +343,7 @@ func (M CreateEmpCertificatesReqModel) convertToUpdateDbStruct() (db.UpdateEmpCe
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -367,7 +366,7 @@ type CreateEmpStatusReqModel struct {
 	EmployeeID  int64  `json:"employee_id"`
 }
 
-func (M CreateEmpStatusReqModel) convertToDbStruct() (db.CreateEmpStatusParams, error) {
+func (M CreateEmpStatusReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpStatusParams, error) {
 	validFrom, err := time.Parse(time.RFC3339, M.ValidFrom)
 	if err != nil {
 		return db.CreateEmpStatusParams{}, err
@@ -380,7 +379,7 @@ func (M CreateEmpStatusReqModel) convertToDbStruct() (db.CreateEmpStatusParams, 
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -395,7 +394,7 @@ func (M CreateEmpStatusReqModel) convertToDbStruct() (db.CreateEmpStatusParams, 
 	}, nil
 }
 
-func (M CreateEmpStatusReqModel) convertToUpdateDbStruct() (db.UpdateEmpStatusParams, error) {
+func (M CreateEmpStatusReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpStatusParams, error) {
 	validFrom, err := time.Parse(time.RFC3339, M.ValidFrom)
 	if err != nil {
 		return db.UpdateEmpStatusParams{}, err
@@ -408,7 +407,7 @@ func (M CreateEmpStatusReqModel) convertToUpdateDbStruct() (db.UpdateEmpStatusPa
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -440,7 +439,7 @@ type CreateEmpBenifitsReqModel struct {
 	EmployeeID         int64  `json:"employee_id"`
 }
 
-func (M CreateEmpBenifitsReqModel) convertToDbStruct() (db.CreateEmpBenifitsParams, error) {
+func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpBenifitsParams, error) {
 	insuranceFrom, err := time.Parse(time.RFC3339, M.InsuranceFrom)
 	if err != nil {
 		return db.CreateEmpBenifitsParams{}, err
@@ -473,7 +472,7 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct() (db.CreateEmpBenifitsPara
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -495,7 +494,7 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct() (db.CreateEmpBenifitsPara
 	}, nil
 }
 
-func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct() (db.UpdateEmpBenifitsParams, error) {
+func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpBenifitsParams, error) {
 	insuranceFrom, err := time.Parse(time.RFC3339, M.InsuranceFrom)
 	if err != nil {
 		return db.UpdateEmpBenifitsParams{}, err
@@ -528,7 +527,7 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct() (db.UpdateEmpBenifi
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -557,7 +556,7 @@ type CreateEmpUserReqModel struct {
 	EmployeeID int64  `json:"employee_id"`
 }
 
-func (M CreateEmpUserReqModel) convertToDbStruct(id int64) (db.CreateEmpUserParams, error) {
+func (M CreateEmpUserReqModel) convertToDbStruct(id int64, admin_id int64) (db.CreateEmpUserParams, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(M.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return db.CreateEmpUserParams{}, err
@@ -565,7 +564,7 @@ func (M CreateEmpUserReqModel) convertToDbStruct(id int64) (db.CreateEmpUserPara
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -578,10 +577,10 @@ func (M CreateEmpUserReqModel) convertToDbStruct(id int64) (db.CreateEmpUserPara
 	}, nil
 }
 
-func (M CreateEmpUserReqModel) convertToUpdateDbStruct() (db.UpdateEmpUserParams, error) {
+func (M CreateEmpUserReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpUserParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -605,15 +604,15 @@ type CreateEmpAllowancesReqModel struct {
 	EmployeeID int64         `json:"employee_id"`
 }
 
-func (M CreateEmpAllowancesReqModel) convertToDbStruct() (db.CreateEmpAllowancesParams, error) {
+func (M CreateEmpAllowancesReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpAllowancesParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy.Valid {
-		updated_by.Int64 = M.UpdatedBy.Int64
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
-	amount, err := decimal.NewFromString(M.Amount)
+	amount , err:= decimal.NewFromString(M.Amount)
 	if err != nil {
-		return db.CreateEmpAllowancesParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpAllowancesParams{}, err
 	}
 
 	return db.CreateEmpAllowancesParams{
@@ -624,15 +623,15 @@ func (M CreateEmpAllowancesReqModel) convertToDbStruct() (db.CreateEmpAllowances
 	}, nil
 }
 
-func (M CreateEmpAllowancesReqModel) convertToUpdateDbStruct() (db.UpdateEmpAllowancesParams, error) {
+func (M CreateEmpAllowancesReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpAllowancesParams, error) {
 	var updated_by sql.NullInt64
 	if M.UpdatedBy.Valid {
-		updated_by.Int64 = M.UpdatedBy.Int64
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
-	amount, err := decimal.NewFromString(M.Amount)
+	amount , err:= decimal.NewFromString(M.Amount)
 	if err != nil {
-		return db.UpdateEmpAllowancesParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpAllowancesParams{}, err
 	}
 
 	return db.UpdateEmpAllowancesParams{
@@ -656,7 +655,7 @@ type CreateEmpExpatriateReqModel struct {
 	EmployeeID    int64  `json:"employee_id"`
 }
 
-func (M CreateEmpExpatriateReqModel) convertToDbStruct() (db.CreateEmpExpatriateParams, error) {
+func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpExpatriateParams, error) {
 	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
 	if err != nil {
 		return db.CreateEmpExpatriateParams{}, err
@@ -669,14 +668,15 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct() (db.CreateEmpExpatriate
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
-		return db.CreateEmpExpatriateParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.CreateEmpExpatriateParams{}, err
 	}
+
 
 	return db.CreateEmpExpatriateParams{
 		Expatriate:    M.Expatriate,
@@ -692,7 +692,7 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct() (db.CreateEmpExpatriate
 	}, nil
 }
 
-func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct() (db.UpdateEmpExpatriateParams, error) {
+func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
 	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
 	if err != nil {
 		return db.UpdateEmpExpatriateParams{}, err
@@ -705,13 +705,13 @@ func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct() (db.UpdateEmpExpa
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, fmt.Errorf("invalid amount format: %v", err)
+		return db.UpdateEmpExpatriateParams{}, err
 	}
 
 	return db.UpdateEmpExpatriateParams{
@@ -737,7 +737,7 @@ type CreateEmpAccessiabilityReqModel struct {
 	EmployeeID        int64  `json:"employee_id"`
 }
 
-func (M CreateEmpAccessiabilityReqModel) convertToDbStruct() (db.CreateEmpAccessiabilityParams, error) {
+func (M CreateEmpAccessiabilityReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpAccessiabilityParams, error) {
 	accessibilityFrom, err := time.Parse(time.RFC3339, M.AccessibilityFrom)
 	if err != nil {
 		return db.CreateEmpAccessiabilityParams{}, err
@@ -750,7 +750,7 @@ func (M CreateEmpAccessiabilityReqModel) convertToDbStruct() (db.CreateEmpAccess
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -764,7 +764,7 @@ func (M CreateEmpAccessiabilityReqModel) convertToDbStruct() (db.CreateEmpAccess
 	}, nil
 }
 
-func (M CreateEmpAccessiabilityReqModel) convertToUpdateDbStruct() (db.UpdateEmpAccessiabilityParams, error) {
+func (M CreateEmpAccessiabilityReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpAccessiabilityParams, error) {
 	accessibilityFrom, err := time.Parse(time.RFC3339, M.AccessibilityFrom)
 	if err != nil {
 		return db.UpdateEmpAccessiabilityParams{}, err
@@ -777,7 +777,7 @@ func (M CreateEmpAccessiabilityReqModel) convertToUpdateDbStruct() (db.UpdateEmp
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 

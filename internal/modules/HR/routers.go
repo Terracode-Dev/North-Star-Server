@@ -12,6 +12,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/admin", S.getAllAdmin, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/admin", S.createAdmin, rba.AuthMiddelware([]string{"admin"}))
 	hrRoute.PUT("/admin/suspend", S.suspendAdmin, rba.AuthMiddelware([]string{"admin"}))
+	hrRoute.PUT("/admin/:id", S.updateAdmin, rba.AuthMiddelware([]string{"admin"}))
 	hrRoute.POST("/admin/login", S.adminLogin)
 
 	// employee routes

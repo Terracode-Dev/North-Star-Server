@@ -14,11 +14,11 @@ type CreateAllowancesReqModel struct {
 	ID            int64           `json:"id"`
 }
 
-func (M *CreateAllowancesReqModel) ToCreateAllowancesParams() (db.CreateAllowancesParams, error) {
+func (M *CreateAllowancesReqModel) ToCreateAllowancesParams(admin_id int64) (db.CreateAllowancesParams, error) {
 	
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -34,11 +34,11 @@ func (M *CreateAllowancesReqModel) ToCreateAllowancesParams() (db.CreateAllowanc
 	}, nil
 }
 
-func (M *CreateAllowancesReqModel) ToUpdateAllowancesParams(id int64) db.UpdateAllowanceParams {
+func (M *CreateAllowancesReqModel) ToUpdateAllowancesParams(id int64, admin_id int64) db.UpdateAllowanceParams {
 
 	var updated_by sql.NullInt64
 	if M.UpdatedBy != nil {
-		updated_by.Int64 = *M.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 

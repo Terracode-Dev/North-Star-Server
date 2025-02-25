@@ -501,6 +501,17 @@ func (q *Queries) EmployeeLogin(ctx context.Context, email string) (EmployeeLogi
 	return i, err
 }
 
+const getCertificateFile = `-- name: GetCertificateFile :one
+SELECT image_path FROM HR_EMP_Certificates WHERE employee_id = ?
+`
+
+func (q *Queries) GetCertificateFile(ctx context.Context, employeeID int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getCertificateFile, employeeID)
+	var image_path string
+	err := row.Scan(&image_path)
+	return image_path, err
+}
+
 const getEmployee = `-- name: GetEmployee :many
 SELECT
   e.id AS employee_id,
@@ -860,6 +871,17 @@ func (q *Queries) GetEmployeeDOB(ctx context.Context, id int64) (time.Time, erro
 	var dob time.Time
 	err := row.Scan(&dob)
 	return dob, err
+}
+
+const getVisaFile = `-- name: GetVisaFile :one
+SELECT visa_image_path FROM HR_EMP_Expatriate WHERE employee_id = ?
+`
+
+func (q *Queries) GetVisaFile(ctx context.Context, employeeID int64) (string, error) {
+	row := q.db.QueryRowContext(ctx, getVisaFile, employeeID)
+	var visa_image_path string
+	err := row.Scan(&visa_image_path)
+	return visa_image_path, err
 }
 
 const updateEmpAccessiability = `-- name: UpdateEmpAccessiability :exec

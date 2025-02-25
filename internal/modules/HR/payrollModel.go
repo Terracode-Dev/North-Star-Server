@@ -26,11 +26,11 @@ type CreatePayrollReqModel struct {
 	UpdatedBy               *int64          `json:"updated_by"`
 }
 
-func (A *CreatePayrollReqModel) ToCreatePayrollParams() (db.CreatePayrollParams, error) {
+func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.CreatePayrollParams, error) {
 
 	var updated_by sql.NullInt64
 	if A.UpdatedBy != nil {
-		updated_by.Int64 = *A.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -95,11 +95,11 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams() (db.CreatePayrollParams,
 	}, nil
 }
 
-func (A *CreatePayrollReqModel) ToUpdatePayrollParams(id int64) (db.UpdatePayrollParams, error) {
+func (A *CreatePayrollReqModel) ToUpdatePayrollParams(id int64, admin_id int64) (db.UpdatePayrollParams, error) {
 
 	var updated_by sql.NullInt64
 	if A.UpdatedBy != nil {
-		updated_by.Int64 = *A.UpdatedBy
+		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
 
@@ -172,13 +172,12 @@ type CreatePayrollAllowancesParams struct {
 	UpdatedBy *int64          `json:"updated_by"`
 }
 
-func (A *CreatePayrollAllowancesParams) ToCreatePayrollAllowancesParams() (db.CreatePayrollAllowancesParams, error) {
+func (A *CreatePayrollAllowancesParams) ToCreatePayrollAllowancesParams(admin_id int64) (db.CreatePayrollAllowancesParams, error) {
 	
 	var updated_by sql.NullInt64
-	if A.UpdatedBy != nil {
-		updated_by.Int64 = *A.UpdatedBy
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	amount, err := decimal.NewFromString(A.Amount)
 	if err != nil {

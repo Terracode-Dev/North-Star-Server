@@ -31,7 +31,7 @@ LIMIT ? OFFSET ?;
 SELECT * FROM HR_Admin WHERE id = ?;
 
 -- name: UpdateHrAdmin :exec
-UPDATE HR_Admin SET user_name = ?, email = ?, password = ?, role = ?, status = ?, branch_id = ? WHERE id = ?;
+UPDATE HR_Admin SET user_name = ?, email = ?, role = ?, status = ?, branch_id = ? , updated_by = ? WHERE id = ?;
 
 -- name: DeleteHrAdmin :exec
 DELETE FROM HR_Admin WHERE id = ?;

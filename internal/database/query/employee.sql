@@ -302,4 +302,10 @@ SELECT employee_id, password, email, branch_id
 FROM HR_EMP_User
 WHERE email = ?;
 
+-- name: GetCertificateFile :one
+SELECT image_path FROM HR_EMP_Certificates WHERE employee_id = ?;
+
+-- name: GetVisaFile :one
+SELECT visa_image_path FROM HR_EMP_Expatriate WHERE employee_id = ?;
+
 

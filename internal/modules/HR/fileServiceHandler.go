@@ -6,39 +6,59 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
+// @Summary Upload files
+// @Description Upload certificate and visa files to S3
+// @Tags file
+// @Accept multipart/form-data
+// @Produce json
+// @Param certificate_file formData file true "Certificate file to upload"
+// @Param visa_file formData file true "Visa file to upload"
+// @Success 201 {object} Response "File uploaded successfully"
+// @Failure 500 {string} string "Internal server error"
+// @Router /fileupload [post]
+type Response struct {
+	Certificate string `json:"certificate"`
+	Visa string `json:"visa"`
+}
 
 func (S *HRService) uploadFile(c echo.Context) error {
-	service := c.FormValue("service")
-	file, err := c.FormFile("file")
+	certificate, err := c.FormFile("certificate_file")
+	if err != nil {
+		return c.JSON(500, "file upload issue")
+	}
+	visa , err := c.FormFile("visa_file")
 	if err != nil {
 		return c.JSON(500, "file upload issue")
 	}
 
-	obj, err := file.Open()
+	cert_obj, err := certificate.Open()
 	if err != nil {
 		return c.JSON(500, "file Open issue")
 	}
-	defer obj.Close()
+	defer cert_obj.Close()
 
-	ext := filepath.Ext(file.Filename)
-	fileName := uuid.New().String() + ext
+	visa_obj, err := visa.Open()
+	if err != nil {
+		return c.JSON(500, "file Open issue")
+	}
+	defer visa_obj.Close()
 
-	switch service {
-	case "visa":
-		err = S.s3.UploadToS3(c.Request().Context(), "nsappvisa", fileName, obj)
-		if err != nil {
-			return c.JSON(500, "file upload failed")
-		}
-	case "passport":
-		err = S.s3.UploadToS3(c.Request().Context(), "nsappvisa", fileName, obj)
-		if err != nil {
-			return c.JSON(500, "file upload failed")
-		}
-	default:
-		return c.JSON(500, "invalid service name")
+	cert_ext := filepath.Ext(certificate.Filename)
+	visa_ext := filepath.Ext(visa.Filename)
+	cert_fileName := uuid.New().String() + cert_ext
+	visa_fileName := uuid.New().String() + visa_ext
+
+	err = S.s3.UploadToS3(c.Request().Context(), "nsappcertficates", cert_fileName, cert_obj)
+	if err != nil {
+		return c.JSON(500, err.Error())
 	}
 
-	return c.JSON(201, fileName)
+	err = S.s3.UploadToS3(c.Request().Context(), "nsappvisa", visa_fileName, visa_obj)
+	if err != nil {
+		return c.JSON(500, err.Error())
+	}
+
+	return c.JSON(201, Response{Certificate: cert_fileName, Visa: visa_fileName})
 }
 
 type ReqGetFileDownloadUrl struct {
@@ -69,3 +89,5 @@ func (S *HRService) getFileDownloadUrl(c echo.Context) error {
 		return c.JSON(500, "invalid service name")
 	}
 }
+
+

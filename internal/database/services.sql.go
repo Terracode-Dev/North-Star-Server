@@ -40,13 +40,30 @@ func (q *Queries) DeleteService(ctx context.Context, id int64) error {
 }
 
 const getService = `-- name: GetService :one
-SELECT id, category, value, updated_by, created_at, updated_at FROM HR_Create_Services
-WHERE category = ?
+SELECT 
+    s.id, 
+    s.category, 
+    s.value, 
+    a.user_name AS updated_by,
+    s.created_at, 
+    s.updated_at
+FROM HR_Create_Services s
+LEFT JOIN HR_Admin a ON s.updated_by = a.id
+WHERE s.category = ?
 `
 
-func (q *Queries) GetService(ctx context.Context, category string) (HrCreateService, error) {
+type GetServiceRow struct {
+	ID        int64          `json:"id"`
+	Category  string         `json:"category"`
+	Value     string         `json:"value"`
+	UpdatedBy sql.NullString `json:"updated_by"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+	UpdatedAt sql.NullTime   `json:"updated_at"`
+}
+
+func (q *Queries) GetService(ctx context.Context, category string) (GetServiceRow, error) {
 	row := q.db.QueryRowContext(ctx, getService, category)
-	var i HrCreateService
+	var i GetServiceRow
 	err := row.Scan(
 		&i.ID,
 		&i.Category,

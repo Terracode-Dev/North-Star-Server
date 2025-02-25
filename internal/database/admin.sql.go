@@ -201,27 +201,27 @@ func (q *Queries) SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminPara
 }
 
 const updateHrAdmin = `-- name: UpdateHrAdmin :exec
-UPDATE HR_Admin SET user_name = ?, email = ?, password = ?, role = ?, status = ?, branch_id = ? WHERE id = ?
+UPDATE HR_Admin SET user_name = ?, email = ?, role = ?, status = ?, branch_id = ? , updated_by = ? WHERE id = ?
 `
 
 type UpdateHrAdminParams struct {
-	UserName string `json:"user_name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
-	Status   string `json:"status"`
-	BranchID int64  `json:"branch_id"`
-	ID       int64  `json:"id"`
+	UserName  string        `json:"user_name"`
+	Email     string        `json:"email"`
+	Role      string        `json:"role"`
+	Status    string        `json:"status"`
+	BranchID  int64         `json:"branch_id"`
+	UpdatedBy sql.NullInt64 `json:"updated_by"`
+	ID        int64         `json:"id"`
 }
 
 func (q *Queries) UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error {
 	_, err := q.db.ExecContext(ctx, updateHrAdmin,
 		arg.UserName,
 		arg.Email,
-		arg.Password,
 		arg.Role,
 		arg.Status,
 		arg.BranchID,
+		arg.UpdatedBy,
 		arg.ID,
 	)
 	return err

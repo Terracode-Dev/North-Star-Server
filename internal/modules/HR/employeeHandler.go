@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
+	"path/filepath"
+	"github.com/google/uuid"
+	"database/sql"
+	"github.com/shopspring/decimal"
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	rba "github.com/Terracode-Dev/North-Star-Server/internal/pkg/RBA"
 	"github.com/labstack/echo/v4"
@@ -25,11 +28,11 @@ import (
 // @Failure 500 {string} string "internal server error"
 // @Router /employee [post]
 func (S *HRService) createEmployee(c echo.Context) error {
-	branch_id, ok := c.Get("branch").(int64)
+	branch_id, ok := c.Get("branch").(int)
 	if !ok {
 		return c.JSON(301, "Authentication issue")
 	}
-
+	updated_by := c.Get("user_id").(int)
 	var emp EmpReqModel
 	if err := c.Bind(&emp); err != nil {
 		return err
@@ -41,7 +44,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	}
 	defer tx.Rollback()
 	qtx := S.q.WithTx(tx)
-	empParams, err := emp.Employee.convertToDbStruct()
+	empParams, err := emp.Employee.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee to db struct")
 	}
@@ -66,7 +69,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	emp.Expatriate.EmployeeID = employeeID
 	emp.Accessiability.EmployeeID = employeeID
 
-	emergencyParams, err := emp.Emergency.convertToDbStruct()
+	emergencyParams, err := emp.Emergency.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee emergency details to db struct")
 	}
@@ -75,7 +78,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee emergency details")
 	}
 
-	bankParams, err := emp.Bank.convertToDbStruct()
+	bankParams, err := emp.Bank.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee bank details to db struct")
 	}
@@ -84,7 +87,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee bank details")
 	}
 
-	salaryParams, err := emp.Salary.convertToDbStruct()
+	salaryParams, err := emp.Salary.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee salary to db struct")
 	}
@@ -93,7 +96,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee salary"+salary.Error())
 	}
 
-	certificatesParams, err := emp.Certificates.convertToDbStruct()
+	certificatesParams, err := emp.Certificates.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee certificates to db struct")
 	}
@@ -102,7 +105,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee certificates")
 	}
 
-	statusParams, err := emp.Status.convertToDbStruct()
+	statusParams, err := emp.Status.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee status to db struct")
 	}
@@ -111,7 +114,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee status")
 	}
 
-	benifitsParams, err := emp.Benifits.convertToDbStruct()
+	benifitsParams, err := emp.Benifits.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee benifits to db struct")
 	}
@@ -120,7 +123,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee benifits")
 	}
 
-	userParams, err := emp.User.convertToDbStruct(branch_id)
+	userParams, err := emp.User.convertToDbStruct(int64(branch_id), int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee user to db struct")
 	}
@@ -131,7 +134,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 
 	for _, allowance := range emp.Allowances {
 		allowance.EmployeeID = employeeID
-		allowancesParams, err := allowance.convertToDbStruct()
+		allowancesParams, err := allowance.convertToDbStruct(int64(updated_by))
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Error converting employee allowance to db struct: %v", err))
 		}
@@ -142,7 +145,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		}
 	}
 
-	expatriateParams, err := emp.Expatriate.convertToDbStruct()
+	expatriateParams, err := emp.Expatriate.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee expatriate to db struct")
 	}
@@ -151,7 +154,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee expatriate")
 	}
 
-	accessiabilityParams, err := emp.Accessiability.convertToDbStruct()
+	accessiabilityParams, err := emp.Accessiability.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee accessiability to db struct")
 	}
@@ -223,6 +226,17 @@ func (S *HRService) getEmployee(c echo.Context) error {
 }
 
 // get one employee handler
+// @Summary Get One Employee
+// @Description Fetches details of a single employee
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Param id path int true "Employee ID"
+// @Success 200 {string} string "Employee fetched successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "Employee not found"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/{id} [get]
 func (S *HRService) getEmployeeOne(c echo.Context) error {
 	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -409,16 +423,26 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 // }
 
 // update employee handler
+// @Summary Update Employee
+// @Description Updates employee details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/{id} [put]
 func (S *HRService) updateEmployee(c echo.Context) error {
 	var emp CreateEmployeeReqModel
 	if err := c.Bind(&emp); err != nil {
 		return c.JSON(500, err)
 	}
+	updated_by := c.Get("user_id").(int)
 	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(500, "Error parsing employee id")
 	}
-	empParams, err := emp.ConvertToUpdateDbStruct(empID)
+	empParams, err := emp.ConvertToUpdateDbStruct(empID, int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee to db struct")
 	}
@@ -430,12 +454,22 @@ func (S *HRService) updateEmployee(c echo.Context) error {
 }
 
 // update employee emergency details handler
+// @Summary Update Employee Emergency Details
+// @Description Updates employee emergency details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee emergency details updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/emergency [put]
 func (S *HRService) updateEmpEmergencyDetails(c echo.Context) error {
 	var emg CreateEmpEmergencyDetailsReqModel
 	if err := c.Bind(&emg); err != nil {
 		return c.JSON(500, err)
 	}
-	emgParams, err := emg.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	emgParams, err := emg.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee emergency details to db struct")
 	}
@@ -447,12 +481,22 @@ func (S *HRService) updateEmpEmergencyDetails(c echo.Context) error {
 }
 
 // update employee bank details handler
+// @Summary Update Employee Bank Details
+// @Description Updates employee bank details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee bank details updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/bank [put]
 func (S *HRService) updateEmpBankDetails(c echo.Context) error {
 	var bank CreateEmpBankDetailsReqModel
 	if err := c.Bind(&bank); err != nil {
 		return c.JSON(500, err)
 	}
-	bankParams, err := bank.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	bankParams, err := bank.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee bank details to db struct")
 	}
@@ -464,12 +508,22 @@ func (S *HRService) updateEmpBankDetails(c echo.Context) error {
 }
 
 // update employee salary handler
+// @Summary Update Employee Salary
+// @Description Updates employee salary details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee salary updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/salary [put]
 func (S *HRService) updateEmpSalary(c echo.Context) error {
 	var salary CreateEmpSalaryReqModel
 	if err := c.Bind(&salary); err != nil {
 		return c.JSON(500, err)
 	}
-	salaryParams, err := salary.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	salaryParams, err := salary.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee salary to db struct")
 	}
@@ -481,29 +535,97 @@ func (S *HRService) updateEmpSalary(c echo.Context) error {
 }
 
 // update employee certificates handler
+// @Summary Update Employee Certificates
+// @Description Updates employee certificates details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee certificates updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/certificates [put]
 func (S *HRService) updateEmpCertificates(c echo.Context) error {
-	var certificates CreateEmpCertificatesReqModel
-	if err := c.Bind(&certificates); err != nil {
-		return c.JSON(500, err)
-	}
-	certificatesParams, err := certificates.convertToUpdateDbStruct()
+	empID, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	date := c.FormValue("date")
+	name := c.FormValue("name")
+	admin_id := c.Get("user_id").(int)
 	if err != nil {
-		return c.JSON(500, "Error converting employee certificates to db struct")
+		return c.JSON(500, "Error parsing employee id")
 	}
-	error := S.q.UpdateEmpCertificates(c.Request().Context(), certificatesParams)
+
+	file_path, err := S.q.GetCertificateFile(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(500, "file path issue")
+	}
+
+	file, err := c.FormFile("cert_file")
+	if err != nil {
+		return c.JSON(500, "file upload issue")
+	}
+	obj, err := file.Open()
+	if err != nil {
+		return c.JSON(500, "file Open issue")
+	}
+	defer obj.Close()
+
+	ext := filepath.Ext(file.Filename)
+	fileName := uuid.New().String() + ext
+
+	err = S.s3.UploadToS3(c.Request().Context(), "nsappcertificates", fileName, obj)
+	if err != nil {
+		return c.JSON(500, "file upload failed")
+	}
+
+	conv_date , err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return c.JSON(500, "date conversion issue")
+	}
+
+	var updated_by sql.NullInt64
+	updated_by.Int64 = int64(admin_id)
+	updated_by.Valid = true
+
+	certParams := database.UpdateEmpCertificatesParams{
+		Date : conv_date,
+		Name : name,
+		ImagePath: fileName,
+		UpdatedBy : updated_by,
+		EmployeeID : empID,
+	}
+
+	error := S.q.UpdateEmpCertificates(c.Request().Context(), certParams) 
 	if error != nil {
 		return c.JSON(500, "Error updating employee certificates")
 	}
-	return c.JSON(200, "Employee certificates updated successfully")
+
+	deleted , err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertificates", file_path)
+	if err != nil {
+		return c.JSON(500, "file delete issue")
+	}
+	if deleted {
+		return c.JSON(200, "Employee certificates updated successfully")
+	}
+	return c.JSON(500, "Error deleting old certificate")
+
 }
 
 // update employee status handler
+// @Summary Update Employee Status
+// @Description Updates employee status details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee status updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/status [put]
 func (S *HRService) updateEmpStatus(c echo.Context) error {
 	var status CreateEmpStatusReqModel
 	if err := c.Bind(&status); err != nil {
 		return c.JSON(500, err)
 	}
-	statusParams, err := status.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	statusParams, err := status.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee status to db struct")
 	}
@@ -515,12 +637,22 @@ func (S *HRService) updateEmpStatus(c echo.Context) error {
 }
 
 // update employee benifits handler
+// @Summary Update Employee Benifits
+// @Description Updates employee benifits details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee benifits updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/benifits [put]
 func (S *HRService) updateEmpBenifits(c echo.Context) error {
 	var benifits CreateEmpBenifitsReqModel
 	if err := c.Bind(&benifits); err != nil {
 		return c.JSON(500, err)
 	}
-	benifitsParams, err := benifits.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	benifitsParams, err := benifits.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee benifits to db struct")
 	}
@@ -532,12 +664,22 @@ func (S *HRService) updateEmpBenifits(c echo.Context) error {
 }
 
 // update employee user handler
+// @Summary Update Employee User
+// @Description Updates employee user details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee user updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/user [put]
 func (S *HRService) updateEmpUser(c echo.Context) error {
 	var user CreateEmpUserReqModel
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(500, err)
 	}
-	userParams, err := user.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	userParams, err := user.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee user to db struct")
 	}
@@ -549,12 +691,22 @@ func (S *HRService) updateEmpUser(c echo.Context) error {
 }
 
 // update employee allowances handler
+// @Summary Update Employee Allowances
+// @Description Updates employee allowances details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee allowances updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/allowances [put]
 func (S *HRService) updateEmpAllowances(c echo.Context) error {
 	var allowances CreateEmpAllowancesReqModel
 	if err := c.Bind(&allowances); err != nil {
 		return c.JSON(500, err)
 	}
-	allowancesParams, err := allowances.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	allowancesParams, err := allowances.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee allowances to db struct")
 	}
@@ -566,29 +718,120 @@ func (S *HRService) updateEmpAllowances(c echo.Context) error {
 }
 
 // update employee expatriate handler
+// @Summary Update Employee Expatriate
+// @Description Updates employee expatriate details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee expatriate updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/expatriate [put]
 func (S *HRService) updateEmpExpatriate(c echo.Context) error {
-	var expatriate CreateEmpExpatriateReqModel
-	if err := c.Bind(&expatriate); err != nil {
-		return c.JSON(500, err)
-	}
-	expatriateParams, err := expatriate.convertToUpdateDbStruct()
+	expatriateStr := c.FormValue("expatriate")
+	nationality := c.FormValue("nationality")
+	visatype := c.FormValue("visa_type")
+	visafrom := c.FormValue("visa_from")
+	visatill := c.FormValue("visa_till")
+	visaNumber := c.FormValue("visa_number")
+	visafee := c.FormValue("visa_fee")
+	admin := c.Get("user_id").(int)
+	empid, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
 	if err != nil {
-		return c.JSON(500, "Error converting employee expatriate to db struct")
+		return c.JSON(500, "Error parsing employee id")
 	}
+
+	file_path, err := S.q.GetVisaFile(c.Request().Context(), empid)
+	if err != nil {
+		return c.JSON(500, "file path issue")
+	}
+
+	file, err := c.FormFile("visa_file")
+	if err != nil {
+		return c.JSON(500, "file upload issue")
+	}
+	obj, err := file.Open()
+	if err != nil {
+		return c.JSON(500, "file Open issue")
+	}
+	defer obj.Close()
+
+	ext := filepath.Ext(file.Filename)
+	fileName := uuid.New().String() + ext
+
+	err = S.s3.UploadToS3(c.Request().Context(), "nsappvisa", fileName, obj)
+	if err != nil {
+		return c.JSON(500, "file upload failed")
+	}
+
+	conv_visa_from , err := time.Parse(time.RFC3339, visafrom)
+	if err != nil {
+		return c.JSON(500, "date conversion issue")
+	}
+
+	conv_visa_till , err := time.Parse(time.RFC3339, visatill)
+	if err != nil {
+		return c.JSON(500, "date conversion issue")
+	}
+
+	var updated_by sql.NullInt64
+	updated_by.Int64 = int64(admin)
+	updated_by.Valid = true 
+
+	visa_amount, err := decimal.NewFromString(visafee)
+	if err != nil {
+		return c.JSON(500, "visa fee conversion issue")
+	}
+
+	expatriate := expatriateStr == "true" || expatriateStr == "1"
+
+	expatriateParams := database.UpdateEmpExpatriateParams{
+		Expatriate : expatriate,
+		Nationality: nationality,
+		VisaType : visatype,
+		VisaFrom : conv_visa_from,
+		VisaTill : conv_visa_till,
+		VisaNumber : visaNumber,
+		VisaFee : visa_amount,
+		VisaImagePath: fileName,
+		UpdatedBy : updated_by,
+		EmployeeID : empid,
+	}
+
 	error := S.q.UpdateEmpExpatriate(c.Request().Context(), expatriateParams)
 	if error != nil {
 		return c.JSON(500, "Error updating employee expatriate")
 	}
-	return c.JSON(200, "Employee expatriate updated successfully")
+
+	deleted , err := S.s3.DeleteS3Item(c.Request().Context(), "nsappvisa", file_path)
+	if err != nil {
+		return c.JSON(500, "file delete issue")
+	}
+	if deleted {
+		return c.JSON(200, "Employee expatriate updated successfully")
+	}
+	return c.JSON(500, "Error deleting old visa file")
+	
 }
 
+
 // update employee accessiability handler
+//@Summary Update Employee Accessiability
+//@Description Updates employee accessiability details
+//@Tags employee
+//@Accept json
+//@Produce json
+//@Success 200 {string} string "Employee accessiability updated successfully"
+//@Failure 400 {string} string "Bad request"
+//@Failure 500 {string} string "Internal server error"
+//@Router /employee/accessiability [put]
 func (S *HRService) updateEmpAccessiability(c echo.Context) error {
 	var accessiability CreateEmpAccessiabilityReqModel
 	if err := c.Bind(&accessiability); err != nil {
 		return c.JSON(500, err)
 	}
-	accessiabilityParams, err := accessiability.convertToUpdateDbStruct()
+	updated_by := c.Get("user_id").(int)
+	accessiabilityParams, err := accessiability.convertToUpdateDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee accessiability to db struct")
 	}
@@ -600,6 +843,16 @@ func (S *HRService) updateEmpAccessiability(c echo.Context) error {
 }
 
 // delete employee handler
+// @Summary      Delete Employee
+// @Description  Deletes an employee along with all related records (emergency contacts, bank details, salary, etc.) in a transaction
+// @Tags         employee
+// @Accept       json
+// @Produce      json
+// @Param        id  path  int  true  "Employee ID"
+// @Success      200  {string}  string  "Employee deleted successfully"
+// @Failure      400  {string}  string  "Bad request"
+// @Failure      500  {string}  string  "Internal server error"
+// @Router       /employee/{id} [delete]
 func (S *HRService) deleteEmployee(c echo.Context) error {
 	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -718,7 +971,7 @@ func (S *HRService) employeeLogin(c echo.Context) error {
 	cookie.Path = "/"
 	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
 	c.SetCookie(cookie)
-	return c.JSON(200, "login successfull")
+	return c.JSON(200, payload)
 }
 
 // @Summary user loginout
@@ -751,8 +1004,19 @@ func (S *HRService) Logout(c echo.Context) error {
 	return c.JSON(200, map[string]string{"message": "Logout successful"})
 }
 
+// @Summary empOnlyBankDetailsUpdate
+// @Description Updates employee bank details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Param user_id header int true "User ID"
+// @Param employee body CreateEmpBankDetailsReqModel true "Employee bank details"
+// @Success 200 {string} string "Employee bank details updated successfully"
+// @Failure 400 {string} string "bad request"
+// @Failure 500 {string} string "internal server error"
+// @Router /employee/empbank [put]
 func (S *HRService) empOnlyBankDetailsUpdate(c echo.Context) error {
-	userId, ok := c.Get("user_id").(int64)
+	userId, ok := c.Get("user_id").(int)
 	if !ok {
 		return c.JSON(500, "user id convertion issue")
 	}
@@ -760,10 +1024,10 @@ func (S *HRService) empOnlyBankDetailsUpdate(c echo.Context) error {
 	if err := c.Bind(&bank); err != nil {
 		return c.JSON(500, err)
 	}
-	if userId != bank.EmployeeID {
+	if int64(userId) != bank.EmployeeID {
 		return c.JSON(301, "Authentication issue")
 	}
-	bankParams, err := bank.convertToUpdateDbStruct()
+	bankParams, err := bank.convertToUpdateDbStruct(int64(userId))
 	if err != nil {
 		return c.JSON(500, "Error converting employee bank details to db struct")
 	}

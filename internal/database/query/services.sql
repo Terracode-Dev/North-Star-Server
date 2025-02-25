@@ -9,8 +9,18 @@ INSERT INTO HR_Create_Services (
 SELECT * FROM HR_Create_Services;
 
 -- name: GetService :one
-SELECT * FROM HR_Create_Services
-WHERE category = ?;
+-- name: GetService :one
+SELECT 
+    s.id, 
+    s.category, 
+    s.value, 
+    a.user_name AS updated_by,
+    s.created_at, 
+    s.updated_at
+FROM HR_Create_Services s
+LEFT JOIN HR_Admin a ON s.updated_by = a.id
+WHERE s.category = ?;
+
 
 -- name: UpdateService :exec
 UPDATE HR_Create_Services
