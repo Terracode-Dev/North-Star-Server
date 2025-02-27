@@ -40,4 +40,7 @@ DELETE FROM HR_Admin WHERE id = ?;
 UPDATE HR_Admin SET status = ? WHERE id = ?;
 
 -- name: AdminLogin :one
-SELECT id, role, status, branch_id, password FROM HR_Admin WHERE email = ?
+SELECT a.id, a.role, a.status, a.branch_id, a.password, b.name AS branchName
+FROM HR_Admin a
+LEFT JOIN HR_Branch b ON a.branch_id = b.id
+WHERE email = ?

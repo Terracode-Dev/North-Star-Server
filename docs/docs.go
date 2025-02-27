@@ -1512,7 +1512,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "boolean"
                 },
                 "updated_by": {
                     "type": "integer"

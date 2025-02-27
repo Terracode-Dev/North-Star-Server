@@ -35,7 +35,12 @@ func InitServer() {
 
 	// CORS default
 	// Allows requests from any origin wth GET, HEAD, PUT, POST or DELETE method.
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"http://localhost:5173/hr-api", "http://localhost:5173"},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE, echo.OPTIONS},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// service Registation
 	RegisterService(e, cfg, queries, db, s3client)

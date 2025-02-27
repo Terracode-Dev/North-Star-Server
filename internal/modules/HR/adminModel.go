@@ -12,7 +12,7 @@ type CreateHrAdminReqModel struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 	Role      string `json:"role"`
-	Status    bool `json:"status"`
+	Status    bool   `json:"status"`
 	BranchID  int64  `json:"branch_id"`
 	CreatedBy *int64 `json:"created_by"`
 	UpdatedBy *int64 `json:"updated_by"`
@@ -36,7 +36,7 @@ func (A *CreateHrAdminReqModel) convertToDbStruct(admin_id int64) (db.CreateHrAd
 
 	if A.Status {
 		Status_string = "active"
-	}else {
+	} else {
 		Status_string = "suspended"
 	}
 
@@ -56,12 +56,12 @@ func (A *CreateHrAdminReqModel) convertToDbStructForUpdate(id int64, admin_id in
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
+
 	var Status_string string
 
 	if A.Status {
 		Status_string = "active"
-	}else {
+	} else {
 		Status_string = "suspended"
 	}
 
@@ -85,4 +85,12 @@ type GetAdminReqModel struct {
 type AdminLoginReqModel struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type AdminLoginResModel struct {
+	Id         int    `json:"id"`
+	Role       string `json:"role"`
+	Email      string `json:"email"`
+	Branch     int    `json:"branch"`
+	BranchName string `json:"branchName"`
 }

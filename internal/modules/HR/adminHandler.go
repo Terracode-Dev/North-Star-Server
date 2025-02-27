@@ -3,13 +3,13 @@ package hr
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	db "github.com/Terracode-Dev/North-Star-Server/internal/database"
 	rba "github.com/Terracode-Dev/North-Star-Server/internal/pkg/RBA"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 )
 
 // register admin handler
@@ -29,7 +29,7 @@ func (S *HRService) createAdmin(c echo.Context) error {
 	if err := c.Bind(&admin); err != nil {
 		return c.JSON(400, err.Error())
 	}
-	updated_by, ok:= c.Get("user_id").(int)
+	updated_by, ok := c.Get("user_id").(int)
 	if !ok {
 		return c.JSON(400, "user not found")
 	}
@@ -66,7 +66,7 @@ func (S *HRService) adminLogin(c echo.Context) error {
 		return c.JSON(301, "invalid Email")
 	}
 
-	if admin.Status == "suspended"{
+	if admin.Status == "suspended" {
 		return c.JSON(301, "Admin is suspended")
 	}
 
@@ -91,11 +91,21 @@ func (S *HRService) adminLogin(c echo.Context) error {
 	cookie := new(http.Cookie)
 	cookie.Name = "auth_token"
 	cookie.Value = t
-	cookie.Path = "/"
+	cookie.HttpOnly = true
+	cookie.Secure = false
 	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
+	cookie.SameSite = http.SameSiteLaxMode
 	c.SetCookie(cookie)
 
-	return c.JSON(200, "Login")
+	res := AdminLoginResModel{
+		Id:         int(admin.ID),
+		Role:       admin.Role,
+		Email:      loginModel.Email,
+		Branch:     int(admin.BranchID),
+		BranchName: admin.Branchname.String,
+	}
+
+	return c.JSON(200, res)
 }
 
 // get all admin handler
@@ -162,7 +172,7 @@ func (S *HRService) updateAdmin(c echo.Context) error {
 	if err != nil {
 		return c.JSON(400, err.Error())
 	}
-	updated_by, ok:= c.Get("user_id").(int)
+	updated_by, ok := c.Get("user_id").(int)
 	if !ok {
 		return c.JSON(400, "user not found")
 	}

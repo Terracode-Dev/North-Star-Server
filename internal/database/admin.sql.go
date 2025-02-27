@@ -11,15 +11,19 @@ import (
 )
 
 const adminLogin = `-- name: AdminLogin :one
-SELECT id, role, status, branch_id, password FROM HR_Admin WHERE email = ?
+SELECT a.id, a.role, a.status, a.branch_id, a.password, b.name AS branchName
+FROM HR_Admin a
+LEFT JOIN HR_Branch b ON a.branch_id = b.id
+WHERE email = ?
 `
 
 type AdminLoginRow struct {
-	ID       int64  `json:"id"`
-	Role     string `json:"role"`
-	Status   string `json:"status"`
-	BranchID int64  `json:"branch_id"`
-	Password string `json:"password"`
+	ID         int64          `json:"id"`
+	Role       string         `json:"role"`
+	Status     string         `json:"status"`
+	BranchID   int64          `json:"branch_id"`
+	Password   string         `json:"password"`
+	Branchname sql.NullString `json:"branchname"`
 }
 
 func (q *Queries) AdminLogin(ctx context.Context, email string) (AdminLoginRow, error) {
@@ -31,6 +35,7 @@ func (q *Queries) AdminLogin(ctx context.Context, email string) (AdminLoginRow, 
 		&i.Status,
 		&i.BranchID,
 		&i.Password,
+		&i.Branchname,
 	)
 	return i, err
 }
