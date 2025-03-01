@@ -39,7 +39,7 @@ func (q *Queries) DeleteService(ctx context.Context, id int64) error {
 	return err
 }
 
-const getService = `-- name: GetService :one
+const getService = `-- name: GetService :many
 SELECT 
     s.id, 
     s.category, 
@@ -61,18 +61,34 @@ type GetServiceRow struct {
 	UpdatedAt sql.NullTime   `json:"updated_at"`
 }
 
-func (q *Queries) GetService(ctx context.Context, category string) (GetServiceRow, error) {
-	row := q.db.QueryRowContext(ctx, getService, category)
-	var i GetServiceRow
-	err := row.Scan(
-		&i.ID,
-		&i.Category,
-		&i.Value,
-		&i.UpdatedBy,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+func (q *Queries) GetService(ctx context.Context, category string) ([]GetServiceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getService, category)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetServiceRow
+	for rows.Next() {
+		var i GetServiceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Category,
+			&i.Value,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getServices = `-- name: GetServices :many

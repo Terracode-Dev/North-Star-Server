@@ -1,8 +1,8 @@
 package hr
 
 import (
+	"log"
 	"strconv"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -72,10 +72,11 @@ func (S *HRService) getAdminServices(c echo.Context) error {
 // @Router /service/{category} [get]
 func (S *HRService) getOneAdminService(c echo.Context) error {
 	cat := c.Param("category")
-	cat = strings.ReplaceAll(cat, "_", " ")
-
+	// cat = strings.ReplaceAll(cat, "_", " ")
+	log.Println(cat)
 	service, err := S.q.GetService(c.Request().Context(), cat)
 	if err != nil {
+		log.Println(err)
 		return c.JSON(500, err)
 	}
 
@@ -84,7 +85,7 @@ func (S *HRService) getOneAdminService(c echo.Context) error {
 
 // update a service
 // @Summary Update Service
-// @Description Update a servicev 
+// @Description Update a servicev
 func (S *HRService) updateAdminService(c echo.Context) error {
 	var ser CreateServicesReqModel
 	if err := c.Bind(&ser); err != nil {
@@ -108,7 +109,6 @@ func (S *HRService) updateAdminService(c echo.Context) error {
 	}
 
 	return c.JSON(200, "Service Updated")
-
 }
 
 // delete a service
