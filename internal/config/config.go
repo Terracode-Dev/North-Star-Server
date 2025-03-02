@@ -19,6 +19,9 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	JWTSecret  string
+	// AWSRegion  string
+	MainBranchId int
+	JwtExpHour   int
 }
 
 // LoadConfig loads environment variables from a `.env` file
@@ -34,6 +37,21 @@ func LoadConfig() *Config {
 		log.Fatalf("Invalid DB_PORT: %v", err)
 	}
 
+	mainbranchid, err := strconv.Atoi(getEnv("MAINBRANCHID", "1"))
+	if err != nil {
+		log.Fatalf("Invalid DB_PORT: %v", err)
+	}
+
+	jwtexthour, err := strconv.Atoi(getEnv("JWT_EXP_HOUR", "24"))
+	if err != nil {
+		log.Fatalf("Invalid DB_PORT: %v", err)
+	}
+
+	// awsregion := getEnv("AWS_REGION", "")
+	// if awsregion == "" {
+	// 	log.Println("aws region not found in the env")
+	// }
+
 	return &Config{
 		AppName:    getEnv("APP_NAME", "EchoApp"),
 		Port:       getEnv("PORT", ":8080"),
@@ -44,6 +62,9 @@ func LoadConfig() *Config {
 		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", "mydb"),
 		JWTSecret:  getEnv("JWT_SECRET", "supersecret"),
+		// AWSRegion:  awsregion,
+		MainBranchId: mainbranchid,
+		JwtExpHour:   jwtexthour,
 	}
 }
 

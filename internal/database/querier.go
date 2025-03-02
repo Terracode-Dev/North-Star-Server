@@ -7,10 +7,83 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 type Querier interface {
-	Create_HR_Admin(ctx context.Context, arg Create_HR_AdminParams) (sql.Result, error)
+	AddHRBranch(ctx context.Context, name string) error
+	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
+	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
+	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
+	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
+	CreateEmpBankDetails(ctx context.Context, arg CreateEmpBankDetailsParams) error
+	CreateEmpBenifits(ctx context.Context, arg CreateEmpBenifitsParams) error
+	CreateEmpCertificates(ctx context.Context, arg CreateEmpCertificatesParams) error
+	CreateEmpEmergencyDetails(ctx context.Context, arg CreateEmpEmergencyDetailsParams) error
+	CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatriateParams) error
+	CreateEmpSalary(ctx context.Context, arg CreateEmpSalaryParams) error
+	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
+	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
+	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
+	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
+	CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error
+	CreateServices(ctx context.Context, arg CreateServicesParams) error
+	CreateTax(ctx context.Context, arg CreateTaxParams) error
+	DeleteAllowance(ctx context.Context, id int64) error
+	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
+	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
+	DeleteEmpBankDetails(ctx context.Context, employeeID int64) error
+	DeleteEmpBenifits(ctx context.Context, employeeID int64) error
+	DeleteEmpCertificates(ctx context.Context, employeeID int64) error
+	DeleteEmpEmergencyDetails(ctx context.Context, employeeID int64) error
+	DeleteEmpExpatriate(ctx context.Context, employeeID int64) error
+	DeleteEmpSalary(ctx context.Context, employeeID int64) error
+	DeleteEmpStatus(ctx context.Context, employeeID int64) error
+	DeleteEmpUser(ctx context.Context, employeeID int64) error
+	DeleteEmployee(ctx context.Context, id int64) error
+	DeleteHrAdmin(ctx context.Context, id int64) error
+	DeleteHrBranch(ctx context.Context, id int64) error
+	DeleteService(ctx context.Context, id int64) error
+	DeleteTax(ctx context.Context, id int64) error
+	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
+	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
+	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
+	GetAllowances(ctx context.Context) ([]HrCreateAllowance, error)
+	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
+	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error)
+	GetEmployeeAllowances(ctx context.Context, employeeID int64) ([]GetEmployeeAllowancesRow, error)
+	GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeByIDRow, error)
+	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
+	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
+	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
+	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
+	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
+	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
+	GetService(ctx context.Context, category string) ([]GetServiceRow, error)
+	GetServices(ctx context.Context) ([]HrCreateService, error)
+	GetTax(ctx context.Context) ([]HrTax, error)
+	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
+	SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([]SelectHrAdminRow, error)
+	SelectOneHrAdmin(ctx context.Context, id int64) (HrAdmin, error)
+	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
+	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
+	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
+	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
+	UpdateEmpBankDetails(ctx context.Context, arg UpdateEmpBankDetailsParams) error
+	UpdateEmpBenifits(ctx context.Context, arg UpdateEmpBenifitsParams) error
+	UpdateEmpCertificates(ctx context.Context, arg UpdateEmpCertificatesParams) error
+	UpdateEmpEmergencyDetails(ctx context.Context, arg UpdateEmpEmergencyDetailsParams) error
+	UpdateEmpExpatriate(ctx context.Context, arg UpdateEmpExpatriateParams) error
+	UpdateEmpSalary(ctx context.Context, arg UpdateEmpSalaryParams) error
+	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
+	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error
+	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) error
+	UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error
+	UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error
+	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
+	UpdateService(ctx context.Context, arg UpdateServiceParams) error
+	UpdateTax(ctx context.Context, arg UpdateTaxParams) error
 }
 
 var _ Querier = (*Queries)(nil)

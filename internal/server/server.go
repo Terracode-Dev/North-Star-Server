@@ -9,17 +9,22 @@ import (
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/config"
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
+	aws "github.com/Terracode-Dev/North-Star-Server/internal/pkg/aws"
 
+	_ "github.com/Terracode-Dev/North-Star-Server/docs"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func InitServer() {
 	cfg := config.LoadConfig()
 	// Setup
 	e := echo.New()
-	db := database.CreateNewDB(cfg.DBString)
+	queries, db := database.CreateNewDB(cfg.DBString)
+	s3client := aws.CreateS3Client()
+
 	e.Logger.SetLevel(log.INFO)
 
 	// middleware
@@ -30,15 +35,22 @@ func InitServer() {
 
 	// CORS default
 	// Allows requests from any origin wth GET, HEAD, PUT, POST or DELETE method.
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"http://localhost:5173/hr-api", "http://localhost:5173"},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE, echo.OPTIONS},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// service Registation
-	RegisterService(e, db)
+	RegisterService(e, cfg, queries, db, s3client)
 
 	e.GET("/", func(c echo.Context) error {
 		time.Sleep(5 * time.Second)
 		return c.JSON(http.StatusOK, "OK")
 	})
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	s := &http.Server{
 		Addr:         cfg.Port,

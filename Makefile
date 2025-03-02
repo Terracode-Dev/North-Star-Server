@@ -16,5 +16,8 @@ create-migrate:
 sql-gen:
 	sqlc generate
 
+doc-gen:
+	swag init -g cmd/main.go
+
 run-server:
 	go run cmd/main.go
