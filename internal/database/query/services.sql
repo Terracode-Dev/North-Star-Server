@@ -8,8 +8,7 @@ INSERT INTO HR_Create_Services (
 -- name: GetServices :many
 SELECT * FROM HR_Create_Services;
 
--- name: GetService :one
--- name: GetService :one
+-- name: GetService :many
 SELECT 
     s.id, 
     s.category, 

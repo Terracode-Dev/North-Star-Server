@@ -13,7 +13,7 @@ func (S *HRService) createAllowances(c echo.Context) error {
 		return c.JSON(400, err)
 	}
 
-	updated_by := c.Get("user").(int)
+	updated_by := c.Get("user_id").(int)
 	params, err := allow.ToCreateAllowancesParams(int64(updated_by))
 	if err != nil {
 		return c.JSON(400, err)
