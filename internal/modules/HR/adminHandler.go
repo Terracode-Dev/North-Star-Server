@@ -95,8 +95,6 @@ func (S *HRService) adminLogin(c echo.Context) error {
 	cookie.Secure = false
 	cookie.Path = "/"
 	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
-	cookie.Path = "/"
-	cookie.SameSite = http.SameSiteLaxMode
 	c.SetCookie(cookie)
 
 	res := AdminLoginResModel{
@@ -107,7 +105,11 @@ func (S *HRService) adminLogin(c echo.Context) error {
 		BranchName: admin.Branchname.String,
 	}
 
-	return c.JSON(200, res)
+	resLogin := LoginResponse{
+		Token: t,
+		Data:  res,
+	}
+	return c.JSON(200, resLogin)
 }
 
 // get all admin handler
