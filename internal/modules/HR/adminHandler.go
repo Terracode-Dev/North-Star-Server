@@ -93,6 +93,7 @@ func (S *HRService) adminLogin(c echo.Context) error {
 	cookie.Value = t
 	cookie.HttpOnly = true
 	cookie.Secure = false
+	cookie.Path = "/"
 	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
 	cookie.Path = "/"
 	cookie.SameSite = http.SameSiteLaxMode
@@ -161,7 +162,12 @@ func (S *HRService) getAllAdmin(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, "internal server error")
 	}
-	return c.JSON(200, admins)
+	res := AdminTableResponse{
+		Count: len(admins),
+		Page:  int((req.PageNumber - 1) * req.Limit),
+		Data:  admins,
+	}
+	return c.JSON(200, res)
 }
 
 func (S *HRService) updateAdmin(c echo.Context) error {
@@ -210,4 +216,56 @@ func (S *HRService) suspendAdmin(c echo.Context) error {
 		return c.JSON(400, err.Error())
 	}
 	return c.JSON(200, "Admin suspended successfully")
+}
+
+func (S *HRService) addHRBranch(c echo.Context) error {
+	var req AddReqHRBranch
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(500, "req binding issue")
+	}
+	err := S.q.AddHRBranch(c.Request().Context(), req.Name)
+	if err != nil {
+		return c.JSON(500, "internal server error")
+	}
+	return c.JSON(200, "branch created successfully")
+}
+
+func (S *HRService) getAllHRBranch(c echo.Context) error {
+	data, err := S.q.GetAllHRBranch(c.Request().Context())
+	if err != nil {
+		return c.JSON(500, "internal server error")
+	}
+	return c.JSON(200, data)
+}
+
+func (S *HRService) deleteHRBranch(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(500, "check the id params")
+	}
+	err = S.q.DeleteHrBranch(c.Request().Context(), int64(id))
+	if err != nil {
+		return c.JSON(500, "internal server error")
+	}
+	return c.JSON(200, "delete successfully")
+}
+
+func (S *HRService) getProtectedHRBranch(c echo.Context) error {
+	branch, ok := c.Get("branch").(int)
+	if !ok {
+		return c.JSON(400, "user not found")
+	}
+	if branch == S.cfg.MainBranchId {
+		data, err := S.q.GetAllHRBranch(c.Request().Context())
+		if err != nil {
+			return c.JSON(500, "internal server error")
+		}
+		return c.JSON(200, data)
+	} else {
+		data, err := S.q.GetOneHrBranch(c.Request().Context(), int64(branch))
+		if err != nil {
+			return c.JSON(500, "internal server error")
+		}
+		return c.JSON(200, data)
+	}
 }
