@@ -1,0 +1,98 @@
+name: Deploy ns-server-go to EC2
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    #environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Build application
+        run: |
+          go mod tidy
+          go build -o nsserver cmd/main.go
+
+      - name: deploy to EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ubuntu
+          DB_STR: ${{ secrets.DB_STR }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          GOOSE_DRIVER: ${{ secrets.GOOSE_DRIVER }}
+          GOOSE_DBSTRING: ${{ secrets.GOOSE_DBSTRING }}
+          GOOSE_MIGRATION_DIR: ${{ secrets.GOOSE_MIGRATION_DIR }}
+
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          # Copy bin -> EC2
+          scp -i private_key.pem -o StrictHostKeyChecking=no nsserver $EC2_USER@$EC2_HOST:/home/ubuntu/nsserver
+
+          # SSH into EC2 and restart the application
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOL
+
+          sudo mv /home/ubuntu/nsserver /usr/local/bin/nsserver
+          sudo chmod +x /usr/local/bin/nsserver
+
+
+          if [ ! -f /etc/systemd/system/nsserver.service ]; then
+            echo "Creating systemd service for nsserver go bin..."
+          else
+            echo "Updating systemd service for nsserver go bin..."
+          fi
+
+
+          sudo bash -c 'cat > /etc/systemd/system/nsserver.service <<EOL
+          [Unit]
+          Description=ns-server-go application
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/local/bin/nsserver
+          Restart=always
+          User=ubuntu
+          WorkingDirectory=/home/ubuntu
+
+
+          #.env content -> service environemtn
+          Environment=DB_STR=$DB_STR
+          Environment=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+          Environment=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+          Environment=AWS_REGION=$AWS_REGION
+          Environment=GOOSE_DRIVER=$GOOSE_DRIVER
+          Environment=GOOSE_DBSTRING=$GOOSE_DBSTRING
+          Environment=GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR
+
+
+          [Install]
+          WantedBy=multi-user.target
+          EOL'
+
+
+          sudo systemctl daemon-reload
+          sudo systemctl enable nsserver
+
+
+          # Restart
+          sudo systemctl restart nsserver
+          EOL
+
+          rm -f private_key.pem  # Cleanup private key
