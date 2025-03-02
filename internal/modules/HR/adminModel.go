@@ -104,3 +104,8 @@ type AdminTableResponse struct {
 	Count int                   `json:"count"`
 	Data  []db.SelectHrAdminRow `json:"data"`
 }
+
+type LoginResponse struct {
+	Token string             `json:"token"`
+	Data  AdminLoginResModel `json:"data"`
+}
