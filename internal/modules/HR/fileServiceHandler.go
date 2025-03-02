@@ -24,22 +24,22 @@ type Response struct {
 func (S *HRService) uploadFile(c echo.Context) error {
 	certificate, err := c.FormFile("certificate_file")
 	if err != nil {
-		return c.JSON(500, "file upload issue")
+		return c.JSON(500, err.Error())
 	}
 	visa , err := c.FormFile("visa_file")
 	if err != nil {
-		return c.JSON(500, "file upload issue")
+		return c.JSON(500, err.Error())
 	}
 
 	cert_obj, err := certificate.Open()
 	if err != nil {
-		return c.JSON(500, "file Open issue")
+		return c.JSON(500, err.Error())
 	}
 	defer cert_obj.Close()
 
 	visa_obj, err := visa.Open()
 	if err != nil {
-		return c.JSON(500, "file Open issue")
+		return c.JSON(500, err.Error())
 	}
 	defer visa_obj.Close()
 

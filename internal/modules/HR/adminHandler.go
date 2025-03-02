@@ -95,6 +95,7 @@ func (S *HRService) adminLogin(c echo.Context) error {
 	cookie.Secure = false
 	cookie.Path = "/"
 	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
+	cookie.Path = "/"
 	cookie.SameSite = http.SameSiteLaxMode
 	c.SetCookie(cookie)
 

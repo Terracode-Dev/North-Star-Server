@@ -11,7 +11,6 @@ type CreateAllowancesReqModel struct {
 	AllowanceType string          `json:"allowance_type"`
 	Amount        string          `json:"amount"`
 	UpdatedBy     *int64          `json:"updated_by"`
-	ID            int64           `json:"id"`
 }
 
 func (M *CreateAllowancesReqModel) ToCreateAllowancesParams(admin_id int64) (db.CreateAllowancesParams, error) {
