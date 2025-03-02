@@ -10,6 +10,15 @@ import (
 	"database/sql"
 )
 
+const addHRBranch = `-- name: AddHRBranch :exec
+INSERT INTO HR_Branch (name) VALUES (?)
+`
+
+func (q *Queries) AddHRBranch(ctx context.Context, name string) error {
+	_, err := q.db.ExecContext(ctx, addHRBranch, name)
+	return err
+}
+
 const adminLogin = `-- name: AdminLogin :one
 SELECT a.id, a.role, a.status, a.branch_id, a.password, b.name AS branchName
 FROM HR_Admin a
@@ -81,6 +90,69 @@ func (q *Queries) DeleteHrAdmin(ctx context.Context, id int64) error {
 	return err
 }
 
+const deleteHrBranch = `-- name: DeleteHrBranch :exec
+DELETE FROM HR_Branch WHERE id = ?
+`
+
+func (q *Queries) DeleteHrBranch(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteHrBranch, id)
+	return err
+}
+
+const getAllHRBranch = `-- name: GetAllHRBranch :many
+SELECT id, name, created_at FROM HR_Branch
+`
+
+func (q *Queries) GetAllHRBranch(ctx context.Context) ([]HrBranch, error) {
+	rows, err := q.db.QueryContext(ctx, getAllHRBranch)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HrBranch
+	for rows.Next() {
+		var i HrBranch
+		if err := rows.Scan(&i.ID, &i.Name, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getOneHrBranch = `-- name: GetOneHrBranch :many
+SELECT id, name, created_at FROM HR_Branch WHERE id = ?
+`
+
+func (q *Queries) GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error) {
+	rows, err := q.db.QueryContext(ctx, getOneHrBranch, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []HrBranch
+	for rows.Next() {
+		var i HrBranch
+		if err := rows.Scan(&i.ID, &i.Name, &i.CreatedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const selectHrAdmin = `-- name: SelectHrAdmin :many
 SELECT
   a.id,
@@ -89,6 +161,7 @@ SELECT
   a.role,
   a.status,
   b.name AS branch_name,
+  a.branch_id,
   a.created_at,
   a.updated_at
 FROM HR_Admin a
@@ -123,6 +196,7 @@ type SelectHrAdminRow struct {
 	Role       string         `json:"role"`
 	Status     string         `json:"status"`
 	BranchName sql.NullString `json:"branch_name"`
+	BranchID   int64          `json:"branch_id"`
 	CreatedAt  sql.NullTime   `json:"created_at"`
 	UpdatedAt  sql.NullTime   `json:"updated_at"`
 }
@@ -152,6 +226,7 @@ func (q *Queries) SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([
 			&i.Role,
 			&i.Status,
 			&i.BranchName,
+			&i.BranchID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
