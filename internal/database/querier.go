@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
@@ -42,9 +43,11 @@ type Querier interface {
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
 	DeleteEmployee(ctx context.Context, id int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
+	DeleteHrBranch(ctx context.Context, id int64) error
 	DeleteService(ctx context.Context, id int64) error
 	DeleteTax(ctx context.Context, id int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
+	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
 	GetAllowances(ctx context.Context) ([]HrCreateAllowance, error)
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
@@ -54,6 +57,7 @@ type Querier interface {
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
 	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
+	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
 	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
 	GetService(ctx context.Context, category string) ([]GetServiceRow, error)

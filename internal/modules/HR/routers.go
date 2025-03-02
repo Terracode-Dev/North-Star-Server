@@ -9,8 +9,8 @@ func (S *HRService) registerRoutes() {
 	hrRoute := S.e.Group("/hr-api")
 
 	// admin routes
-	hrRoute.GET("/admin", S.getAllAdmin, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.POST("/admin", S.createAdmin)
+	hrRoute.POST("/admin/all", S.getAllAdmin, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/admin", S.createAdmin, rba.AuthMiddelware([]string{"admin"}))
 	hrRoute.PUT("/admin/suspend", S.suspendAdmin, rba.AuthMiddelware([]string{"admin"}))
 	hrRoute.PUT("/admin/:id", S.updateAdmin, rba.AuthMiddelware([]string{"admin"}))
 	hrRoute.POST("/admin/login", S.adminLogin)
@@ -57,6 +57,11 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+
+	hrRoute.POST("/hrbranch", S.addHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/hrbranch", S.getAllHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/hrbranch/protect", S.getProtectedHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.DELETE("/hrbranch/:id", S.deleteHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 
 	hrRoute.POST("/fileupload", S.uploadFile, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod"}))

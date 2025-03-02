@@ -12,6 +12,7 @@ SELECT
   a.role,
   a.status,
   b.name AS branch_name,
+  a.branch_id,
   a.created_at,
   a.updated_at
 FROM HR_Admin a
@@ -43,4 +44,16 @@ UPDATE HR_Admin SET status = ? WHERE id = ?;
 SELECT a.id, a.role, a.status, a.branch_id, a.password, b.name AS branchName
 FROM HR_Admin a
 LEFT JOIN HR_Branch b ON a.branch_id = b.id
-WHERE email = ?
+WHERE email = ?;
+
+-- name: AddHRBranch :exec
+INSERT INTO HR_Branch (name) VALUES (?);
+
+-- name: GetAllHRBranch :many
+SELECT * FROM HR_Branch;
+
+-- name: DeleteHrBranch :exec
+DELETE FROM HR_Branch WHERE id = ?;
+
+-- name: GetOneHrBranch :many
+SELECT * FROM HR_Branch WHERE id = ?;

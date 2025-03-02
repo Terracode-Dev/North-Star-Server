@@ -94,3 +94,13 @@ type AdminLoginResModel struct {
 	Branch     int    `json:"branch"`
 	BranchName string `json:"branchName"`
 }
+
+type AddReqHRBranch struct {
+	Name string `json:"name"`
+}
+
+type AdminTableResponse struct {
+	Page  int                   `json:"page"`
+	Count int                   `json:"count"`
+	Data  []db.SelectHrAdminRow `json:"data"`
+}
