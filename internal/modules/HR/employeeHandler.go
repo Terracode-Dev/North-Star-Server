@@ -1056,11 +1056,11 @@ func(S *HRService) getEmployeeByBranch(c echo.Context) error {
 }
 
 func (S *HRService) getEmployeeSalary(c echo.Context) error {
-	branch_id, ok := c.Get("branch").(int)
-	if !ok {
-		return c.JSON(400, "Invalid branch ID")
+	empID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(500, "Error parsing employee id")
 	}
-	emp, err := S.q.GetEmployeeSalaryDetails(c.Request().Context(), int64(branch_id))
+	emp, err := S.q.GetEmployeeSalaryDetails(c.Request().Context(), empID)
 	if err != nil {
 		return c.JSON(500, "Error getting employee")
 	}
@@ -1068,11 +1068,11 @@ func (S *HRService) getEmployeeSalary(c echo.Context) error {
 }
 
 func (S *HRService) getEmployeeAllowances(c echo.Context) error {
-	branch_id, ok := c.Get("branch").(int)
-	if !ok {
-		return c.JSON(400, "Invalid branch ID")
+	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(500, "Error parsing employee id")
 	}
-	emp, err := S.q.GetEmployeeAllowances(c.Request().Context(), int64(branch_id))
+	emp, err := S.q.GetEmployeeAllowances(c.Request().Context(), empID)
 	if err != nil {
 		return c.JSON(500, "Error getting employee")
 	}
