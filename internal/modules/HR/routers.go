@@ -50,6 +50,7 @@ func (S *HRService) registerRoutes() {
 
 	hrRoute.GET("/tax", S.getTax, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/tax", S.createTax, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.DELETE("/tax/:id", S.deleteTax, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/payroll", S.createPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
@@ -63,6 +64,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/fileupload", S.uploadFile, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod"}))
 
+	hrRoute.GET("/verify-auth", S.verifyAuth, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.GET("/logout", S.Logout)
 
 	hrRoute.POST("/testlogin", S.TestLogin)

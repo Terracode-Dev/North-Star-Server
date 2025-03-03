@@ -1,18 +1,19 @@
 package hr
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
-	"path/filepath"
-	"github.com/google/uuid"
-	"database/sql"
-	"github.com/shopspring/decimal"
+
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	rba "github.com/Terracode-Dev/North-Star-Server/internal/pkg/RBA"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -576,7 +577,7 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 		return c.JSON(500, "file upload failed")
 	}
 
-	conv_date , err := time.Parse(time.RFC3339, date)
+	conv_date, err := time.Parse(time.RFC3339, date)
 	if err != nil {
 		return c.JSON(500, "date conversion issue")
 	}
@@ -586,19 +587,19 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	updated_by.Valid = true
 
 	certParams := database.UpdateEmpCertificatesParams{
-		Date : conv_date,
-		Name : name,
-		ImagePath: fileName,
-		UpdatedBy : updated_by,
-		EmployeeID : empID,
+		Date:       conv_date,
+		Name:       name,
+		ImagePath:  fileName,
+		UpdatedBy:  updated_by,
+		EmployeeID: empID,
 	}
 
-	error := S.q.UpdateEmpCertificates(c.Request().Context(), certParams) 
+	error := S.q.UpdateEmpCertificates(c.Request().Context(), certParams)
 	if error != nil {
 		return c.JSON(500, "Error updating employee certificates")
 	}
 
-	deleted , err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertificates", file_path)
+	deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertificates", file_path)
 	if err != nil {
 		return c.JSON(500, "file delete issue")
 	}
@@ -606,7 +607,6 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 		return c.JSON(200, "Employee certificates updated successfully")
 	}
 	return c.JSON(500, "Error deleting old certificate")
-
 }
 
 // update employee status handler
@@ -764,19 +764,19 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 		return c.JSON(500, "file upload failed")
 	}
 
-	conv_visa_from , err := time.Parse(time.RFC3339, visafrom)
+	conv_visa_from, err := time.Parse(time.RFC3339, visafrom)
 	if err != nil {
 		return c.JSON(500, "date conversion issue")
 	}
 
-	conv_visa_till , err := time.Parse(time.RFC3339, visatill)
+	conv_visa_till, err := time.Parse(time.RFC3339, visatill)
 	if err != nil {
 		return c.JSON(500, "date conversion issue")
 	}
 
 	var updated_by sql.NullInt64
 	updated_by.Int64 = int64(admin)
-	updated_by.Valid = true 
+	updated_by.Valid = true
 
 	visa_amount, err := decimal.NewFromString(visafee)
 	if err != nil {
@@ -786,16 +786,16 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 	expatriate := expatriateStr == "true" || expatriateStr == "1"
 
 	expatriateParams := database.UpdateEmpExpatriateParams{
-		Expatriate : expatriate,
-		Nationality: nationality,
-		VisaType : visatype,
-		VisaFrom : conv_visa_from,
-		VisaTill : conv_visa_till,
-		VisaNumber : visaNumber,
-		VisaFee : visa_amount,
+		Expatriate:    expatriate,
+		Nationality:   nationality,
+		VisaType:      visatype,
+		VisaFrom:      conv_visa_from,
+		VisaTill:      conv_visa_till,
+		VisaNumber:    visaNumber,
+		VisaFee:       visa_amount,
 		VisaImagePath: fileName,
-		UpdatedBy : updated_by,
-		EmployeeID : empid,
+		UpdatedBy:     updated_by,
+		EmployeeID:    empid,
 	}
 
 	error := S.q.UpdateEmpExpatriate(c.Request().Context(), expatriateParams)
@@ -803,7 +803,7 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 		return c.JSON(500, "Error updating employee expatriate")
 	}
 
-	deleted , err := S.s3.DeleteS3Item(c.Request().Context(), "nsappvisa", file_path)
+	deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappvisa", file_path)
 	if err != nil {
 		return c.JSON(500, "file delete issue")
 	}
@@ -811,20 +811,18 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 		return c.JSON(200, "Employee expatriate updated successfully")
 	}
 	return c.JSON(500, "Error deleting old visa file")
-	
 }
 
-
 // update employee accessiability handler
-//@Summary Update Employee Accessiability
-//@Description Updates employee accessiability details
-//@Tags employee
-//@Accept json
-//@Produce json
-//@Success 200 {string} string "Employee accessiability updated successfully"
-//@Failure 400 {string} string "Bad request"
-//@Failure 500 {string} string "Internal server error"
-//@Router /employee/accessiability [put]
+// @Summary Update Employee Accessiability
+// @Description Updates employee accessiability details
+// @Tags employee
+// @Accept json
+// @Produce json
+// @Success 200 {string} string "Employee accessiability updated successfully"
+// @Failure 400 {string} string "Bad request"
+// @Failure 500 {string} string "Internal server error"
+// @Router /employee/accessiability [put]
 func (S *HRService) updateEmpAccessiability(c echo.Context) error {
 	var accessiability CreateEmpAccessiabilityReqModel
 	if err := c.Bind(&accessiability); err != nil {
@@ -988,9 +986,9 @@ func (S *HRService) Logout(c echo.Context) error {
 	cookie := new(http.Cookie)
 	cookie.Name = "auth_token"
 	cookie.Value = ""
-	// cookie.Path = "/" // Ensure the path matches the login cookie
+	cookie.Path = "/"                // Ensure the path matches the login cookie
 	cookie.Expires = time.Unix(0, 0) // Set expiry to a time in the past
-	// cookie.HttpOnly = true          // Prevent client-side scripts from accessing it
+	cookie.HttpOnly = true           // Prevent client-side scripts from accessing it
 	// cookie.Secure = true            // Ensure the cookie is only sent over HTTPS
 	cookie.SameSite = http.SameSiteStrictMode // Helps mitigate CSRF attacks
 

@@ -61,25 +61,36 @@ func (q *Queries) GetAllowance(ctx context.Context, id int64) (HrCreateAllowance
 }
 
 const getAllowances = `-- name: GetAllowances :many
-SELECT id, allowance_type, amount, updated_by, created_at, updated_at FROM HR_Create_Allowances
+SELECT h.id, h.allowance_type, h.amount, h.created_at, h.updated_at, a.user_name as updated_by
+FROM HR_Create_Allowances h
+LEFT JOIN HR_Admin a ON a.id = h.updated_by
 `
 
-func (q *Queries) GetAllowances(ctx context.Context) ([]HrCreateAllowance, error) {
+type GetAllowancesRow struct {
+	ID            int64           `json:"id"`
+	AllowanceType string          `json:"allowance_type"`
+	Amount        decimal.Decimal `json:"amount"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
+	UpdatedAt     sql.NullTime    `json:"updated_at"`
+	UpdatedBy     sql.NullString  `json:"updated_by"`
+}
+
+func (q *Queries) GetAllowances(ctx context.Context) ([]GetAllowancesRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllowances)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HrCreateAllowance
+	var items []GetAllowancesRow
 	for rows.Next() {
-		var i HrCreateAllowance
+		var i GetAllowancesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.AllowanceType,
 			&i.Amount,
-			&i.UpdatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}
