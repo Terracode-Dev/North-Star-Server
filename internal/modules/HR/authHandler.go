@@ -48,3 +48,25 @@ func (S *HRService) verifyAuth(c echo.Context) error {
 		"data":            res,
 	})
 }
+
+func (S *HRService) empVerifyAuth(c echo.Context) error {
+	email, ok := c.Get("email").(string)
+	if !ok {
+		log.Println("LOGAUTH", ok)
+		return c.JSON(401, map[string]interface{}{"isAuthenticated": false, "message": "route not accessible"})
+	}
+
+	user_id, ok := c.Get("user_id").(int)
+	if !ok {
+		log.Println("LOGAUTH", ok)
+		return c.JSON(401, map[string]interface{}{"isAuthenticated": false, "message": "route not accessible"})
+	}
+
+	res := VerifyDataModel{
+		Id:    user_id,
+		Email: email,
+		Role:  "emp",
+	}
+
+	return c.JSON(200, res)
+}
