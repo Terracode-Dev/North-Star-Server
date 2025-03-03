@@ -73,26 +73,13 @@ jobs:
 
 
           #.env content -> service environemtn
-          # Environment=DB_STR=$DB_STR
-          # Environment=AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-          # Environment=AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-          # Environment=AWS_REGION=$AWS_REGION
-          # Environment=GOOSE_DRIVER=$GOOSE_DRIVER
-          # Environment=GOOSE_DBSTRING=$GOOSE_DBSTRING
-          # Environment=GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR
-
-
-          Environment=\"PORT=:3000\" \\
-            \"DB_STR=$DB_STR\" \\
-            \"GOOSE_DRIVER=$GOOSE_DRIVER\" \\
-            \"GOOSE_DBSTRING=$GOOSE_DBSTRING\" \\
-            \"GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR\" \\
-            \"AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID\" \\
-            \"AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY\" \\
-            \"AWS_REGION=$AWS_REGION\" \\
-            \"JWT_SECRET=$JWT_SECRET\" \\
-            \"MAINBRANCHID=1\" \\
-            \"JWT_EXP_HOUR=24\"
+          Environment="DB_STR=$DB_STR"
+          Environment="AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+          Environment="AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+          Environment="AWS_REGION=$AWS_REGION"
+          Environment="GOOSE_DRIVER=$GOOSE_DRIVER"
+          Environment="GOOSE_DBSTRING=$GOOSE_DBSTRING"
+          Environment="GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR"
 
 
           [Install]
