@@ -29,10 +29,9 @@ type CreatePayrollReqModel struct {
 func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.CreatePayrollParams, error) {
 
 	var updated_by sql.NullInt64
-	if A.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
 
 	date, err := time.Parse(time.RFC3339, A.Date)
 	if err != nil {
