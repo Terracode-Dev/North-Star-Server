@@ -36,7 +36,7 @@ func InitServer() {
 	// CORS default
 	// Allows requests from any origin wth GET, HEAD, PUT, POST or DELETE method.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:5173", "http://192.168.1.111:5173"},
+		AllowOrigins:     []string{"http://localhost:5173/hr-api", "http://localhost:5173", "http://192.168.1.111:5173"},
 		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE, echo.OPTIONS},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 		AllowCredentials: true,
@@ -53,7 +53,7 @@ func InitServer() {
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	s := &http.Server{
-		Addr:         "0.0.0.0"+ cfg.Port,
+		Addr:         "0.0.0.0" + cfg.Port,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

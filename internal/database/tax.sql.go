@@ -7,15 +7,16 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/shopspring/decimal"
 )
 
 const createTax = `-- name: CreateTax :exec
 INSERT INTO HR_Tax (
-    tax_from, tax_to, tax_percentage
+    tax_from, tax_to, tax_percentage, updated_by
 ) VALUES (
-    ?, ?, ?
+    ?, ?, ?, ?
 )
 `
 
@@ -23,10 +24,16 @@ type CreateTaxParams struct {
 	TaxFrom       decimal.Decimal `json:"tax_from"`
 	TaxTo         decimal.Decimal `json:"tax_to"`
 	TaxPercentage decimal.Decimal `json:"tax_percentage"`
+	UpdatedBy     sql.NullInt64   `json:"updated_by"`
 }
 
 func (q *Queries) CreateTax(ctx context.Context, arg CreateTaxParams) error {
-	_, err := q.db.ExecContext(ctx, createTax, arg.TaxFrom, arg.TaxTo, arg.TaxPercentage)
+	_, err := q.db.ExecContext(ctx, createTax,
+		arg.TaxFrom,
+		arg.TaxTo,
+		arg.TaxPercentage,
+		arg.UpdatedBy,
+	)
 	return err
 }
 
@@ -41,24 +48,36 @@ func (q *Queries) DeleteTax(ctx context.Context, id int64) error {
 }
 
 const getTax = `-- name: GetTax :many
-SELECT id, tax_from, tax_to, tax_percentage, created_at FROM HR_Tax
+SELECT t.id, t.tax_from, t.tax_to, t.tax_percentage, t.created_at, a.user_name AS updated_by
+FROM HR_Tax t
+LEFT JOIN HR_Admin a ON t.updated_by = a.id
 `
 
-func (q *Queries) GetTax(ctx context.Context) ([]HrTax, error) {
+type GetTaxRow struct {
+	ID            int64           `json:"id"`
+	TaxFrom       decimal.Decimal `json:"tax_from"`
+	TaxTo         decimal.Decimal `json:"tax_to"`
+	TaxPercentage decimal.Decimal `json:"tax_percentage"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
+	UpdatedBy     sql.NullString  `json:"updated_by"`
+}
+
+func (q *Queries) GetTax(ctx context.Context) ([]GetTaxRow, error) {
 	rows, err := q.db.QueryContext(ctx, getTax)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HrTax
+	var items []GetTaxRow
 	for rows.Next() {
-		var i HrTax
+		var i GetTaxRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.TaxFrom,
 			&i.TaxTo,
 			&i.TaxPercentage,
 			&i.CreatedAt,
+			&i.UpdatedBy,
 		); err != nil {
 			return nil, err
 		}

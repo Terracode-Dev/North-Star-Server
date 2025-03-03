@@ -237,4 +237,5 @@ type HrTax struct {
 	TaxTo         decimal.Decimal `json:"tax_to"`
 	TaxPercentage decimal.Decimal `json:"tax_percentage"`
 	CreatedAt     sql.NullTime    `json:"created_at"`
+	UpdatedBy     sql.NullInt64   `json:"updated_by"`
 }
