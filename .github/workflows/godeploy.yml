@@ -57,7 +57,7 @@ jobs:
             sudo chmod +x /usr/local/bin/nshrback/nsserver
 
             # Create or update the .env file in /usr/local/bin
-            sudo bash -c "cat > /usr/local/bin/nshrback/.env <<EOF
+            sudo bash -c "cat > /usr/local/bin/nshrback/.env <<"ENV_EOF"
             DB_STR=$DB_STR
             AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
@@ -68,7 +68,7 @@ jobs:
             JWT_SECRET=$JWT_SECRET
             MAINBRANCHID=$MAINBRANCHID
             JWT_EXP_HOUR=$JWT_EXP_HOUR
-            EOF"
+            ENV_EOF'
 
             # Set permissions on .env file (secure it)
             sudo chmod 600 /usr/local/bin/nshrback/.env
@@ -81,7 +81,7 @@ jobs:
               echo "Updating systemd service for nsserver go bin..."
             fi
 
-            sudo bash -c 'cat > /etc/systemd/system/nsserver.service <<EOF
+            sudo bash -c 'cat > /etc/systemd/system/nsserver.service <<"SERVICE_EOF"
             [Unit]
             Description=ns-server-go application
             After=network.target
@@ -95,7 +95,7 @@ jobs:
 
             [Install]
             WantedBy=multi-user.target
-            EOF"
+            SERVICE_EOF'
 
             sudo systemctl daemon-reload
             sudo systemctl enable nsserver
