@@ -68,7 +68,7 @@ jobs:
             JWT_SECRET=$JWT_SECRET
             MAINBRANCHID=$MAINBRANCHID
             JWT_EXP_HOUR=$JWT_EXP_HOUR
-            ENV_EOF'
+            ENV_EOF"
 
             # Set permissions on .env file (secure it)
             sudo chmod 600 /usr/local/bin/nshrback/.env
