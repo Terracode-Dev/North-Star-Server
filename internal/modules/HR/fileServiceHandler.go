@@ -79,8 +79,8 @@ func (S *HRService) getFileDownloadUrl(c echo.Context) error {
 			return c.JSON(500, "file upload failed")
 		}
 		return c.JSON(200, url)
-	case "passport":
-		url, err := S.s3.PresignGetS3Url(c.Request().Context(), "nsappvisa", reqM.FileName)
+	case "certificate":
+		url, err := S.s3.PresignGetS3Url(c.Request().Context(), "nsappcertficates", reqM.FileName)
 		if err != nil {
 			return c.JSON(500, "file upload failed")
 		}

@@ -450,6 +450,7 @@ func (S *HRService) updateEmployee(c echo.Context) error {
 	}
 	empParams, err := emp.ConvertToUpdateDbStruct(empID, int64(updated_by))
 	if err != nil {
+		log.Println(err)
 		return c.JSON(500, "Error converting employee to db struct")
 	}
 	error := S.q.UpdateEmployee(c.Request().Context(), empParams)
@@ -974,7 +975,11 @@ func (S *HRService) employeeLogin(c echo.Context) error {
 	cookie.Path = "/"
 	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
 	c.SetCookie(cookie)
-	return c.JSON(200, payload)
+	res := LoginEmpResponse{
+		Token: t,
+		Data:  payload,
+	}
+	return c.JSON(200, res)
 }
 
 // @Summary user loginout

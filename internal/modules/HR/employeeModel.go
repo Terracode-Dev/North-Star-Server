@@ -6,6 +6,7 @@ import (
 	"time"
 
 	db "github.com/Terracode-Dev/North-Star-Server/internal/database"
+	rba "github.com/Terracode-Dev/North-Star-Server/internal/pkg/RBA"
 	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -74,7 +75,7 @@ func (M CreateEmployeeReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpl
 	}, nil
 }
 
-func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(emp_id int64, admin_id int64 ) (db.UpdateEmployeeParams, error) {
+func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(emp_id int64, admin_id int64) (db.UpdateEmployeeParams, error) {
 	dob, err := time.Parse(time.RFC3339, M.Dob)
 	if err != nil {
 		log.Printf("Error parsing dob: %v", err)
@@ -221,7 +222,7 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
 
-	amount , err := decimal.NewFromString(M.Amount)
+	amount, err := decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.CreateEmpSalaryParams{}, err
 	}
@@ -231,7 +232,7 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 		return db.CreateEmpSalaryParams{}, err
 	}
 
-	pension_employer , err:= decimal.NewFromString(M.PensionEmployer)
+	pension_employer, err := decimal.NewFromString(M.PensionEmployer)
 	if err != nil {
 		return db.CreateEmpSalaryParams{}, err
 	}
@@ -241,7 +242,7 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 		return db.CreateEmpSalaryParams{}, err
 	}
 
-	total_net_salary , err:= decimal.NewFromString(M.TotalNetSalary)
+	total_net_salary, err := decimal.NewFromString(M.TotalNetSalary)
 	if err != nil {
 		return db.CreateEmpSalaryParams{}, err
 	}
@@ -263,7 +264,7 @@ func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct(admin_id int64) (db.Upd
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
 
-	amount , err:= decimal.NewFromString(M.Amount)
+	amount, err := decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.UpdateEmpSalaryParams{}, err
 	}
@@ -273,12 +274,12 @@ func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct(admin_id int64) (db.Upd
 		return db.UpdateEmpSalaryParams{}, err
 	}
 
-	pension_employer , err:= decimal.NewFromString(M.PensionEmployer)
+	pension_employer, err := decimal.NewFromString(M.PensionEmployer)
 	if err != nil {
 		return db.UpdateEmpSalaryParams{}, err
 	}
 
-	pension_employee , err:= decimal.NewFromString(M.PensionEmployee)
+	pension_employee, err := decimal.NewFromString(M.PensionEmployee)
 	if err != nil {
 		return db.UpdateEmpSalaryParams{}, err
 	}
@@ -336,7 +337,6 @@ func (M CreateEmpCertificatesReqModel) convertToUpdateDbStruct(admin_id int64) (
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	return db.UpdateEmpCertificatesParams{
 		Date:       date,
@@ -460,7 +460,6 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateE
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	return db.CreateEmpBenifitsParams{
 		LeaveStatus:        M.LeaveStatus,
@@ -514,7 +513,6 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.U
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	return db.UpdateEmpBenifitsParams{
 		LeaveStatus:        M.LeaveStatus,
@@ -550,7 +548,6 @@ func (M CreateEmpUserReqModel) convertToDbStruct(id int64, admin_id int64) (db.C
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	return db.CreateEmpUserParams{
 		Email:      M.Email,
@@ -565,7 +562,6 @@ func (M CreateEmpUserReqModel) convertToUpdateDbStruct(admin_id int64) (db.Updat
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(M.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -591,8 +587,8 @@ func (M CreateEmpAllowancesReqModel) convertToDbStruct(admin_id int64) (db.Creat
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
-	amount , err:= decimal.NewFromString(M.Amount)
+
+	amount, err := decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.CreateEmpAllowancesParams{}, err
 	}
@@ -609,8 +605,8 @@ func (M CreateEmpAllowancesReqModel) convertToUpdateDbStruct(admin_id int64) (db
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
-	amount , err:= decimal.NewFromString(M.Amount)
+
+	amount, err := decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.UpdateEmpAllowancesParams{}, err
 	}
@@ -650,13 +646,11 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.Creat
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
 		return db.CreateEmpExpatriateParams{}, err
 	}
-
 
 	return db.CreateEmpExpatriateParams{
 		Expatriate:    M.Expatriate,
@@ -686,7 +680,6 @@ func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct(admin_id int64) (db
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
@@ -730,7 +723,6 @@ func (M CreateEmpAccessiabilityReqModel) convertToDbStruct(admin_id int64) (db.C
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	return db.CreateEmpAccessiabilityParams{
 		Accessibility:     M.Accessibility,
@@ -756,7 +748,6 @@ func (M CreateEmpAccessiabilityReqModel) convertToUpdateDbStruct(admin_id int64)
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
-	
 
 	return db.UpdateEmpAccessiabilityParams{
 		Accessibility:     M.Accessibility,
@@ -802,3 +793,7 @@ func (M GetEmployeeReqModel) convertToDbStruct() (db.GetEmployeeParams, error) {
 	}, nil
 }
 
+type LoginEmpResponse struct {
+	Token string      `json:"token"`
+	Data  rba.RBAauth `json:"data"`
+}
