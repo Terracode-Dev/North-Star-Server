@@ -594,6 +594,40 @@ func (q *Queries) GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]Get
 	return items, nil
 }
 
+const getEmployeeAllowances = `-- name: GetEmployeeAllowances :many
+SELECT name, amount
+FROM HR_EMP_Allowances
+WHERE employee_id = ?
+`
+
+type GetEmployeeAllowancesRow struct {
+	Name   string          `json:"name"`
+	Amount decimal.Decimal `json:"amount"`
+}
+
+func (q *Queries) GetEmployeeAllowances(ctx context.Context, employeeID int64) ([]GetEmployeeAllowancesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployeeAllowances, employeeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmployeeAllowancesRow
+	for rows.Next() {
+		var i GetEmployeeAllowancesRow
+		if err := rows.Scan(&i.Name, &i.Amount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEmployeeByID = `-- name: GetEmployeeByID :many
 SELECT 
     e.id AS employee_id, 
@@ -871,6 +905,70 @@ func (q *Queries) GetEmployeeDOB(ctx context.Context, id int64) (time.Time, erro
 	var dob time.Time
 	err := row.Scan(&dob)
 	return dob, err
+}
+
+const getEmployeeFromBranch = `-- name: GetEmployeeFromBranch :many
+SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS full_name
+FROM HR_Employee e
+JOIN HR_EMP_User u ON e.id = u.employee_id
+WHERE u.branch_id = ?
+`
+
+type GetEmployeeFromBranchRow struct {
+	ID       int64  `json:"id"`
+	FullName string `json:"full_name"`
+}
+
+func (q *Queries) GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployeeFromBranch, branchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmployeeFromBranchRow
+	for rows.Next() {
+		var i GetEmployeeFromBranchRow
+		if err := rows.Scan(&i.ID, &i.FullName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEmployeeSalaryDetails = `-- name: GetEmployeeSalaryDetails :one
+SElECT salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary
+FROM HR_EMP_Salary
+WHERE employee_id = ?
+`
+
+type GetEmployeeSalaryDetailsRow struct {
+	SalaryType              string          `json:"salary_type"`
+	Amount                  decimal.Decimal `json:"amount"`
+	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
+	PensionEmployer         decimal.Decimal `json:"pension_employer"`
+	PensionEmployee         decimal.Decimal `json:"pension_employee"`
+	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
+}
+
+func (q *Queries) GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error) {
+	row := q.db.QueryRowContext(ctx, getEmployeeSalaryDetails, employeeID)
+	var i GetEmployeeSalaryDetailsRow
+	err := row.Scan(
+		&i.SalaryType,
+		&i.Amount,
+		&i.TotalOfSalaryAllowances,
+		&i.PensionEmployer,
+		&i.PensionEmployee,
+		&i.TotalNetSalary,
+	)
+	return i, err
 }
 
 const getVisaFile = `-- name: GetVisaFile :one

@@ -33,11 +33,16 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	if !ok {
 		return c.JSON(301, "Authentication issue")
 	}
-	updated_by := c.Get("user_id").(int)
+	updated_by, ok := c.Get("user_id").(int)
+	if !ok {
+		return c.JSON(301, "Authentication issue")
+	}
+	fmt.Println(branch_id)
 	var emp EmpReqModel
 	if err := c.Bind(&emp); err != nil {
 		return err
 	}
+	
 	fmt.Println(emp)
 	tx, err := S.db.Begin()
 	if err != nil {
@@ -1034,4 +1039,40 @@ func (S *HRService) empOnlyBankDetailsUpdate(c echo.Context) error {
 		return c.JSON(500, "Error updating employee bank details")
 	}
 	return c.JSON(200, "Employee bank details updated successfully")
+}
+
+func(S *HRService) getEmployeeByBranch(c echo.Context) error {
+	branch_id, ok := c.Get("branch").(int)
+	if !ok {
+		return c.JSON(400, "Invalid branch ID")
+	}
+	emp, err := S.q.GetEmployeeFromBranch(c.Request().Context(), int64(branch_id))
+	if err != nil {
+		return c.JSON(500, "Error getting employee")
+	}
+	return c.JSON(200, emp)
+}
+
+func (S *HRService) getEmployeeSalary(c echo.Context) error {
+	empID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(500, "Error parsing employee id")
+	}
+	emp, err := S.q.GetEmployeeSalaryDetails(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(500, "Error getting employee")
+	}
+	return c.JSON(200, emp)
+}
+
+func (S *HRService) getEmployeeAllowances(c echo.Context) error {
+	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(500, "Error parsing employee id")
+	}
+	emp, err := S.q.GetEmployeeAllowances(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(500, "Error getting employee")
+	}
+	return c.JSON(200, emp)
 }

@@ -50,10 +50,8 @@ func (M CreateEmployeeReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpl
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
 
 	return db.CreateEmployeeParams{
 		FirstName:         M.FirstName,
@@ -96,10 +94,8 @@ func (M CreateEmployeeReqModel) ConvertToUpdateDbStruct(emp_id int64, admin_id i
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
 
 	return db.UpdateEmployeeParams{
 		FirstName:         M.FirstName,
@@ -222,10 +218,9 @@ type CreateEmpSalaryReqModel struct {
 
 func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpSalaryParams, error) {
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
 	amount , err := decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.CreateEmpSalaryParams{}, err
@@ -265,10 +260,9 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 
 func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpSalaryParams, error) {
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
 	amount , err:= decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.UpdateEmpSalaryParams{}, err
@@ -321,10 +315,8 @@ func (M CreateEmpCertificatesReqModel) convertToDbStruct(admin_id int64) (db.Cre
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
 
 	return db.CreateEmpCertificatesParams{
 		Date:       date,
@@ -342,10 +334,9 @@ func (M CreateEmpCertificatesReqModel) convertToUpdateDbStruct(admin_id int64) (
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	return db.UpdateEmpCertificatesParams{
 		Date:       date,
@@ -378,10 +369,8 @@ func (M CreateEmpStatusReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
 
 	return db.CreateEmpStatusParams{
 		Status:      M.Status,
@@ -406,10 +395,8 @@ func (M CreateEmpStatusReqModel) convertToUpdateDbStruct(admin_id int64) (db.Upd
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
 
 	return db.UpdateEmpStatusParams{
 		Status:      M.Status,
@@ -471,10 +458,9 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateE
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	return db.CreateEmpBenifitsParams{
 		LeaveStatus:        M.LeaveStatus,
@@ -526,10 +512,9 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.U
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	return db.UpdateEmpBenifitsParams{
 		LeaveStatus:        M.LeaveStatus,
@@ -563,10 +548,9 @@ func (M CreateEmpUserReqModel) convertToDbStruct(id int64, admin_id int64) (db.C
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	return db.CreateEmpUserParams{
 		Email:      M.Email,
@@ -579,10 +563,9 @@ func (M CreateEmpUserReqModel) convertToDbStruct(id int64, admin_id int64) (db.C
 
 func (M CreateEmpUserReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpUserParams, error) {
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(M.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -606,10 +589,9 @@ type CreateEmpAllowancesReqModel struct {
 
 func (M CreateEmpAllowancesReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpAllowancesParams, error) {
 	var updated_by sql.NullInt64
-	if M.UpdatedBy.Valid {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 	amount , err:= decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.CreateEmpAllowancesParams{}, err
@@ -625,10 +607,9 @@ func (M CreateEmpAllowancesReqModel) convertToDbStruct(admin_id int64) (db.Creat
 
 func (M CreateEmpAllowancesReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpAllowancesParams, error) {
 	var updated_by sql.NullInt64
-	if M.UpdatedBy.Valid {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 	amount , err:= decimal.NewFromString(M.Amount)
 	if err != nil {
 		return db.UpdateEmpAllowancesParams{}, err
@@ -667,10 +648,9 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.Creat
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
@@ -704,10 +684,9 @@ func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct(admin_id int64) (db
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
@@ -749,10 +728,9 @@ func (M CreateEmpAccessiabilityReqModel) convertToDbStruct(admin_id int64) (db.C
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	return db.CreateEmpAccessiabilityParams{
 		Accessibility:     M.Accessibility,
@@ -776,10 +754,9 @@ func (M CreateEmpAccessiabilityReqModel) convertToUpdateDbStruct(admin_id int64)
 	}
 
 	var updated_by sql.NullInt64
-	if M.UpdatedBy != nil {
-		updated_by.Int64 = admin_id
-		updated_by.Valid = true
-	}
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+	
 
 	return db.UpdateEmpAccessiabilityParams{
 		Accessibility:     M.Accessibility,

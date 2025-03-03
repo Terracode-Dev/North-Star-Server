@@ -308,4 +308,23 @@ SELECT image_path FROM HR_EMP_Certificates WHERE employee_id = ?;
 -- name: GetVisaFile :one
 SELECT visa_image_path FROM HR_EMP_Expatriate WHERE employee_id = ?;
 
+-- name: GetEmployeeFromBranch :many
+SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS full_name
+FROM HR_Employee e
+JOIN HR_EMP_User u ON e.id = u.employee_id
+WHERE u.branch_id = ?;
+
+-- name: GetEmployeeSalaryDetails :one
+SElECT salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary
+FROM HR_EMP_Salary
+WHERE employee_id = ?;
+
+-- name: GetEmployeeAllowances :many
+SELECT name, amount
+FROM HR_EMP_Allowances
+WHERE employee_id = ?;
+
+
+
+
 

@@ -1,6 +1,7 @@
 package rba
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/config"
@@ -26,10 +27,28 @@ func AuthMiddelware(role []string) echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			sec := config.LoadConfig().JWTSecret
 			t, err := c.Cookie("auth_token")
-			if err != nil {
-				return c.JSON(http.StatusUnauthorized, "cookie paser issue")
+			if err == nil {
+				log.Println("cookie not found")
+
+				data, err := ValidateJWTkey(t.Value, []byte(sec))
+				if err != nil {
+					return c.JSON(http.StatusUnauthorized, "unauthorized route access")
+				}
+				tokenRole := data.Data.Role
+				if contains(role, tokenRole) {
+					c.Set("user_id", data.Data.Id)
+					c.Set("branch", data.Data.Branch)
+					c.Set("role", data.Data.Role)
+					return next(c)
+				}
+				return c.JSON(http.StatusUnauthorized, "unauthorized route access")
 			}
-			data, err := ValidateJWTkey(t.Value, []byte(sec))
+
+			header := c.Request().Header.Get("Authorization")
+			if header == "" {
+				return c.JSON(http.StatusUnauthorized, "unauthorized route access")
+			}
+			data, err := ValidateJWTkey(header, []byte(sec))
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, "unauthorized route access")
 			}
@@ -44,6 +63,22 @@ func AuthMiddelware(role []string) echo.MiddlewareFunc {
 			return c.JSON(http.StatusUnauthorized, "unauthorized route access")
 		}
 	}
+}
+
+func AuthHeaderCheck(c echo.Context) error {
+	sec := config.LoadConfig().JWTSecret
+	t := c.Request().Header.Get("Authorization")
+	if t == "" {
+		return c.JSON(http.StatusUnauthorized, "unauthorized route access")
+	}
+	data, err := ValidateJWTkey(t, []byte(sec))
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, "unauthorized route access")
+	}
+	c.Set("user_id", data.Data.Id)
+	c.Set("branch", data.Data.Branch)
+	c.Set("role", data.Data.Role)
+	return nil
 }
 
 func contains(slice []string, item string) bool {
