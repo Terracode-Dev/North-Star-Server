@@ -50,36 +50,25 @@ jobs:
           scp -i private_key.pem -o StrictHostKeyChecking=no nsserver $EC2_USER@$EC2_HOST:/home/ubuntu/nsserver
 
           # SSH into EC2 and configure the service
-          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOL'
+          ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOF
 
             sudo mkdir -p /usr/local/bin/nshrback
             sudo mv /home/ubuntu/nsserver /usr/local/bin/nshrback/nsserver
             sudo chmod +x /usr/local/bin/nshrback/nsserver
 
-           export DB_STR="$DB_STR"
-                       export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
-                       export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
-                       export AWS_REGION="$AWS_REGION"
-                       export GOOSE_DRIVER="$GOOSE_DRIVER"
-                       export GOOSE_DBSTRING="$GOOSE_DBSTRING"
-                       export GOOSE_MIGRATION_DIR="$GOOSE_MIGRATION_DIR"
-                       export JWT_SECRET="$JWT_SECRET"
-                       export MAINBRANCHID="$MAINBRANCHID"
-                       export JWT_EXP_HOUR="$JWT_EXP_HOUR"
-
-                       # Create or update the .env file with variable values
-                       sudo bash -c "cat > /usr/local/bin/nshrback/.env <<EOF
-           DB_STR=\$DB_STR
-           AWS_SECRET_ACCESS_KEY=\$AWS_SECRET_ACCESS_KEY
-           AWS_ACCESS_KEY_ID=\$AWS_ACCESS_KEY_ID
-           AWS_REGION=\$AWS_REGION
-           GOOSE_DRIVER=\$GOOSE_DRIVER
-           GOOSE_DBSTRING=\$GOOSE_DBSTRING
-           GOOSE_MIGRATION_DIR=\$GOOSE_MIGRATION_DIR
-           JWT_SECRET=\$JWT_SECRET
-           MAINBRANCHID=\$MAINBRANCHID
-           JWT_EXP_HOUR=\$JWT_EXP_HOUR
-           EOF"
+            # Create or update the .env file in /usr/local/bin
+            sudo bash -c "cat > /usr/local/bin/nshrback/.env <<EOF
+            DB_STR=$DB_STR
+            AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            AWS_REGION=$AWS_REGION
+            GOOSE_DRIVER=$GOOSE_DRIVER
+            GOOSE_DBSTRING=$GOOSE_DBSTRING
+            GOOSE_MIGRATION_DIR=$GOOSE_MIGRATION_DIR
+            JWT_SECRET=$JWT_SECRET
+            MAINBRANCHID=$MAINBRANCHID
+            JWT_EXP_HOUR=$JWT_EXP_HOUR
+            EOF'
 
             # Set permissions on .env file (secure it)
             sudo chmod 600 /usr/local/bin/nshrback/.env
@@ -111,6 +100,6 @@ jobs:
             sudo systemctl daemon-reload
             sudo systemctl enable nsserver
             sudo systemctl restart nsserver
-          EOL
+          EOF
 
           rm -f private_key.pem  # Cleanup private key
