@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
+
 // @Summary Upload files
 // @Description Upload certificate and visa files to S3
 // @Tags file
@@ -18,7 +19,7 @@ import (
 // @Router /fileupload [post]
 type Response struct {
 	Certificate string `json:"certificate"`
-	Visa string `json:"visa"`
+	Visa        string `json:"visa"`
 }
 
 func (S *HRService) uploadFile(c echo.Context) error {
@@ -26,7 +27,7 @@ func (S *HRService) uploadFile(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}
-	visa , err := c.FormFile("visa_file")
+	visa, err := c.FormFile("visa_file")
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}
@@ -79,7 +80,7 @@ func (S *HRService) getFileDownloadUrl(c echo.Context) error {
 			return c.JSON(500, "file upload failed")
 		}
 		return c.JSON(200, url)
-	case "passport":
+	case "certificate":
 		url, err := S.s3.PresignGetS3Url(c.Request().Context(), "nsappvisa", reqM.FileName)
 		if err != nil {
 			return c.JSON(500, "file upload failed")
@@ -89,5 +90,3 @@ func (S *HRService) getFileDownloadUrl(c echo.Context) error {
 		return c.JSON(500, "invalid service name")
 	}
 }
-
-
