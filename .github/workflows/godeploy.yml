@@ -51,6 +51,8 @@ jobs:
 
           # SSH into EC2 and configure the service
           ssh -i private_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOL'
+
+            sudo mkdir -p /usr/local/bin/nshrback
             sudo mv /home/ubuntu/nsserver /usr/local/bin/nshrback/nsserver
             sudo chmod +x /usr/local/bin/nshrback/nsserver
 
