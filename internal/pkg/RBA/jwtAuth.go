@@ -39,6 +39,7 @@ func AuthMiddelware(role []string) echo.MiddlewareFunc {
 					c.Set("user_id", data.Data.Id)
 					c.Set("branch", data.Data.Branch)
 					c.Set("role", data.Data.Role)
+					c.Set("email", data.Data.Email)
 					return next(c)
 				}
 				return c.JSON(http.StatusUnauthorized, "unauthorized route access")
@@ -57,6 +58,7 @@ func AuthMiddelware(role []string) echo.MiddlewareFunc {
 				c.Set("user_id", data.Data.Id)
 				c.Set("branch", data.Data.Branch)
 				c.Set("role", data.Data.Role)
+				c.Set("email", data.Data.Email)
 				return next(c)
 			}
 			return c.JSON(http.StatusUnauthorized, "unauthorized route access")
