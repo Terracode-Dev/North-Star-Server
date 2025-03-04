@@ -553,11 +553,14 @@ func (S *HRService) updateEmpSalary(c echo.Context) error {
 // @Router /employee/certificates [put]
 func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	empID, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	if err != nil {
+		return c.JSON(500, err.Error())
+	}
 	date := c.FormValue("date")
 	name := c.FormValue("name")
-	admin_id := c.Get("user_id").(int)
-	if err != nil {
-		return c.JSON(500, "Error parsing employee id")
+	admin_id , ok:= c.Get("user_id").(int)
+	if !ok {
+		return c.JSON(500, "user id issue")
 	}
 
 	file_path, err := S.q.GetCertificateFile(c.Request().Context(), empID)
@@ -567,7 +570,7 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 
 	file, err := c.FormFile("cert_file")
 	if err != nil {
-		return c.JSON(500, "file upload issue")
+		return c.JSON(500, "file issue")
 	}
 	obj, err := file.Open()
 	if err != nil {
@@ -578,9 +581,9 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	ext := filepath.Ext(file.Filename)
 	fileName := uuid.New().String() + ext
 
-	err = S.s3.UploadToS3(c.Request().Context(), "nsappcertificates", fileName, obj)
+	err = S.s3.UploadToS3(c.Request().Context(), "nsappcertficates", fileName, obj)
 	if err != nil {
-		return c.JSON(500, "file upload failed")
+		return c.JSON(500, err.Error())
 	}
 
 	conv_date, err := time.Parse(time.RFC3339, date)
@@ -605,9 +608,9 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 		return c.JSON(500, "Error updating employee certificates")
 	}
 
-	deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertificates", file_path)
+	deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertficates", file_path)
 	if err != nil {
-		return c.JSON(500, "file delete issue")
+		return c.JSON(200, "file delete issue")
 	}
 	if deleted {
 		return c.JSON(200, "Employee certificates updated successfully")
