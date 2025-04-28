@@ -65,10 +65,10 @@ func (S *HRService) registerRoutes() {
 	hrRoute.DELETE("/hrbranch/:id", S.deleteHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 
 	hrRoute.POST("/fileupload", S.uploadFile, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod","emp"}))
+	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 
 	hrRoute.GET("/verify-auth-emp", S.empVerifyAuth, rba.AuthMiddelware([]string{"emp"}))
-	hrRoute.GET("/verify-auth", S.verifyAuth, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
+	hrRoute.GET("/verify-auth", S.verifyAuth, rba.AuthMiddelware([]string{"admin", "emp", "mod", "floor_manager"}))
 	hrRoute.GET("/logout", S.Logout)
 
 	hrRoute.POST("/testlogin", S.TestLogin)
