@@ -331,9 +331,9 @@ WHERE email = ? AND role = 'trainer';
 
 -- name: CreateTrainerEmp :exec
 INSERT INTO HR_Trainer_Emp (
-    trainer_id, employee_id, attendee_id
+    trainer_id, employee_id, attendee_id, commission
 ) VALUES (
-    ?, ?, ?
+    ?, ?, ?, ?
 );
 
 

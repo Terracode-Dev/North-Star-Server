@@ -666,39 +666,39 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.Creat
 	}, nil
 }
 
-func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
-	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
-	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, err
-	}
+// func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
+// 	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
+// 	if err != nil {
+// 		return db.UpdateEmpExpatriateParams{}, err
+// 	}
 
-	visaTill, err := time.Parse(time.RFC3339, M.VisaTill)
-	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, err
-	}
+// 	visaTill, err := time.Parse(time.RFC3339, M.VisaTill)
+// 	if err != nil {
+// 		return db.UpdateEmpExpatriateParams{}, err
+// 	}
 
-	var updated_by sql.NullInt64
-	updated_by.Int64 = admin_id
-	updated_by.Valid = true
+// 	var updated_by sql.NullInt64
+// 	updated_by.Int64 = admin_id
+// 	updated_by.Valid = true
 
-	visa_amount, err := decimal.NewFromString(M.VisaFee)
-	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, err
-	}
+// 	visa_amount, err := decimal.NewFromString(M.VisaFee)
+// 	if err != nil {
+// 		return db.UpdateEmpExpatriateParams{}, err
+// 	}
 
-	return db.UpdateEmpExpatriateParams{
-		Expatriate:    M.Expatriate,
-		Nationality:   M.Nationality,
-		VisaType:      M.VisaType,
-		VisaFrom:      visaFrom,
-		VisaTill:      visaTill,
-		VisaNumber:    M.VisaNumber,
-		VisaFee:       visa_amount,
-		VisaImagePath: M.VisaImagePath,
-		UpdatedBy:     updated_by,
-		EmployeeID:    M.EmployeeID,
-	}, nil
-}
+// 	return db.UpdateEmpExpatriateParams{
+// 		Expatriate:    M.Expatriate,
+// 		Nationality:   M.Nationality,
+// 		VisaType:      M.VisaType,
+// 		VisaFrom:      visaFrom,
+// 		VisaTill:      visaTill,
+// 		VisaNumber:    M.VisaNumber,
+// 		VisaFee:       visa_amount,
+// 		VisaImagePath: M.VisaImagePath,
+// 		UpdatedBy:     updated_by,
+// 		EmployeeID:    M.EmployeeID,
+// 	}, nil
+// }
 
 type CreateEmpAccessiabilityReqModel struct {
 	Accessibility     bool   `json:"accessibility"`
@@ -764,6 +764,7 @@ type IsTrainerReqModel struct {
 	AttendeeId int64 `json:"attendee_id"`
 	TrainerID int64 `json:"trainer_id"`
 	EmployeeID int64 `json:"employee_id"`
+	Commission string `json:"commission"`
 }
 
 type EmpReqModel struct {

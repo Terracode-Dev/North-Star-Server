@@ -29,6 +29,29 @@ type DoorLockUser struct {
 	AvatarUrl      sql.NullString `json:"avatar_url"`
 }
 
+type FlmTrainerAssign struct {
+	ID        uint64       `json:"id"`
+	TrainerID int64        `json:"trainer_id"`
+	BranchID  int64        `json:"branch_id"`
+	ClientID  int64        `json:"client_id"`
+	FlmID     int64        `json:"flm_id"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+	From      time.Time    `json:"from"`
+	To        time.Time    `json:"to"`
+}
+
+type FlmUser struct {
+	ID        int64        `json:"id"`
+	Username  string       `json:"username"`
+	BranchID  int64        `json:"branch_id"`
+	Email     string       `json:"email"`
+	Password  string       `json:"password"`
+	Type      string       `json:"type"`
+	Ban       bool         `json:"ban"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
 type HrAdmin struct {
 	ID        int64         `json:"id"`
 	UserName  string        `json:"user_name"`
@@ -258,11 +281,24 @@ type HrTax struct {
 	UpdatedBy     sql.NullInt64   `json:"updated_by"`
 }
 
+type HrTrainerCom struct {
+	ID            int64           `json:"id"`
+	PayrollID     int64           `json:"payroll_id"`
+	TrainerID     int64           `json:"trainer_id"`
+	EmployeeID    int64           `json:"employee_id"`
+	Commission    decimal.Decimal `json:"commission"`
+	AssignedCount int64           `json:"assigned_count"`
+	Total         decimal.Decimal `json:"total"`
+	CreatedAt     sql.NullTime    `json:"created_at"`
+	UpdatedAt     sql.NullTime    `json:"updated_at"`
+}
+
 type HrTrainerEmp struct {
-	ID         int64        `json:"id"`
-	TrainerID  int64        `json:"trainer_id"`
-	EmployeeID int64        `json:"employee_id"`
-	AttendeeID int64        `json:"attendee_id"`
-	CreatedAt  sql.NullTime `json:"created_at"`
-	UpdatedAt  sql.NullTime `json:"updated_at"`
+	ID         int64           `json:"id"`
+	TrainerID  int64           `json:"trainer_id"`
+	EmployeeID int64           `json:"employee_id"`
+	AttendeeID int64           `json:"attendee_id"`
+	CreatedAt  sql.NullTime    `json:"created_at"`
+	UpdatedAt  sql.NullTime    `json:"updated_at"`
+	Commission decimal.Decimal `json:"commission"`
 }

@@ -170,11 +170,17 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee accessiability")
 	}
 	if emp.IsTrainer.IsTrainer {
+		comValue, err := decimal.NewFromString(emp.IsTrainer.Commission)
+		if err != nil {
+			return c.JSON(500, "Error converting commission value: "+err.Error())
+		}
 		istrainerrow := qtx.CreateTrainerEmp(c.Request().Context(),database.CreateTrainerEmpParams{
 			TrainerID: emp.IsTrainer.TrainerID,
 			EmployeeID: employeeID,
 			AttendeeID: emp.IsTrainer.AttendeeId,
-		})
+			Commission: comValue,
+			},
+		)
 		if istrainerrow != nil {
 			return c.JSON(500, "Error creating employee trainer details: "+istrainerrow.Error())
 		}
@@ -1114,4 +1120,6 @@ func (S *HRService) CheckIfEMPIsTrainer(c echo.Context) error {
 	}
 	return c.JSON(200, TrainerData)
 }
+
+
 

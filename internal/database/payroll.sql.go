@@ -13,6 +13,40 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const createHRTrainerCom = `-- name: CreateHRTrainerCom :exec
+INSERT INTO HR_Trainer_Com (
+    payroll_id,
+    trainer_id,
+    employee_id,
+    commission,
+    assigned_count,
+    total
+) VALUES (
+    ?, ?, ?, ?, ?, ?
+)
+`
+
+type CreateHRTrainerComParams struct {
+	PayrollID     int64           `json:"payroll_id"`
+	TrainerID     int64           `json:"trainer_id"`
+	EmployeeID    int64           `json:"employee_id"`
+	Commission    decimal.Decimal `json:"commission"`
+	AssignedCount int64           `json:"assigned_count"`
+	Total         decimal.Decimal `json:"total"`
+}
+
+func (q *Queries) CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error {
+	_, err := q.db.ExecContext(ctx, createHRTrainerCom,
+		arg.PayrollID,
+		arg.TrainerID,
+		arg.EmployeeID,
+		arg.Commission,
+		arg.AssignedCount,
+		arg.Total,
+	)
+	return err
+}
+
 const createPayroll = `-- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
     employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by
@@ -230,6 +264,46 @@ func (q *Queries) GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrP
 		return nil, err
 	}
 	return items, nil
+}
+
+const getTrainerAssingedCount = `-- name: GetTrainerAssingedCount :one
+SELECT COUNT(*) AS count
+FROM FLM_trainer_assign
+WHERE trainer_id = ?
+  AND MONTH(CONVERT_TZ(` + "`" + `from` + "`" + `, '+00:00', '+05:00')) = MONTH(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '+05:00'))
+  AND YEAR(CONVERT_TZ(` + "`" + `from` + "`" + `, '+00:00', '+05:00')) = YEAR(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '+05:00'))
+`
+
+func (q *Queries) GetTrainerAssingedCount(ctx context.Context, trainerID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getTrainerAssingedCount, trainerID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const getTrainerEmpDataFromID = `-- name: GetTrainerEmpDataFromID :one
+SELECT trainer_id, employee_id, attendee_id, commission
+FROM HR_Trainer_Emp
+WHERE employee_id = ?
+`
+
+type GetTrainerEmpDataFromIDRow struct {
+	TrainerID  int64           `json:"trainer_id"`
+	EmployeeID int64           `json:"employee_id"`
+	AttendeeID int64           `json:"attendee_id"`
+	Commission decimal.Decimal `json:"commission"`
+}
+
+func (q *Queries) GetTrainerEmpDataFromID(ctx context.Context, employeeID int64) (GetTrainerEmpDataFromIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getTrainerEmpDataFromID, employeeID)
+	var i GetTrainerEmpDataFromIDRow
+	err := row.Scan(
+		&i.TrainerID,
+		&i.EmployeeID,
+		&i.AttendeeID,
+		&i.Commission,
+	)
+	return i, err
 }
 
 const updatePayroll = `-- name: UpdatePayroll :exec

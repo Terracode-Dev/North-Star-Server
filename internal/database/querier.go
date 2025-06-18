@@ -26,6 +26,7 @@ type Querier interface {
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error
 	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
 	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
 	CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error
@@ -65,6 +66,8 @@ type Querier interface {
 	GetService(ctx context.Context, category string) ([]GetServiceRow, error)
 	GetServices(ctx context.Context) ([]HrCreateService, error)
 	GetTax(ctx context.Context) ([]GetTaxRow, error)
+	GetTrainerAssingedCount(ctx context.Context, trainerID int64) (int64, error)
+	GetTrainerEmpDataFromID(ctx context.Context, employeeID int64) (GetTrainerEmpDataFromIDRow, error)
 	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
 	SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([]SelectHrAdminRow, error)
 	SelectOneHrAdmin(ctx context.Context, id int64) (HrAdmin, error)

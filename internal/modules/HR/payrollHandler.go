@@ -1,8 +1,10 @@
 package hr
 
 import (
-	"github.com/labstack/echo/v4"
+	"database/sql"
 	"strconv"
+	"net/http"
+	"github.com/labstack/echo/v4"
 )
 
 // create payroll handler
@@ -61,6 +63,24 @@ func (S *HRService) createPayroll(c echo.Context) error {
 		}
 	}
 
+	isTrainer := pay.TrainerCom.IsTrainer
+	if !isTrainer {
+		err = tx.Commit()
+		if err != nil {
+			return c.JSON(500, "Error committing transaction")
+		}
+		return c.JSON(200, "Payroll Created")
+	}
+
+	trainerComParams, err := pay.TrainerCom.TrainerComData.ToCreateHRTrainerComParams()
+	if err != nil {
+		return c.JSON(400, err.Error())
+	}
+	trainerComParams.PayrollID = payroll_id
+	err = qtx.CreateHRTrainerCom(c.Request().Context(), trainerComParams)
+	if err != nil {
+		return c.JSON(500, "Error creating trainer commission")
+	}
 	err = tx.Commit()
 	if err != nil {
 		return c.JSON(500, "Error committing transaction")
@@ -155,3 +175,41 @@ func (S *HRService) updatePayroll(c echo.Context) error {
 	return c.JSON(200, "Payroll Updated")
 }
 
+func (S *HRService) CalculateTrainerCommision(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("trainer_id"), 10, 64)
+	if err != nil {
+		return c.JSON(400, "Invalid trainer ID")
+	}
+
+	trainerData, err := S.q.GetTrainerEmpDataFromID(c.Request().Context(), id)
+	if err != nil {
+		if err == sql.ErrNoRows{
+			return c.JSON(http.StatusOK, TrainerComRow{
+				Istrainer: false,
+				Com_amount: 0.0,
+				Assign_count: 0,
+				Total_commission: 0.0,
+			},
+			)
+		}
+		return c.JSON(500, "Error calculating commission")
+	}
+	training_session_count, err := S.q.GetTrainerAssingedCount(c.Request().Context(), trainerData.TrainerID)
+	if err != nil {
+		return c.JSON(500, "Error getting training session count")
+	}
+	commision_value := trainerData.Commission.InexactFloat64()
+	var commision float64
+	if training_session_count > 0 {
+		commision = commision * float64(training_session_count)
+	} else {
+		commision = 0
+	}
+	return c.JSON(http.StatusOK, TrainerComRow{
+		Istrainer: true,
+		Com_amount: commision_value,
+		Assign_count: training_session_count,
+		Total_commission: commision,
+	})
+	
+}
