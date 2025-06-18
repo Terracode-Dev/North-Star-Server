@@ -74,6 +74,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	// emp.Allowances.EmployeeID = employeeID
 	emp.Expatriate.EmployeeID = employeeID
 	emp.Accessiability.EmployeeID = employeeID
+	emp.IsTrainer.EmployeeID = employeeID
 
 	emergencyParams, err := emp.Emergency.convertToDbStruct(int64(updated_by))
 	if err != nil {
@@ -168,6 +169,16 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	if accessiability != nil {
 		return c.JSON(500, "Error creating employee accessiability")
 	}
+	if emp.IsTrainer.IsTrainer {
+		istrainerrow := qtx.CreateTrainerEmp(c.Request().Context(),database.CreateTrainerEmpParams{
+			TrainerID: emp.IsTrainer.TrainerID,
+			EmployeeID: employeeID,
+			AttendeeID: emp.IsTrainer.AttendeeId,
+		})
+		if istrainerrow != nil {
+			return c.JSON(500, "Error creating employee trainer details: "+istrainerrow.Error())
+		}
+	} 
 
 	if err := tx.Commit(); err != nil {
 		return c.JSON(500, map[string]string{"error": "Error committing transaction"})
@@ -1084,3 +1095,23 @@ func (S *HRService) getEmployeeAllowances(c echo.Context) error {
 	}
 	return c.JSON(200, emp)
 }
+
+func (S *HRService) CheckIfEMPIsTrainer(c echo.Context) error {
+	var req CheckTrainerParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(500, "Error binding request")
+	}
+	emailParams := sql.NullString{
+		String: req.Email,
+		Valid:  true,
+	}
+	TrainerData, err := S.q.CheckTrainerFromEmail(c.Request().Context(), emailParams)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(404, "Employee is not a trainer")
+		}
+		return c.JSON(500, "Error checking if employee is a trainer")
+	}
+	return c.JSON(200, TrainerData)
+}
+

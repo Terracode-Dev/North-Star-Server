@@ -759,6 +759,13 @@ func (M CreateEmpAccessiabilityReqModel) convertToUpdateDbStruct(admin_id int64)
 	}, nil
 }
 
+type IsTrainerReqModel struct {
+	IsTrainer bool `json:"is_trainer"`
+	AttendeeId int64 `json:"attendee_id"`
+	TrainerID int64 `json:"trainer_id"`
+	EmployeeID int64 `json:"employee_id"`
+}
+
 type EmpReqModel struct {
 	Employee       CreateEmployeeReqModel            `json:"employee"`
 	Emergency      CreateEmpEmergencyDetailsReqModel `json:"emergency"`
@@ -771,6 +778,7 @@ type EmpReqModel struct {
 	Allowances     []CreateEmpAllowancesReqModel     `json:"allowances"`
 	Expatriate     CreateEmpExpatriateReqModel       `json:"expatriate"`
 	Accessiability CreateEmpAccessiabilityReqModel   `json:"accessiability"`
+	IsTrainer      IsTrainerReqModel			 	 `json:"is_trainer"`
 }
 
 type EmpLoginReqModel struct {
@@ -797,3 +805,8 @@ type LoginEmpResponse struct {
 	Token string      `json:"token"`
 	Data  rba.RBAauth `json:"data"`
 }
+
+type CheckTrainerParams struct {
+	Email   string `json:"email"`
+}
+

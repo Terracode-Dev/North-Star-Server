@@ -324,6 +324,19 @@ SELECT name, amount
 FROM HR_EMP_Allowances
 WHERE employee_id = ?;
 
+-- name: CheckTrainerFromEmail :one
+SELECT attendee_id, user_id, branch_id, username, email, phone, nic, role
+FROM door_lock_users
+WHERE email = ? AND role = 'trainer';
+
+-- name: CreateTrainerEmp :exec
+INSERT INTO HR_Trainer_Emp (
+    trainer_id, employee_id, attendee_id
+) VALUES (
+    ?, ?, ?
+);
+
+
 
 
 
