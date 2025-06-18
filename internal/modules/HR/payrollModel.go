@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"strconv"
 
 	db "github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/shopspring/decimal"
@@ -77,6 +78,38 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		pension_employee.Valid = true
 	}
 
+	amount_float := amount.InexactFloat64()
+	total_salary_allowances_float := total_of_salary_allowances.InexactFloat64()
+
+	Total_Gross_Salary := amount_float + total_salary_allowances_float
+
+	employee_pension_float, err := strconv.ParseFloat(pension_employee.String, 64)
+	if err != nil {
+		return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employee format: %v", err)
+	}
+	pension_employer_float, err := strconv.ParseFloat(pension_employer.String, 64)
+	if err != nil {
+		return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employer format: %v", err)
+	}
+	total_pension_float := employee_pension_float + pension_employer_float
+
+	total_net_salary_float_req := Total_Gross_Salary - total_pension_float
+
+	total_net_salary_float := total_net_salary.InexactFloat64()
+
+	tax_float, err := strconv.ParseFloat(tax_percentage.String, 64)
+	if err != nil {
+		return db.CreatePayrollParams{}, fmt.Errorf("invalid tax_percentage format: %v", err)
+	}
+	tax_percentage_float := tax_float / 100.0
+	total_net_salary_after_tax_float_req := total_net_salary_float*tax_percentage_float
+
+	total_net_salary_after_tax_float := total_net_salary_after_tax.InexactFloat64()
+
+	if total_net_salary_float != total_net_salary_float_req || total_net_salary_after_tax_float != total_net_salary_after_tax_float_req {
+		return db.CreatePayrollParams{}, fmt.Errorf("total net salary does not match the calculated value")
+	}
+	 
 	return db.CreatePayrollParams{
 		Employee:                A.Employee,
 		Date:                    date,
@@ -191,9 +224,42 @@ func (A *CreatePayrollAllowancesParams) ToCreatePayrollAllowancesParams(admin_id
 	}, nil
 }
 
+type HRTrainerComReqParams struct {
+	IsTrainer   bool            `json:"is_trainer"`
+	TrainerComData CreateHRTrainerComReqParams `json:"trainer_com_data"`
+}
+
+type CreateHRTrainerComReqParams struct {
+	PayrollID     int64           `json:"payroll_id"`
+	TrainerID     int64           `json:"trainer_id"`
+	EmployeeID    int64           `json:"employee_id"`
+	Commission    float64         `json:"commission"`
+	AssignedCount int64           `json:"assigned_count"`
+	Total         float64         `json:"total"`
+}
+
+func (A *CreateHRTrainerComReqParams) ToCreateHRTrainerComParams() (db.CreateHRTrainerComParams, error) {
+	var commission decimal.Decimal
+	if A.Commission != 0 {
+		commission = decimal.NewFromFloat(A.Commission)
+	} else {
+		commission = decimal.Zero
+	}
+
+	return db.CreateHRTrainerComParams{
+		PayrollID:     A.PayrollID,
+		TrainerID:     A.TrainerID,
+		EmployeeID:    A.EmployeeID,
+		Commission:    commission,
+		AssignedCount: A.AssignedCount,
+		Total:         decimal.NewFromFloat(A.Total),
+	}, nil
+}
+
 type PayrollAllowances struct {
 	Payroll     CreatePayrollReqModel           `json:"payroll"`
 	Allowances  []CreatePayrollAllowancesParams `json:"allowances"`
+	TrainerCom  HRTrainerComReqParams        `json:"trainer_com"`
 }
 
 type GetPayrollsReqModel struct {
@@ -209,4 +275,11 @@ func (A *GetPayrollsReqModel) ToGetPayrollsParams() (db.GetPayrollsParams,error)
 		Limit:  A.Limit,
 		Offset: offset,
 	},nil
+}
+
+type TrainerComRow struct {
+	Istrainer bool   `json:"is_trainer"`
+	Com_amount float64 `json:"com_amount"`
+	Assign_count int64  `json:"assign_count"`
+	Total_commission float64 `json:"total_commission"`
 }

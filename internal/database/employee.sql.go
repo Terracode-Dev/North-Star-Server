@@ -412,20 +412,26 @@ func (q *Queries) CreateEmployee(ctx context.Context, arg CreateEmployeeParams) 
 
 const createTrainerEmp = `-- name: CreateTrainerEmp :exec
 INSERT INTO HR_Trainer_Emp (
-    trainer_id, employee_id, attendee_id
+    trainer_id, employee_id, attendee_id, commission
 ) VALUES (
-    ?, ?, ?
+    ?, ?, ?, ?
 )
 `
 
 type CreateTrainerEmpParams struct {
-	TrainerID  int64 `json:"trainer_id"`
-	EmployeeID int64 `json:"employee_id"`
-	AttendeeID int64 `json:"attendee_id"`
+	TrainerID  int64           `json:"trainer_id"`
+	EmployeeID int64           `json:"employee_id"`
+	AttendeeID int64           `json:"attendee_id"`
+	Commission decimal.Decimal `json:"commission"`
 }
 
 func (q *Queries) CreateTrainerEmp(ctx context.Context, arg CreateTrainerEmpParams) error {
-	_, err := q.db.ExecContext(ctx, createTrainerEmp, arg.TrainerID, arg.EmployeeID, arg.AttendeeID)
+	_, err := q.db.ExecContext(ctx, createTrainerEmp,
+		arg.TrainerID,
+		arg.EmployeeID,
+		arg.AttendeeID,
+		arg.Commission,
+	)
 	return err
 }
 

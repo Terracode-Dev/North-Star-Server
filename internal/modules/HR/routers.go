@@ -59,6 +59,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/calculatetrainercom/:trainer_id", S.CalculateTrainerCommision)
 
 	hrRoute.POST("/hrbranch", S.addHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/hrbranch", S.getAllHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))

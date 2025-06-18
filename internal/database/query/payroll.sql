@@ -56,3 +56,27 @@ INSERT INTO HR_Payroll_Allowances (
 UPDATE HR_Payroll_Allowances
 SET name = ?, amount = ?, updated_by = ?
 WHERE payroll_id = ?;
+
+-- name: GetTrainerEmpDataFromID :one
+SELECT trainer_id, employee_id, attendee_id, commission
+FROM HR_Trainer_Emp
+WHERE employee_id = ?;
+
+-- name: GetTrainerAssingedCount :one
+SELECT COUNT(*) AS count
+FROM FLM_trainer_assign
+WHERE trainer_id = ?
+  AND MONTH(CONVERT_TZ(`from`, '+00:00', '+05:00')) = MONTH(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '+05:00'))
+  AND YEAR(CONVERT_TZ(`from`, '+00:00', '+05:00')) = YEAR(CONVERT_TZ(CURRENT_TIMESTAMP(), '+00:00', '+05:00'));
+
+-- name: CreateHRTrainerCom :exec
+INSERT INTO HR_Trainer_Com (
+    payroll_id,
+    trainer_id,
+    employee_id,
+    commission,
+    assigned_count,
+    total
+) VALUES (
+    ?, ?, ?, ?, ?, ?
+);
