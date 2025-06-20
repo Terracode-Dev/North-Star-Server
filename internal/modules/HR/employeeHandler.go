@@ -169,6 +169,19 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	if accessiability != nil {
 		return c.JSON(500, "Error creating employee accessiability")
 	}
+
+	for _, file := range emp.FileSubmit {
+		file.EmployeeID = employeeID
+		err = qtx.CreateFileSubmit(c.Request().Context(), database.CreateFileSubmitParams{
+			EmployeeID: file.EmployeeID,
+			FileName:   file.FileName,
+			FileType:   file.FileType,
+		})
+		if err != nil {
+			return c.JSON(500, "Error creating employee file submit: "+err.Error())
+		}
+	}
+
 	if emp.IsTrainer.IsTrainer {
 		comValue, err := decimal.NewFromString(emp.IsTrainer.Commission)
 		if err != nil {
@@ -615,7 +628,6 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	certParams := database.UpdateEmpCertificatesParams{
 		Date:       conv_date,
 		Name:       name,
-		ImagePath:  fileName,
 		UpdatedBy:  updated_by,
 		EmployeeID: empID,
 	}
@@ -819,7 +831,6 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 		VisaTill:      conv_visa_till,
 		VisaNumber:    visaNumber,
 		VisaFee:       visa_amount,
-		VisaImagePath: fileName,
 		UpdatedBy:     updated_by,
 		EmployeeID:    empid,
 	}

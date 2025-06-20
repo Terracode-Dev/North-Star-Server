@@ -148,7 +148,6 @@ type HrEmpCertificate struct {
 	ID         int64         `json:"id"`
 	Date       time.Time     `json:"date"`
 	Name       string        `json:"name"`
-	ImagePath  string        `json:"image_path"`
 	UpdatedBy  sql.NullInt64 `json:"updated_by"`
 	EmployeeID int64         `json:"employee_id"`
 	CreatedAt  sql.NullTime  `json:"created_at"`
@@ -168,19 +167,18 @@ type HrEmpEmergencyDetail struct {
 }
 
 type HrEmpExpatriate struct {
-	ID            int64           `json:"id"`
-	Expatriate    bool            `json:"expatriate"`
-	Nationality   string          `json:"nationality"`
-	VisaType      string          `json:"visa_type"`
-	VisaFrom      time.Time       `json:"visa_from"`
-	VisaTill      time.Time       `json:"visa_till"`
-	VisaNumber    string          `json:"visa_number"`
-	VisaFee       decimal.Decimal `json:"visa_fee"`
-	VisaImagePath string          `json:"visa_image_path"`
-	UpdatedBy     sql.NullInt64   `json:"updated_by"`
-	EmployeeID    int64           `json:"employee_id"`
-	CreatedAt     sql.NullTime    `json:"created_at"`
-	UpdatedAt     sql.NullTime    `json:"updated_at"`
+	ID          int64           `json:"id"`
+	Expatriate  bool            `json:"expatriate"`
+	Nationality string          `json:"nationality"`
+	VisaType    string          `json:"visa_type"`
+	VisaFrom    time.Time       `json:"visa_from"`
+	VisaTill    time.Time       `json:"visa_till"`
+	VisaNumber  string          `json:"visa_number"`
+	VisaFee     decimal.Decimal `json:"visa_fee"`
+	UpdatedBy   sql.NullInt64   `json:"updated_by"`
+	EmployeeID  int64           `json:"employee_id"`
+	CreatedAt   sql.NullTime    `json:"created_at"`
+	UpdatedAt   sql.NullTime    `json:"updated_at"`
 }
 
 type HrEmpSalary struct {
@@ -242,6 +240,15 @@ type HrEmployee struct {
 	UpdatedBy         sql.NullInt64 `json:"updated_by"`
 	CreatedAt         sql.NullTime  `json:"created_at"`
 	UpdatedAt         sql.NullTime  `json:"updated_at"`
+}
+
+type HrFilesubmit struct {
+	ID         int64        `json:"id"`
+	EmployeeID int64        `json:"employee_id"`
+	FileName   string       `json:"file_name"`
+	FileType   string       `json:"file_type"`
+	CreatedAt  sql.NullTime `json:"created_at"`
+	UpdatedAt  sql.NullTime `json:"updated_at"`
 }
 
 type HrPayroll struct {

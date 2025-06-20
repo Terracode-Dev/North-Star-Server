@@ -93,6 +93,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employer format: %v", err)
 	}
 	total_pension_float := employee_pension_float + pension_employer_float
+
 	var total_net_salary_float_req float64
 
 	if A.TrainerCom != 0 {
@@ -113,6 +114,14 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 	total_net_salary_after_tax_float := total_net_salary_after_tax.InexactFloat64()
 
 	if total_net_salary_float != total_net_salary_float_req || total_net_salary_after_tax_float != total_net_salary_after_tax_float_req {
+	    log.Printf("Salary calculation mismatch detected:")
+		log.Printf("  Calculated net salary: %f, Requested net salary: %f", total_net_salary_float_req, total_net_salary_float)
+		log.Printf("  Calculated net salary after tax: %f, Requested net salary after tax: %f", total_net_salary_after_tax_float_req, total_net_salary_after_tax_float)
+		log.Printf("  Calculation inputs:")
+		log.Printf("    Gross salary: %f (base: %f, allowances: %f)", Total_Gross_Salary, amount_float, total_salary_allowances_float)
+		log.Printf("    Pension: %f (employer: %f, employee: %f)", total_pension_float, pension_employer_float, employee_pension_float)
+		log.Printf("    Trainer commission: %f", A.TrainerCom)
+		log.Printf("    Tax percentage: %f%%", tax_float)
 		return db.CreatePayrollParams{}, fmt.Errorf("total net salary does not match the calculated value")
 	}
 	 
