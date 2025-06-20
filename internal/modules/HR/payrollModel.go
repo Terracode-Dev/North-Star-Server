@@ -22,6 +22,7 @@ type CreatePayrollReqModel struct {
 	PensionEmployee         string          `json:"pension_employee"`
 	TotalNetSalary          string          `json:"total_net_salary"`
 	Tax                     bool            `json:"tax"`
+	TrainerCom              float64         `json:"trainer_com"`
 	TaxPercentage           string          `json:"tax_percentage"`
 	TotalNetSalaryAfterTax  string          `json:"total_net_salary_after_tax"`
 	UpdatedBy               *int64          `json:"updated_by"`
@@ -93,7 +94,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 	}
 	total_pension_float := employee_pension_float + pension_employer_float
 
-	total_net_salary_float_req := Total_Gross_Salary - total_pension_float
+	total_net_salary_float_req := (Total_Gross_Salary + A.TrainerCom) - total_pension_float
 
 	total_net_salary_float := total_net_salary.InexactFloat64()
 
