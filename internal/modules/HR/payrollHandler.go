@@ -207,6 +207,7 @@ func (S *HRService) CalculateTrainerCommision(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, TrainerComRow{
 		Istrainer: true,
+		TrainerID: trainerData.TrainerID,
 		Com_amount: commision_value,
 		Assign_count: training_session_count,
 		Total_commission: commision,

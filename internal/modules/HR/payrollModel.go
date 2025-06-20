@@ -285,6 +285,7 @@ func (A *GetPayrollsReqModel) ToGetPayrollsParams() (db.GetPayrollsParams,error)
 
 type TrainerComRow struct {
 	Istrainer bool   `json:"is_trainer"`
+	TrainerID int64  `json:"trainer_id"`
 	Com_amount float64 `json:"com_amount"`
 	Assign_count int64  `json:"assign_count"`
 	Total_commission float64 `json:"total_commission"`
