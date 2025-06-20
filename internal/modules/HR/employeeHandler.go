@@ -1114,7 +1114,7 @@ func (S *HRService) CheckIfEMPIsTrainer(c echo.Context) error {
 	TrainerData, err := S.q.CheckTrainerFromEmail(c.Request().Context(), emailParams)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return c.JSON(404, "Employee is not a trainer")
+			return c.JSON(http.StatusNoContent, "Employee is not a trainer")
 		}
 		return c.JSON(500, "Error checking if employee is a trainer")
 	}

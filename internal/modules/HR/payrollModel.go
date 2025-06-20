@@ -22,6 +22,7 @@ type CreatePayrollReqModel struct {
 	PensionEmployee         string          `json:"pension_employee"`
 	TotalNetSalary          string          `json:"total_net_salary"`
 	Tax                     bool            `json:"tax"`
+	TrainerCom              float64         `json:"trainer_com"`
 	TaxPercentage           string          `json:"tax_percentage"`
 	TotalNetSalaryAfterTax  string          `json:"total_net_salary_after_tax"`
 	UpdatedBy               *int64          `json:"updated_by"`
@@ -92,9 +93,14 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employer format: %v", err)
 	}
 	total_pension_float := employee_pension_float + pension_employer_float
+	var total_net_salary_float_req float64
 
-	total_net_salary_float_req := Total_Gross_Salary - total_pension_float
-
+	if A.TrainerCom != 0 {
+	total_net_salary_float_req = (Total_Gross_Salary + A.TrainerCom) - total_pension_float
+	} else {
+	total_net_salary_float_req = Total_Gross_Salary - total_pension_float
+	}
+	
 	total_net_salary_float := total_net_salary.InexactFloat64()
 
 	tax_float, err := strconv.ParseFloat(tax_percentage.String, 64)
