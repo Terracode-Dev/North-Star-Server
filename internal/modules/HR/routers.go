@@ -66,7 +66,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/hrbranch/protect", S.getProtectedHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/hrbranch/:id", S.deleteHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 
-	hrRoute.POST("/fileupload", S.uploadFile, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/fileupload", S.uploadFile)
 	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 
 	hrRoute.GET("/verify-auth-emp", S.empVerifyAuth, rba.AuthMiddelware([]string{"emp"}))
