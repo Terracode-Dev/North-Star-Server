@@ -236,6 +236,11 @@ UPDATE HR_EMP_Certificates SET
     date = ?, name = ?, updated_by = ?
 WHERE employee_id = ?;
 
+-- name: UpdateTrainerCommission :exec
+UPDATE HR_Trainer_Emp SET
+    commission = ?
+WHERE employee_id = ?;
+
 -- name: UpdateEmpStatus :exec
 UPDATE HR_EMP_Status SET
     status = ?, department = ?, designation = ?, valid_from = ?, valid_till = ?, updated_by = ?
@@ -299,6 +304,9 @@ DELETE FROM HR_EMP_Allowances WHERE employee_id = ?;
 
 -- name: DeleteEmpExpatriate :exec
 DELETE FROM HR_EMP_Expatriate WHERE employee_id = ?;
+
+-- name: DeleteEmpFiles :exec
+DELETE FROM HR_FileSubmit WHERE file_name = ? AND employee_id = ? AND file_type = ?;
 
 -- name: DeleteEmpAccessiability :exec
 DELETE FROM HR_EMP_Accessiability WHERE employee_id = ?;

@@ -494,6 +494,21 @@ func (q *Queries) DeleteEmpExpatriate(ctx context.Context, employeeID int64) err
 	return err
 }
 
+const deleteEmpFiles = `-- name: DeleteEmpFiles :exec
+DELETE FROM HR_FileSubmit WHERE file_name = ? AND employee_id = ? AND file_type = ?
+`
+
+type DeleteEmpFilesParams struct {
+	FileName   string `json:"file_name"`
+	EmployeeID int64  `json:"employee_id"`
+	FileType   string `json:"file_type"`
+}
+
+func (q *Queries) DeleteEmpFiles(ctx context.Context, arg DeleteEmpFilesParams) error {
+	_, err := q.db.ExecContext(ctx, deleteEmpFiles, arg.FileName, arg.EmployeeID, arg.FileType)
+	return err
+}
+
 const deleteEmpSalary = `-- name: DeleteEmpSalary :exec
 DELETE FROM HR_EMP_Salary WHERE employee_id = ?
 `
@@ -1386,5 +1401,21 @@ func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) 
 		arg.UpdatedBy,
 		arg.ID,
 	)
+	return err
+}
+
+const updateTrainerCommission = `-- name: UpdateTrainerCommission :exec
+UPDATE HR_Trainer_Emp SET
+    commission = ?
+WHERE employee_id = ?
+`
+
+type UpdateTrainerCommissionParams struct {
+	Commission decimal.Decimal `json:"commission"`
+	EmployeeID int64           `json:"employee_id"`
+}
+
+func (q *Queries) UpdateTrainerCommission(ctx context.Context, arg UpdateTrainerCommissionParams) error {
+	_, err := q.db.ExecContext(ctx, updateTrainerCommission, arg.Commission, arg.EmployeeID)
 	return err
 }

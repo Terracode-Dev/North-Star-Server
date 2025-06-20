@@ -1133,4 +1133,36 @@ func (S *HRService) CheckIfEMPIsTrainer(c echo.Context) error {
 }
 
 
+func (S *HRService) DeleteEmployeeFiles(c echo.Context) error {
+	var req database.DeleteEmpFilesParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(500, "Error binding request")
+	}
+	err := S.q.DeleteEmpFiles(c.Request().Context(), req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error deleting employee files")
+	}
+	if req.FileType == "certificates" {
+		deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertficates", req.FileName)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "Error deleting certificate file from S3")
+		}
+		if !deleted {
+			return c.JSON(http.StatusInternalServerError, "Failed to delete certificate file from S3")
+		}
+	}
+	if req.FileType == "visa" {
+		deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappvisa", req.FileName)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "Error deleting visa file from S3")
+		}
+		if !deleted {
+			return c.JSON(http.StatusInternalServerError, "Failed to delete visa file from S3")
+		}
+	}
+	return c.JSON(http.StatusOK, "Employee files deleted successfully")
 
+}
+
+
+	// Return employee data

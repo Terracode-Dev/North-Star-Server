@@ -42,6 +42,7 @@ type Querier interface {
 	DeleteEmpCertificates(ctx context.Context, employeeID int64) error
 	DeleteEmpEmergencyDetails(ctx context.Context, employeeID int64) error
 	DeleteEmpExpatriate(ctx context.Context, employeeID int64) error
+	DeleteEmpFiles(ctx context.Context, arg DeleteEmpFilesParams) error
 	DeleteEmpSalary(ctx context.Context, employeeID int64) error
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
@@ -91,6 +92,7 @@ type Querier interface {
 	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
 	UpdateService(ctx context.Context, arg UpdateServiceParams) error
 	UpdateTax(ctx context.Context, arg UpdateTaxParams) error
+	UpdateTrainerCommission(ctx context.Context, arg UpdateTrainerCommissionParams) error
 }
 
 var _ Querier = (*Queries)(nil)
