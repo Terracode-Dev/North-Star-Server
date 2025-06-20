@@ -169,6 +169,19 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	if accessiability != nil {
 		return c.JSON(500, "Error creating employee accessiability")
 	}
+
+	for _, file := range emp.FileSubmit {
+		file.EmployeeID = employeeID
+		err = qtx.CreateFileSubmit(c.Request().Context(), database.CreateFileSubmitParams{
+			EmployeeID: file.EmployeeID,
+			FileName:   file.FileName,
+			FileType:   file.FileType,
+		})
+		if err != nil {
+			return c.JSON(500, "Error creating employee file submit: "+err.Error())
+		}
+	}
+
 	if emp.IsTrainer.IsTrainer {
 		comValue, err := decimal.NewFromString(emp.IsTrainer.Commission)
 		if err != nil {
@@ -615,7 +628,6 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	certParams := database.UpdateEmpCertificatesParams{
 		Date:       conv_date,
 		Name:       name,
-		ImagePath:  fileName,
 		UpdatedBy:  updated_by,
 		EmployeeID: empID,
 	}
@@ -819,7 +831,6 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 		VisaTill:      conv_visa_till,
 		VisaNumber:    visaNumber,
 		VisaFee:       visa_amount,
-		VisaImagePath: fileName,
 		UpdatedBy:     updated_by,
 		EmployeeID:    empid,
 	}
@@ -1122,4 +1133,36 @@ func (S *HRService) CheckIfEMPIsTrainer(c echo.Context) error {
 }
 
 
+func (S *HRService) DeleteEmployeeFiles(c echo.Context) error {
+	var req database.DeleteEmpFilesParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(500, "Error binding request")
+	}
+	err := S.q.DeleteEmpFiles(c.Request().Context(), req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error deleting employee files")
+	}
+	if req.FileType == "certificates" {
+		deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertficates", req.FileName)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "Error deleting certificate file from S3")
+		}
+		if !deleted {
+			return c.JSON(http.StatusInternalServerError, "Failed to delete certificate file from S3")
+		}
+	}
+	if req.FileType == "visa" {
+		deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappvisa", req.FileName)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "Error deleting visa file from S3")
+		}
+		if !deleted {
+			return c.JSON(http.StatusInternalServerError, "Failed to delete visa file from S3")
+		}
+	}
+	return c.JSON(http.StatusOK, "Employee files deleted successfully")
 
+}
+
+
+	// Return employee data

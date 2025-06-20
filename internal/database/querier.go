@@ -26,6 +26,7 @@ type Querier interface {
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateFileSubmit(ctx context.Context, arg CreateFileSubmitParams) error
 	CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error
 	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
 	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
@@ -41,6 +42,7 @@ type Querier interface {
 	DeleteEmpCertificates(ctx context.Context, employeeID int64) error
 	DeleteEmpEmergencyDetails(ctx context.Context, employeeID int64) error
 	DeleteEmpExpatriate(ctx context.Context, employeeID int64) error
+	DeleteEmpFiles(ctx context.Context, arg DeleteEmpFilesParams) error
 	DeleteEmpSalary(ctx context.Context, employeeID int64) error
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
@@ -84,11 +86,13 @@ type Querier interface {
 	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
 	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error
 	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) error
+	UpdateFileSubmit(ctx context.Context, arg UpdateFileSubmitParams) error
 	UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error
 	UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error
 	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
 	UpdateService(ctx context.Context, arg UpdateServiceParams) error
 	UpdateTax(ctx context.Context, arg UpdateTaxParams) error
+	UpdateTrainerCommission(ctx context.Context, arg UpdateTrainerCommissionParams) error
 }
 
 var _ Querier = (*Queries)(nil)

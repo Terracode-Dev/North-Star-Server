@@ -322,7 +322,6 @@ func (M CreateEmpCertificatesReqModel) convertToDbStruct(admin_id int64) (db.Cre
 	return db.CreateEmpCertificatesParams{
 		Date:       date,
 		Name:       M.Name,
-		ImagePath:  M.ImagePath,
 		UpdatedBy:  updated_by,
 		EmployeeID: M.EmployeeID,
 	}, nil
@@ -341,7 +340,6 @@ func (M CreateEmpCertificatesReqModel) convertToUpdateDbStruct(admin_id int64) (
 	return db.UpdateEmpCertificatesParams{
 		Date:       date,
 		Name:       M.Name,
-		ImagePath:  M.ImagePath,
 		UpdatedBy:  updated_by,
 		EmployeeID: M.EmployeeID,
 	}, nil
@@ -660,7 +658,6 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.Creat
 		VisaTill:      visaTill,
 		VisaNumber:    M.VisaNumber,
 		VisaFee:       visa_amount,
-		VisaImagePath: M.VisaImagePath,
 		UpdatedBy:     updated_by,
 		EmployeeID:    M.EmployeeID,
 	}, nil
@@ -767,6 +764,12 @@ type IsTrainerReqModel struct {
 	Commission string `json:"commission"`
 }
 
+type CreateFileSubmitReqModel struct {
+	EmployeeID int64  `json:"employee_id"`
+	FileName   string `json:"file_name"`
+	FileType   string `json:"file_type"`
+}
+
 type EmpReqModel struct {
 	Employee       CreateEmployeeReqModel            `json:"employee"`
 	Emergency      CreateEmpEmergencyDetailsReqModel `json:"emergency"`
@@ -779,6 +782,7 @@ type EmpReqModel struct {
 	Allowances     []CreateEmpAllowancesReqModel     `json:"allowances"`
 	Expatriate     CreateEmpExpatriateReqModel       `json:"expatriate"`
 	Accessiability CreateEmpAccessiabilityReqModel   `json:"accessiability"`
+	FileSubmit     []CreateFileSubmitReqModel		 `json:"file_submit"`
 	IsTrainer      IsTrainerReqModel			 	 `json:"is_trainer"`
 }
 

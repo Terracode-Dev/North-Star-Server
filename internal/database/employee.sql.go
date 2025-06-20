@@ -176,16 +176,15 @@ func (q *Queries) CreateEmpBenifits(ctx context.Context, arg CreateEmpBenifitsPa
 
 const createEmpCertificates = `-- name: CreateEmpCertificates :exec
 INSERT INTO HR_EMP_Certificates (
-    date, name, image_path, updated_by, employee_id
+    date, name,updated_by, employee_id
 ) VALUES (
-    ?, ?, ?, ?, ?
+    ?, ?, ?, ?
 )
 `
 
 type CreateEmpCertificatesParams struct {
 	Date       time.Time     `json:"date"`
 	Name       string        `json:"name"`
-	ImagePath  string        `json:"image_path"`
 	UpdatedBy  sql.NullInt64 `json:"updated_by"`
 	EmployeeID int64         `json:"employee_id"`
 }
@@ -194,7 +193,6 @@ func (q *Queries) CreateEmpCertificates(ctx context.Context, arg CreateEmpCertif
 	_, err := q.db.ExecContext(ctx, createEmpCertificates,
 		arg.Date,
 		arg.Name,
-		arg.ImagePath,
 		arg.UpdatedBy,
 		arg.EmployeeID,
 	)
@@ -232,23 +230,22 @@ func (q *Queries) CreateEmpEmergencyDetails(ctx context.Context, arg CreateEmpEm
 
 const createEmpExpatriate = `-- name: CreateEmpExpatriate :exec
 INSERT INTO HR_EMP_Expatriate (
-    expatriate, nationality, visa_type, visa_from, visa_till, visa_number, visa_fee, visa_image_path, updated_by, employee_id
+    expatriate, nationality, visa_type, visa_from, visa_till, visa_number, visa_fee, updated_by, employee_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
 type CreateEmpExpatriateParams struct {
-	Expatriate    bool            `json:"expatriate"`
-	Nationality   string          `json:"nationality"`
-	VisaType      string          `json:"visa_type"`
-	VisaFrom      time.Time       `json:"visa_from"`
-	VisaTill      time.Time       `json:"visa_till"`
-	VisaNumber    string          `json:"visa_number"`
-	VisaFee       decimal.Decimal `json:"visa_fee"`
-	VisaImagePath string          `json:"visa_image_path"`
-	UpdatedBy     sql.NullInt64   `json:"updated_by"`
-	EmployeeID    int64           `json:"employee_id"`
+	Expatriate  bool            `json:"expatriate"`
+	Nationality string          `json:"nationality"`
+	VisaType    string          `json:"visa_type"`
+	VisaFrom    time.Time       `json:"visa_from"`
+	VisaTill    time.Time       `json:"visa_till"`
+	VisaNumber  string          `json:"visa_number"`
+	VisaFee     decimal.Decimal `json:"visa_fee"`
+	UpdatedBy   sql.NullInt64   `json:"updated_by"`
+	EmployeeID  int64           `json:"employee_id"`
 }
 
 func (q *Queries) CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatriateParams) error {
@@ -260,7 +257,6 @@ func (q *Queries) CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatria
 		arg.VisaTill,
 		arg.VisaNumber,
 		arg.VisaFee,
-		arg.VisaImagePath,
 		arg.UpdatedBy,
 		arg.EmployeeID,
 	)
@@ -498,6 +494,21 @@ func (q *Queries) DeleteEmpExpatriate(ctx context.Context, employeeID int64) err
 	return err
 }
 
+const deleteEmpFiles = `-- name: DeleteEmpFiles :exec
+DELETE FROM HR_FileSubmit WHERE file_name = ? AND employee_id = ? AND file_type = ?
+`
+
+type DeleteEmpFilesParams struct {
+	FileName   string `json:"file_name"`
+	EmployeeID int64  `json:"employee_id"`
+	FileType   string `json:"file_type"`
+}
+
+func (q *Queries) DeleteEmpFiles(ctx context.Context, arg DeleteEmpFilesParams) error {
+	_, err := q.db.ExecContext(ctx, deleteEmpFiles, arg.FileName, arg.EmployeeID, arg.FileType)
+	return err
+}
+
 const deleteEmpSalary = `-- name: DeleteEmpSalary :exec
 DELETE FROM HR_EMP_Salary WHERE employee_id = ?
 `
@@ -560,14 +571,14 @@ func (q *Queries) EmployeeLogin(ctx context.Context, email string) (EmployeeLogi
 }
 
 const getCertificateFile = `-- name: GetCertificateFile :one
-SELECT image_path FROM HR_EMP_Certificates WHERE employee_id = ?
+SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'certificate'
 `
 
 func (q *Queries) GetCertificateFile(ctx context.Context, employeeID int64) (string, error) {
 	row := q.db.QueryRowContext(ctx, getCertificateFile, employeeID)
-	var image_path string
-	err := row.Scan(&image_path)
-	return image_path, err
+	var file_name string
+	err := row.Scan(&file_name)
+	return file_name, err
 }
 
 const getEmployee = `-- name: GetEmployee :many
@@ -728,8 +739,7 @@ SELECT
 
     cert.date AS certificate_date, 
     cert.name AS certificate_name, 
-    cert.image_path AS certificate_image, 
-
+    
     stat.status, 
     stat.department, 
     stat.designation, 
@@ -763,12 +773,17 @@ SELECT
     exp.visa_till, 
     exp.visa_number, 
     exp.visa_fee, 
-    exp.visa_image_path, 
-
+    
     acc.accessibility, 
     acc.accessibility_from, 
     acc.accessibility_till, 
-    acc.enable 
+    acc.enable,
+    
+    cert_files.id AS cert_file_id,
+    cert_files.file_name AS cert_file_name,
+    
+    visa_files.id AS visa_file_id,
+    visa_files.file_name AS visa_file_name
 
 FROM HR_Employee e
 LEFT JOIN HR_EMP_Emergency_Details ed ON e.id = ed.employee_id
@@ -781,6 +796,8 @@ LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
 LEFT JOIN HR_EMP_Allowances allw ON e.id = allw.employee_id
 LEFT JOIN HR_EMP_Expatriate exp ON e.id = exp.employee_id
 LEFT JOIN HR_EMP_Accessiability acc ON e.id = acc.employee_id
+LEFT JOIN HR_FileSubmit cert_files ON e.id = cert_files.employee_id AND cert_files.file_type = 'certificate'
+LEFT JOIN HR_FileSubmit visa_files ON e.id = visa_files.employee_id AND visa_files.file_type = 'visa'
 
 WHERE e.id = ?
 `
@@ -822,7 +839,6 @@ type GetEmployeeByIDRow struct {
 	TotalNetSalary          sql.NullString `json:"total_net_salary"`
 	CertificateDate         sql.NullTime   `json:"certificate_date"`
 	CertificateName         sql.NullString `json:"certificate_name"`
-	CertificateImage        sql.NullString `json:"certificate_image"`
 	Status                  sql.NullString `json:"status"`
 	Department              sql.NullString `json:"department"`
 	Designation             sql.NullString `json:"designation"`
@@ -852,11 +868,14 @@ type GetEmployeeByIDRow struct {
 	VisaTill                sql.NullTime   `json:"visa_till"`
 	VisaNumber              sql.NullString `json:"visa_number"`
 	VisaFee                 sql.NullString `json:"visa_fee"`
-	VisaImagePath           sql.NullString `json:"visa_image_path"`
 	Accessibility           sql.NullBool   `json:"accessibility"`
 	AccessibilityFrom       sql.NullTime   `json:"accessibility_from"`
 	AccessibilityTill       sql.NullTime   `json:"accessibility_till"`
 	Enable                  sql.NullBool   `json:"enable"`
+	CertFileID              sql.NullInt64  `json:"cert_file_id"`
+	CertFileName            sql.NullString `json:"cert_file_name"`
+	VisaFileID              sql.NullInt64  `json:"visa_file_id"`
+	VisaFileName            sql.NullString `json:"visa_file_name"`
 }
 
 func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeByIDRow, error) {
@@ -905,7 +924,6 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeB
 			&i.TotalNetSalary,
 			&i.CertificateDate,
 			&i.CertificateName,
-			&i.CertificateImage,
 			&i.Status,
 			&i.Department,
 			&i.Designation,
@@ -935,11 +953,14 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeB
 			&i.VisaTill,
 			&i.VisaNumber,
 			&i.VisaFee,
-			&i.VisaImagePath,
 			&i.Accessibility,
 			&i.AccessibilityFrom,
 			&i.AccessibilityTill,
 			&i.Enable,
+			&i.CertFileID,
+			&i.CertFileName,
+			&i.VisaFileID,
+			&i.VisaFileName,
 		); err != nil {
 			return nil, err
 		}
@@ -1030,14 +1051,14 @@ func (q *Queries) GetEmployeeSalaryDetails(ctx context.Context, employeeID int64
 }
 
 const getVisaFile = `-- name: GetVisaFile :one
-SELECT visa_image_path FROM HR_EMP_Expatriate WHERE employee_id = ?
+SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'visa'
 `
 
 func (q *Queries) GetVisaFile(ctx context.Context, employeeID int64) (string, error) {
 	row := q.db.QueryRowContext(ctx, getVisaFile, employeeID)
-	var visa_image_path string
-	err := row.Scan(&visa_image_path)
-	return visa_image_path, err
+	var file_name string
+	err := row.Scan(&file_name)
+	return file_name, err
 }
 
 const updateEmpAccessiability = `-- name: UpdateEmpAccessiability :exec
@@ -1164,14 +1185,13 @@ func (q *Queries) UpdateEmpBenifits(ctx context.Context, arg UpdateEmpBenifitsPa
 
 const updateEmpCertificates = `-- name: UpdateEmpCertificates :exec
 UPDATE HR_EMP_Certificates SET
-    date = ?, name = ?, image_path = ?, updated_by = ?
+    date = ?, name = ?, updated_by = ?
 WHERE employee_id = ?
 `
 
 type UpdateEmpCertificatesParams struct {
 	Date       time.Time     `json:"date"`
 	Name       string        `json:"name"`
-	ImagePath  string        `json:"image_path"`
 	UpdatedBy  sql.NullInt64 `json:"updated_by"`
 	EmployeeID int64         `json:"employee_id"`
 }
@@ -1180,7 +1200,6 @@ func (q *Queries) UpdateEmpCertificates(ctx context.Context, arg UpdateEmpCertif
 	_, err := q.db.ExecContext(ctx, updateEmpCertificates,
 		arg.Date,
 		arg.Name,
-		arg.ImagePath,
 		arg.UpdatedBy,
 		arg.EmployeeID,
 	)
@@ -1217,21 +1236,20 @@ func (q *Queries) UpdateEmpEmergencyDetails(ctx context.Context, arg UpdateEmpEm
 const updateEmpExpatriate = `-- name: UpdateEmpExpatriate :exec
 UPDATE HR_EMP_Expatriate SET
     expatriate = ?, nationality = ?, visa_type = ?, visa_from = ?, visa_till = ?, 
-    visa_number = ?, visa_fee = ?, visa_image_path = ?, updated_by = ?
+    visa_number = ?, visa_fee = ?, updated_by = ?
 WHERE employee_id = ?
 `
 
 type UpdateEmpExpatriateParams struct {
-	Expatriate    bool            `json:"expatriate"`
-	Nationality   string          `json:"nationality"`
-	VisaType      string          `json:"visa_type"`
-	VisaFrom      time.Time       `json:"visa_from"`
-	VisaTill      time.Time       `json:"visa_till"`
-	VisaNumber    string          `json:"visa_number"`
-	VisaFee       decimal.Decimal `json:"visa_fee"`
-	VisaImagePath string          `json:"visa_image_path"`
-	UpdatedBy     sql.NullInt64   `json:"updated_by"`
-	EmployeeID    int64           `json:"employee_id"`
+	Expatriate  bool            `json:"expatriate"`
+	Nationality string          `json:"nationality"`
+	VisaType    string          `json:"visa_type"`
+	VisaFrom    time.Time       `json:"visa_from"`
+	VisaTill    time.Time       `json:"visa_till"`
+	VisaNumber  string          `json:"visa_number"`
+	VisaFee     decimal.Decimal `json:"visa_fee"`
+	UpdatedBy   sql.NullInt64   `json:"updated_by"`
+	EmployeeID  int64           `json:"employee_id"`
 }
 
 func (q *Queries) UpdateEmpExpatriate(ctx context.Context, arg UpdateEmpExpatriateParams) error {
@@ -1243,7 +1261,6 @@ func (q *Queries) UpdateEmpExpatriate(ctx context.Context, arg UpdateEmpExpatria
 		arg.VisaTill,
 		arg.VisaNumber,
 		arg.VisaFee,
-		arg.VisaImagePath,
 		arg.UpdatedBy,
 		arg.EmployeeID,
 	)
@@ -1384,5 +1401,21 @@ func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) 
 		arg.UpdatedBy,
 		arg.ID,
 	)
+	return err
+}
+
+const updateTrainerCommission = `-- name: UpdateTrainerCommission :exec
+UPDATE HR_Trainer_Emp SET
+    commission = ?
+WHERE employee_id = ?
+`
+
+type UpdateTrainerCommissionParams struct {
+	Commission decimal.Decimal `json:"commission"`
+	EmployeeID int64           `json:"employee_id"`
+}
+
+func (q *Queries) UpdateTrainerCommission(ctx context.Context, arg UpdateTrainerCommissionParams) error {
+	_, err := q.db.ExecContext(ctx, updateTrainerCommission, arg.Commission, arg.EmployeeID)
 	return err
 }
