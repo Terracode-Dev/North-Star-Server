@@ -581,6 +581,40 @@ func (q *Queries) GetCertificateFile(ctx context.Context, employeeID int64) (str
 	return file_name, err
 }
 
+const getEmpFiles = `-- name: GetEmpFiles :many
+SELECT file_name, file_type
+FROM HR_FileSubmit
+WHERE employee_id = ?
+`
+
+type GetEmpFilesRow struct {
+	FileName string `json:"file_name"`
+	FileType string `json:"file_type"`
+}
+
+func (q *Queries) GetEmpFiles(ctx context.Context, employeeID int64) ([]GetEmpFilesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmpFiles, employeeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmpFilesRow
+	for rows.Next() {
+		var i GetEmpFilesRow
+		if err := rows.Scan(&i.FileName, &i.FileType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEmployee = `-- name: GetEmployee :many
 SELECT
   e.id AS employee_id,
@@ -697,7 +731,7 @@ func (q *Queries) GetEmployeeAllowances(ctx context.Context, employeeID int64) (
 	return items, nil
 }
 
-const getEmployeeByID = `-- name: GetEmployeeByID :many
+const getEmployeeByID = `-- name: GetEmployeeByID :one
 SELECT 
     e.id AS employee_id, 
     e.first_name, 
@@ -761,10 +795,7 @@ SELECT
 
     usr.email AS user_email, 
     usr.password AS user_password, 
-    usr.branch_id AS user_branch_id,
-
-    allw.name AS allowance_name, 
-    allw.amount AS allowance_amount, 
+    usr.branch_id AS user_branch_id, 
 
     exp.expatriate, 
     exp.nationality AS exp_nationality, 
@@ -777,13 +808,7 @@ SELECT
     acc.accessibility, 
     acc.accessibility_from, 
     acc.accessibility_till, 
-    acc.enable,
-    
-    cert_files.id AS cert_file_id,
-    cert_files.file_name AS cert_file_name,
-    
-    visa_files.id AS visa_file_id,
-    visa_files.file_name AS visa_file_name
+    acc.enable
 
 FROM HR_Employee e
 LEFT JOIN HR_EMP_Emergency_Details ed ON e.id = ed.employee_id
@@ -793,11 +818,8 @@ LEFT JOIN HR_EMP_Certificates cert ON e.id = cert.employee_id
 LEFT JOIN HR_EMP_Status stat ON e.id = stat.employee_id
 LEFT JOIN HR_EMP_Benifits ben ON e.id = ben.employee_id
 LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
-LEFT JOIN HR_EMP_Allowances allw ON e.id = allw.employee_id
 LEFT JOIN HR_EMP_Expatriate exp ON e.id = exp.employee_id
 LEFT JOIN HR_EMP_Accessiability acc ON e.id = acc.employee_id
-LEFT JOIN HR_FileSubmit cert_files ON e.id = cert_files.employee_id AND cert_files.file_type = 'certificate'
-LEFT JOIN HR_FileSubmit visa_files ON e.id = visa_files.employee_id AND visa_files.file_type = 'visa'
 
 WHERE e.id = ?
 `
@@ -859,8 +881,6 @@ type GetEmployeeByIDRow struct {
 	UserEmail               sql.NullString `json:"user_email"`
 	UserPassword            sql.NullString `json:"user_password"`
 	UserBranchID            sql.NullInt64  `json:"user_branch_id"`
-	AllowanceName           sql.NullString `json:"allowance_name"`
-	AllowanceAmount         sql.NullString `json:"allowance_amount"`
 	Expatriate              sql.NullBool   `json:"expatriate"`
 	ExpNationality          sql.NullString `json:"exp_nationality"`
 	VisaType                sql.NullString `json:"visa_type"`
@@ -872,107 +892,81 @@ type GetEmployeeByIDRow struct {
 	AccessibilityFrom       sql.NullTime   `json:"accessibility_from"`
 	AccessibilityTill       sql.NullTime   `json:"accessibility_till"`
 	Enable                  sql.NullBool   `json:"enable"`
-	CertFileID              sql.NullInt64  `json:"cert_file_id"`
-	CertFileName            sql.NullString `json:"cert_file_name"`
-	VisaFileID              sql.NullInt64  `json:"visa_file_id"`
-	VisaFileName            sql.NullString `json:"visa_file_name"`
 }
 
-func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) ([]GetEmployeeByIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getEmployeeByID, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetEmployeeByIDRow
-	for rows.Next() {
-		var i GetEmployeeByIDRow
-		if err := rows.Scan(
-			&i.EmployeeID,
-			&i.FirstName,
-			&i.LastName,
-			&i.Gender,
-			&i.Dob,
-			&i.Religion,
-			&i.PrimaryNumber,
-			&i.SecondaryNumber,
-			&i.PassportID,
-			&i.Nationality,
-			&i.PassportValidTill,
-			&i.Nic,
-			&i.Country,
-			&i.NicValidTill,
-			&i.Address,
-			&i.CurrentCountry,
-			&i.Email,
-			&i.UpdatedBy,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.EmergencyFirstName,
-			&i.EmergencyLastName,
-			&i.Relationship,
-			&i.EmergencyContact,
-			&i.BankName,
-			&i.BranchName,
-			&i.AccountNumber,
-			&i.AccountHolder,
-			&i.SalaryType,
-			&i.Amount,
-			&i.TotalOfSalaryAllowances,
-			&i.PensionEmployer,
-			&i.PensionEmployee,
-			&i.TotalNetSalary,
-			&i.CertificateDate,
-			&i.CertificateName,
-			&i.Status,
-			&i.Department,
-			&i.Designation,
-			&i.StatusValidFrom,
-			&i.StatusValidTill,
-			&i.LeaveStatus,
-			&i.LeaveType,
-			&i.LeaveCount,
-			&i.HealthInsurance,
-			&i.InsuranceFrom,
-			&i.InsuranceTill,
-			&i.RetainmentPlan,
-			&i.RetainmentPlanFrom,
-			&i.RetainmentPlanTill,
-			&i.Benifits,
-			&i.BenifitsFrom,
-			&i.BenifitsTill,
-			&i.UserEmail,
-			&i.UserPassword,
-			&i.UserBranchID,
-			&i.AllowanceName,
-			&i.AllowanceAmount,
-			&i.Expatriate,
-			&i.ExpNationality,
-			&i.VisaType,
-			&i.VisaFrom,
-			&i.VisaTill,
-			&i.VisaNumber,
-			&i.VisaFee,
-			&i.Accessibility,
-			&i.AccessibilityFrom,
-			&i.AccessibilityTill,
-			&i.Enable,
-			&i.CertFileID,
-			&i.CertFileName,
-			&i.VisaFileID,
-			&i.VisaFileName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getEmployeeByID, id)
+	var i GetEmployeeByIDRow
+	err := row.Scan(
+		&i.EmployeeID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Gender,
+		&i.Dob,
+		&i.Religion,
+		&i.PrimaryNumber,
+		&i.SecondaryNumber,
+		&i.PassportID,
+		&i.Nationality,
+		&i.PassportValidTill,
+		&i.Nic,
+		&i.Country,
+		&i.NicValidTill,
+		&i.Address,
+		&i.CurrentCountry,
+		&i.Email,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.EmergencyFirstName,
+		&i.EmergencyLastName,
+		&i.Relationship,
+		&i.EmergencyContact,
+		&i.BankName,
+		&i.BranchName,
+		&i.AccountNumber,
+		&i.AccountHolder,
+		&i.SalaryType,
+		&i.Amount,
+		&i.TotalOfSalaryAllowances,
+		&i.PensionEmployer,
+		&i.PensionEmployee,
+		&i.TotalNetSalary,
+		&i.CertificateDate,
+		&i.CertificateName,
+		&i.Status,
+		&i.Department,
+		&i.Designation,
+		&i.StatusValidFrom,
+		&i.StatusValidTill,
+		&i.LeaveStatus,
+		&i.LeaveType,
+		&i.LeaveCount,
+		&i.HealthInsurance,
+		&i.InsuranceFrom,
+		&i.InsuranceTill,
+		&i.RetainmentPlan,
+		&i.RetainmentPlanFrom,
+		&i.RetainmentPlanTill,
+		&i.Benifits,
+		&i.BenifitsFrom,
+		&i.BenifitsTill,
+		&i.UserEmail,
+		&i.UserPassword,
+		&i.UserBranchID,
+		&i.Expatriate,
+		&i.ExpNationality,
+		&i.VisaType,
+		&i.VisaFrom,
+		&i.VisaTill,
+		&i.VisaNumber,
+		&i.VisaFee,
+		&i.Accessibility,
+		&i.AccessibilityFrom,
+		&i.AccessibilityTill,
+		&i.Enable,
+	)
+	return i, err
 }
 
 const getEmployeeDOB = `-- name: GetEmployeeDOB :one

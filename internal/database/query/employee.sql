@@ -104,7 +104,7 @@ LIMIT ? OFFSET ?;
 -- name: GetEmployeeDOB :one
 SELECT dob FROM HR_Employee WHERE id = ?;
 
--- name: GetEmployeeByID :many
+-- name: GetEmployeeByID :one
 SELECT 
     e.id AS employee_id, 
     e.first_name, 
@@ -168,10 +168,7 @@ SELECT
 
     usr.email AS user_email, 
     usr.password AS user_password, 
-    usr.branch_id AS user_branch_id,
-
-    allw.name AS allowance_name, 
-    allw.amount AS allowance_amount, 
+    usr.branch_id AS user_branch_id, 
 
     exp.expatriate, 
     exp.nationality AS exp_nationality, 
@@ -184,13 +181,7 @@ SELECT
     acc.accessibility, 
     acc.accessibility_from, 
     acc.accessibility_till, 
-    acc.enable,
-    
-    cert_files.id AS cert_file_id,
-    cert_files.file_name AS cert_file_name,
-    
-    visa_files.id AS visa_file_id,
-    visa_files.file_name AS visa_file_name
+    acc.enable
 
 FROM HR_Employee e
 LEFT JOIN HR_EMP_Emergency_Details ed ON e.id = ed.employee_id
@@ -200,11 +191,8 @@ LEFT JOIN HR_EMP_Certificates cert ON e.id = cert.employee_id
 LEFT JOIN HR_EMP_Status stat ON e.id = stat.employee_id
 LEFT JOIN HR_EMP_Benifits ben ON e.id = ben.employee_id
 LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
-LEFT JOIN HR_EMP_Allowances allw ON e.id = allw.employee_id
 LEFT JOIN HR_EMP_Expatriate exp ON e.id = exp.employee_id
 LEFT JOIN HR_EMP_Accessiability acc ON e.id = acc.employee_id
-LEFT JOIN HR_FileSubmit cert_files ON e.id = cert_files.employee_id AND cert_files.file_type = 'certificate'
-LEFT JOIN HR_FileSubmit visa_files ON e.id = visa_files.employee_id AND visa_files.file_type = 'visa'
 
 WHERE e.id = ?;
 
@@ -350,6 +338,10 @@ INSERT INTO HR_Trainer_Emp (
     ?, ?, ?, ?
 );
 
+-- name: GetEmpFiles :many
+SELECT file_name, file_type
+FROM HR_FileSubmit
+WHERE employee_id = ?
 
 
 
