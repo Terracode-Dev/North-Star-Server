@@ -285,10 +285,20 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
 	}
 
-	// Check if employee exists
-	if len(emp) == 0 {
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found"})
+	emp_allow, err := S.q.GetEmployeeAllowances(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
 	}
+
+	emp_files , err := S.q.GetEmpFiles(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
+	}
+
+	// Check if employee exists
+	// if  {
+	// 	return c.JSON(http.StatusNotFound, map[string]string{"error": "Employee not found"})
+	// }
 
 	// Authentication
 	userId, ok := c.Get("user_id").(int)
@@ -309,18 +319,22 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 	// Authorization Logic
 	switch role {
 	case "admin", "mod":
-		if branchId != S.cfg.MainBranchId && emp[0].UserBranchID.Valid && branchId != int(emp[0].UserBranchID.Int64) {
+		if branchId != S.cfg.MainBranchId && emp.UserBranchID.Valid && branchId != int(emp.UserBranchID.Int64) {
 			return c.JSON(http.StatusForbidden, map[string]string{"error": "Unauthorized access"})
 		}
 	case "emp":
-		if branchId != S.cfg.MainBranchId && userId != int(emp[0].EmployeeID) {
+		if branchId != S.cfg.MainBranchId && userId != int(emp.EmployeeID) {
 			return c.JSON(http.StatusForbidden, map[string]string{"error": "Unauthorized access"})
 		}
 	default:
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "Unknown role, access denied"})
 	}
 
-	return c.JSON(http.StatusOK, emp)
+	return c.JSON(http.StatusOK, EmpResponse{
+		Employee:   emp,
+		EmpAllowances: emp_allow,
+		EmpFiles:      emp_files,
+	})
 }
 
 // update employee handler

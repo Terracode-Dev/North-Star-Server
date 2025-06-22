@@ -786,6 +786,12 @@ type EmpReqModel struct {
 	IsTrainer      IsTrainerReqModel			 	 `json:"is_trainer"`
 }
 
+type EmpResponse struct {
+	Employee   db.GetEmployeeByIDRow `json:"employee"`
+	EmpAllowances []db.GetEmployeeAllowancesRow `json:"allowances"`
+	EmpFiles []db.GetEmpFilesRow `json:"files"`
+}
+
 type EmpLoginReqModel struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
