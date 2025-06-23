@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	rba "github.com/Terracode-Dev/North-Star-Server/internal/pkg/RBA"
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
 	"golang.org/x/crypto/bcrypt"
@@ -315,7 +313,6 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 	if !ok {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid branch ID"})
 	}
-
 	// Authorization Logic
 	switch role {
 	case "admin", "mod":
@@ -329,11 +326,23 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 	default:
 		return c.JSON(http.StatusForbidden, map[string]string{"error": "Unknown role, access denied"})
 	}
+	TrainerData, err := S.q.GetTrainerEmp(c.Request().Context(), empID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusOK, EmpResponse{
+				Employee:   emp,
+				EmpAllowances: emp_allow,
+				EmpFiles:      emp_files,
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
+	}
 
 	return c.JSON(http.StatusOK, EmpResponse{
 		Employee:   emp,
 		EmpAllowances: emp_allow,
 		EmpFiles:      emp_files,
+		TrainerCom: TrainerData.Commission,
 	})
 }
 
@@ -607,29 +616,6 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 		return c.JSON(500, "user id issue")
 	}
 
-	file_path, err := S.q.GetCertificateFile(c.Request().Context(), empID)
-	if err != nil {
-		return c.JSON(500, "file path issue")
-	}
-
-	file, err := c.FormFile("cert_file")
-	if err != nil {
-		return c.JSON(500, "file issue")
-	}
-	obj, err := file.Open()
-	if err != nil {
-		return c.JSON(500, "file Open issue")
-	}
-	defer obj.Close()
-
-	ext := filepath.Ext(file.Filename)
-	fileName := uuid.New().String() + ext
-
-	err = S.s3.UploadToS3(c.Request().Context(), "nsappcertficates", fileName, obj)
-	if err != nil {
-		return c.JSON(500, err.Error())
-	}
-
 	conv_date, err := time.Parse(time.RFC3339, date)
 	if err != nil {
 		return c.JSON(500, "date conversion issue")
@@ -650,15 +636,7 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	if error != nil {
 		return c.JSON(500, "Error updating employee certificates")
 	}
-
-	deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappcertficates", file_path)
-	if err != nil {
-		return c.JSON(200, "file delete issue")
-	}
-	if deleted {
-		return c.JSON(200, "Employee certificates updated successfully")
-	}
-	return c.JSON(500, "Error deleting old certificate")
+	return c.JSON(200, "Employee certificates updated successfully")
 }
 
 // update employee status handler
@@ -792,30 +770,6 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, "Error parsing employee id")
 	}
-
-	file_path, err := S.q.GetVisaFile(c.Request().Context(), empid)
-	if err != nil {
-		return c.JSON(500, "file path issue")
-	}
-
-	file, err := c.FormFile("visa_file")
-	if err != nil {
-		return c.JSON(500, "file upload issue")
-	}
-	obj, err := file.Open()
-	if err != nil {
-		return c.JSON(500, "file Open issue")
-	}
-	defer obj.Close()
-
-	ext := filepath.Ext(file.Filename)
-	fileName := uuid.New().String() + ext
-
-	err = S.s3.UploadToS3(c.Request().Context(), "nsappvisa", fileName, obj)
-	if err != nil {
-		return c.JSON(500, "file upload failed")
-	}
-
 	conv_visa_from, err := time.Parse(time.RFC3339, visafrom)
 	if err != nil {
 		return c.JSON(500, "date conversion issue")
@@ -852,14 +806,6 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 	error := S.q.UpdateEmpExpatriate(c.Request().Context(), expatriateParams)
 	if error != nil {
 		return c.JSON(500, "Error updating employee expatriate")
-	}
-
-	deleted, err := S.s3.DeleteS3Item(c.Request().Context(), "nsappvisa", file_path)
-	if err != nil {
-		return c.JSON(500, "file delete issue")
-	}
-	if deleted {
-		return c.JSON(200, "Employee expatriate updated successfully")
 	}
 	return c.JSON(500, "Error deleting old visa file")
 }
@@ -1177,6 +1123,24 @@ func (S *HRService) DeleteEmployeeFiles(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Employee files deleted successfully")
 
 }
+
+func (S *HRService) UpdateEmpCommission(c echo.Context) error {
+	updated_by := c.Get("user_id").(int)
+	var req UpdateCommissionReqModel
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Error binding request")
+	}
+	updateParams , err := req.convertToDbStruct(int64(updated_by))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error converting request to database struct")
+	}
+	err = S.q.UpdateTrainerCommission(c.Request().Context(), updateParams)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
+	}
+	return c.JSON(http.StatusOK, map[string]string{"message": "Commission updated successfully"})
+}
+
 
 
 	// Return employee data

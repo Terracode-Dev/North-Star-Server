@@ -33,12 +33,16 @@ func (S *HRService) registerRoutes() {
 	hrRoute.PUT("/employee/allowances", S.updateEmpAllowances, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/expatriate", S.updateEmpExpatriate, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/accessibility", S.updateEmpAccessiability, rba.AuthMiddelware([]string{"admin", "mod"}))
+	//update trainer commission
+	hrRoute.PUT("/employee/trainerCom", S.UpdateEmpCommission, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/employee/:id", S.deleteEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/login", S.employeeLogin)
 	hrRoute.PUT("/employee/empbank", S.empOnlyBankDetailsUpdate, rba.AuthMiddelware([]string{"emp"}))
-	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer)
+	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer , rba.AuthMiddelware([]string{"admin", "mod",}))
 	//Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+
 
 	// service routes
 	hrRoute.POST("/service", S.createAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))

@@ -304,7 +304,6 @@ func (M CreateEmpSalaryReqModel) convertToUpdateDbStruct(admin_id int64) (db.Upd
 type CreateEmpCertificatesReqModel struct {
 	Date       string `json:"date" form:"date"`
 	Name       string `json:"name" form:"name"`
-	ImagePath  string `json:"image_path" form:"image_path"`
 	UpdatedBy  *int64 `json:"updated_by" form:"updated_by"`
 	EmployeeID int64  `json:"employee_id" form:"employee_id"`
 }
@@ -625,7 +624,6 @@ type CreateEmpExpatriateReqModel struct {
 	VisaTill      string `json:"visa_till"`
 	VisaNumber    string `json:"visa_number"`
 	VisaFee       string `json:"visa_fee"`
-	VisaImagePath string `json:"visa_image_path"`
 	UpdatedBy     *int64 `json:"updated_by"`
 	EmployeeID    int64  `json:"employee_id"`
 }
@@ -790,6 +788,7 @@ type EmpResponse struct {
 	Employee   db.GetEmployeeByIDRow `json:"employee"`
 	EmpAllowances []db.GetEmployeeAllowancesRow `json:"allowances"`
 	EmpFiles []db.GetEmpFilesRow `json:"files"`
+	TrainerCom  decimal.Decimal `json:"trainer_data"`
 }
 
 type EmpLoginReqModel struct {
@@ -821,3 +820,24 @@ type CheckTrainerParams struct {
 	Email   string `json:"email"`
 }
 
+type UpdateCommissionReqModel struct {
+	Commission string `json:"commission"`
+	EmployeeID int64  `json:"employee_id"`
+}
+
+func (M UpdateCommissionReqModel) convertToDbStruct(admin_id int64) (db.UpdateTrainerCommissionParams, error) {
+	commission, err := decimal.NewFromString(M.Commission)
+	if err != nil {
+		return db.UpdateTrainerCommissionParams{}, err
+	}
+
+	var updated_by sql.NullInt64
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
+	return db.UpdateTrainerCommissionParams{
+		Commission: commission,
+		UpdatedBy:  updated_by,
+		EmployeeID: M.EmployeeID,
+	}, nil
+}

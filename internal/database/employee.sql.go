@@ -1044,6 +1044,32 @@ func (q *Queries) GetEmployeeSalaryDetails(ctx context.Context, employeeID int64
 	return i, err
 }
 
+const getTrainerEmp = `-- name: GetTrainerEmp :one
+SELECT
+    trainer_id, employee_id, attendee_id, commission
+FROM HR_Trainer_Emp
+WHERE employee_id = ?
+`
+
+type GetTrainerEmpRow struct {
+	TrainerID  int64           `json:"trainer_id"`
+	EmployeeID int64           `json:"employee_id"`
+	AttendeeID int64           `json:"attendee_id"`
+	Commission decimal.Decimal `json:"commission"`
+}
+
+func (q *Queries) GetTrainerEmp(ctx context.Context, employeeID int64) (GetTrainerEmpRow, error) {
+	row := q.db.QueryRowContext(ctx, getTrainerEmp, employeeID)
+	var i GetTrainerEmpRow
+	err := row.Scan(
+		&i.TrainerID,
+		&i.EmployeeID,
+		&i.AttendeeID,
+		&i.Commission,
+	)
+	return i, err
+}
+
 const getVisaFile = `-- name: GetVisaFile :one
 SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'visa'
 `
@@ -1400,16 +1426,18 @@ func (q *Queries) UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) 
 
 const updateTrainerCommission = `-- name: UpdateTrainerCommission :exec
 UPDATE HR_Trainer_Emp SET
-    commission = ?
+    commission = ?,
+    updated_by = ?
 WHERE employee_id = ?
 `
 
 type UpdateTrainerCommissionParams struct {
 	Commission decimal.Decimal `json:"commission"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 	EmployeeID int64           `json:"employee_id"`
 }
 
 func (q *Queries) UpdateTrainerCommission(ctx context.Context, arg UpdateTrainerCommissionParams) error {
-	_, err := q.db.ExecContext(ctx, updateTrainerCommission, arg.Commission, arg.EmployeeID)
+	_, err := q.db.ExecContext(ctx, updateTrainerCommission, arg.Commission, arg.UpdatedBy, arg.EmployeeID)
 	return err
 }

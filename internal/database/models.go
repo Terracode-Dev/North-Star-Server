@@ -298,6 +298,7 @@ type HrTrainerCom struct {
 	Total         decimal.Decimal `json:"total"`
 	CreatedAt     sql.NullTime    `json:"created_at"`
 	UpdatedAt     sql.NullTime    `json:"updated_at"`
+	UpdatedBy     sql.NullInt64   `json:"updated_by"`
 }
 
 type HrTrainerEmp struct {
@@ -308,4 +309,5 @@ type HrTrainerEmp struct {
 	CreatedAt  sql.NullTime    `json:"created_at"`
 	UpdatedAt  sql.NullTime    `json:"updated_at"`
 	Commission decimal.Decimal `json:"commission"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 }

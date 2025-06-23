@@ -226,7 +226,8 @@ WHERE employee_id = ?;
 
 -- name: UpdateTrainerCommission :exec
 UPDATE HR_Trainer_Emp SET
-    commission = ?
+    commission = ?,
+    updated_by = ?
 WHERE employee_id = ?;
 
 -- name: UpdateEmpStatus :exec
@@ -338,10 +339,18 @@ INSERT INTO HR_Trainer_Emp (
     ?, ?, ?, ?
 );
 
+-- name: GetTrainerEmp :one
+SELECT
+    trainer_id, employee_id, attendee_id, commission
+FROM HR_Trainer_Emp
+WHERE employee_id = ?;
+
 -- name: GetEmpFiles :many
 SELECT file_name, file_type
 FROM HR_FileSubmit
-WHERE employee_id = ?
+WHERE employee_id = ?;
+
+
 
 
 
