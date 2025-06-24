@@ -841,3 +841,96 @@ func (M UpdateCommissionReqModel) convertToDbStruct(admin_id int64) (db.UpdateTr
 		EmployeeID: M.EmployeeID,
 	}, nil
 }
+
+type UpdateEmpCertificatesReqModel struct {
+	Date       string `json:"date" form:"date"`
+	Name       string `json:"name" form:"name"`
+	UpdatedBy  *int64 `json:"updated_by" form:"updated_by"`
+	EmployeeID int64  `json:"employee_id" form:"employee_id"`
+	FileName   string `json:"file_name"`
+	FileType   string `json:"file_type"`
+}
+
+func (M UpdateEmpCertificatesReqModel) convertToCertDbStruct(admin_id int64) (db.UpdateEmpCertificatesParams, error) {
+	date, err := time.Parse(time.RFC3339, M.Date)
+	if err != nil {
+		return db.UpdateEmpCertificatesParams{}, err
+	}
+
+	var updated_by sql.NullInt64
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
+	return db.UpdateEmpCertificatesParams{
+		Date:       date,
+		Name:       M.Name,
+		UpdatedBy:  updated_by,
+		EmployeeID: M.EmployeeID,
+	}, nil
+}
+
+func (M UpdateEmpCertificatesReqModel) convertToFileDbStruct() (db.CreateFileSubmitParams, error) {
+
+	return db.CreateFileSubmitParams{
+		EmployeeID: M.EmployeeID,
+		FileName:   M.FileName,
+		FileType:   M.FileType,
+	}, nil
+}
+
+type UpdateEmpExpatriateAndFilesReqModel struct {
+	Expatriate    bool   `json:"expatriate"`
+	Nationality   string `json:"nationality"`
+	VisaType      string `json:"visa_type"`
+	VisaFrom      string `json:"visa_from"`
+	VisaTill      string `json:"visa_till"`
+	VisaNumber    string `json:"visa_number"`
+	VisaFee       string `json:"visa_fee"`
+	UpdatedBy     *int64 `json:"updated_by"`
+	EmployeeID    int64  `json:"employee_id"`
+	FileName   string           `json:"file_name"`
+	FileType   string           `json:"file_type"`
+}
+
+
+func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
+	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
+	if err != nil {
+		return db.UpdateEmpExpatriateParams{}, err
+	}
+
+	visaTill, err := time.Parse(time.RFC3339, M.VisaTill)
+	if err != nil {
+		return db.UpdateEmpExpatriateParams{}, err
+	}
+
+	var updated_by sql.NullInt64
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
+	visa_amount, err := decimal.NewFromString(M.VisaFee)
+	if err != nil {
+		return db.UpdateEmpExpatriateParams{}, err
+	}
+	return db.UpdateEmpExpatriateParams{
+		Expatriate:    M.Expatriate,
+		Nationality:  M.Nationality,
+		VisaType:      M.VisaType,
+		VisaFrom:      visaFrom,
+		VisaTill:      visaTill,
+		VisaNumber:    M.VisaNumber,
+		VisaFee:       visa_amount,
+		UpdatedBy:     updated_by,
+		EmployeeID:    M.EmployeeID,
+	}, nil
+}
+
+func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpFileDbStruct() (db.CreateFileSubmitParams, error) {
+
+	return db.CreateFileSubmitParams{
+		EmployeeID: M.EmployeeID,
+		FileName:   M.FileName,
+		FileType:   M.FileType,
+	}, nil
+}
+	

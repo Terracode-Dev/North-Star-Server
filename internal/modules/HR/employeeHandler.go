@@ -605,37 +605,38 @@ func (S *HRService) updateEmpSalary(c echo.Context) error {
 // @Failure 500 {string} string "Internal server error"
 // @Router /employee/certificates [put]
 func (S *HRService) updateEmpCertificates(c echo.Context) error {
-	empID, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	var req UpdateEmpCertificatesReqModel
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(500, err)
+	}
+	updated_by := c.Get("user_id").(int)
+	certParams, err := req.convertToCertDbStruct(int64(updated_by))
 	if err != nil {
-		return c.JSON(500, err.Error())
+		return c.JSON(500, "Error converting employee certificates to db struct")
 	}
-	date := c.FormValue("date")
-	name := c.FormValue("name")
-	admin_id , ok:= c.Get("user_id").(int)
-	if !ok {
-		return c.JSON(500, "user id issue")
-	}
-
-	conv_date, err := time.Parse(time.RFC3339, date)
+	fileParams, err := req.convertToFileDbStruct()
 	if err != nil {
-		return c.JSON(500, "date conversion issue")
+		return c.JSON(500, "Error converting file submit to db struct")
 	}
 
-	var updated_by sql.NullInt64
-	updated_by.Int64 = int64(admin_id)
-	updated_by.Valid = true
-
-	certParams := database.UpdateEmpCertificatesParams{
-		Date:       conv_date,
-		Name:       name,
-		UpdatedBy:  updated_by,
-		EmployeeID: empID,
+	tx, err := S.db.Begin()
+	if err != nil {
+		return c.JSON(500, "Error starting transaction")
 	}
-
-	error := S.q.UpdateEmpCertificates(c.Request().Context(), certParams)
+	defer tx.Rollback()
+	qtx := S.q.WithTx(tx)
+	error := qtx.UpdateEmpCertificates(c.Request().Context(), certParams)
 	if error != nil {
 		return c.JSON(500, "Error updating employee certificates")
 	}
+	error = qtx.CreateFileSubmit(c.Request().Context(),fileParams)
+	if error != nil {
+		return c.JSON(500, "Error creating file submit for employee certificates")
+	}
+	if err := tx.Commit(); err != nil {
+		return c.JSON(500, "Error committing transaction")
+	}
+
 	return c.JSON(200, "Employee certificates updated successfully")
 }
 
@@ -758,56 +759,38 @@ func (S *HRService) updateEmpAllowances(c echo.Context) error {
 // @Failure 500 {string} string "Internal server error"
 // @Router /employee/expatriate [put]
 func (S *HRService) updateEmpExpatriate(c echo.Context) error {
-	expatriateStr := c.FormValue("expatriate")
-	nationality := c.FormValue("nationality")
-	visatype := c.FormValue("visa_type")
-	visafrom := c.FormValue("visa_from")
-	visatill := c.FormValue("visa_till")
-	visaNumber := c.FormValue("visa_number")
-	visafee := c.FormValue("visa_fee")
 	admin := c.Get("user_id").(int)
-	empid, err := strconv.ParseInt(c.FormValue("id"), 10, 64)
+	var expatriate UpdateEmpExpatriateAndFilesReqModel
+	if err := c.Bind(&expatriate); err != nil {
+		return c.JSON(500, err)
+	}
+	expParams, err := expatriate.convertToExpDbStruct(int64(admin))
 	if err != nil {
-		return c.JSON(500, "Error parsing employee id")
+		return c.JSON(500, "Error converting employee expatriate to db struct")
 	}
-	conv_visa_from, err := time.Parse(time.RFC3339, visafrom)
+	fileParams, err := expatriate.convertToExpFileDbStruct()
 	if err != nil {
-		return c.JSON(500, "date conversion issue")
+		return c.JSON(500, "Error converting file submit to db struct")
 	}
-
-	conv_visa_till, err := time.Parse(time.RFC3339, visatill)
+	tx, err := S.db.Begin()
 	if err != nil {
-		return c.JSON(500, "date conversion issue")
+		return c.JSON(500, "Error starting transaction")
 	}
-
-	var updated_by sql.NullInt64
-	updated_by.Int64 = int64(admin)
-	updated_by.Valid = true
-
-	visa_amount, err := decimal.NewFromString(visafee)
-	if err != nil {
-		return c.JSON(500, "visa fee conversion issue")
-	}
-
-	expatriate := expatriateStr == "true" || expatriateStr == "1"
-
-	expatriateParams := database.UpdateEmpExpatriateParams{
-		Expatriate:    expatriate,
-		Nationality:   nationality,
-		VisaType:      visatype,
-		VisaFrom:      conv_visa_from,
-		VisaTill:      conv_visa_till,
-		VisaNumber:    visaNumber,
-		VisaFee:       visa_amount,
-		UpdatedBy:     updated_by,
-		EmployeeID:    empid,
-	}
-
-	error := S.q.UpdateEmpExpatriate(c.Request().Context(), expatriateParams)
+	defer tx.Rollback()
+	qtx := S.q.WithTx(tx)
+	error := qtx.UpdateEmpExpatriate(c.Request().Context(), expParams)
 	if error != nil {
 		return c.JSON(500, "Error updating employee expatriate")
 	}
-	return c.JSON(500, "Error deleting old visa file")
+	error = qtx.CreateFileSubmit(c.Request().Context(), fileParams)
+	if error != nil {
+		return c.JSON(500, "Error creating file submit for employee expatriate")
+	}
+	if err := tx.Commit(); err != nil {
+		return c.JSON(500, "Error committing transaction")
+	}
+	return c.JSON(200, "Employee expatriate updated successfully")
+
 }
 
 // update employee accessiability handler
