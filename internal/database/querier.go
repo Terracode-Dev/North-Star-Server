@@ -70,6 +70,7 @@ type Querier interface {
 	GetServices(ctx context.Context) ([]HrCreateService, error)
 	GetTax(ctx context.Context) ([]GetTaxRow, error)
 	GetTrainerAssingedCount(ctx context.Context, trainerID int64) (int64, error)
+	GetTrainerEmp(ctx context.Context, employeeID int64) (GetTrainerEmpRow, error)
 	GetTrainerEmpDataFromID(ctx context.Context, employeeID int64) (GetTrainerEmpDataFromIDRow, error)
 	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
 	SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([]SelectHrAdminRow, error)

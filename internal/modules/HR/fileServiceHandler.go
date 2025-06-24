@@ -2,6 +2,7 @@ package hr
 
 import (
 	"path/filepath"
+	"strconv"
 	"fmt"
 	"strings"
 	"github.com/google/uuid"
@@ -137,4 +138,16 @@ func (S *HRService) getFileDownloadUrl(c echo.Context) error {
 	default:
 		return c.JSON(500, "invalid service name")
 	}
+}
+
+func (S *HRService) GetFileData(c echo.Context) error {
+	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(500, "invalid employee ID")
+	}
+	fileData, err := S.q.GetEmpFiles(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(500, "failed to get file data: "+err.Error())
+	}
+	return c.JSON(200, fileData)
 }
