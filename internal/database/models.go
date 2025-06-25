@@ -29,6 +29,14 @@ type DoorLockUser struct {
 	AvatarUrl      sql.NullString `json:"avatar_url"`
 }
 
+type ExchangeRate struct {
+	ID           int64           `json:"id"`
+	ExchangeRate decimal.Decimal `json:"exchange_rate"`
+	CurrencyType string          `json:"currency_type"`
+	CreatedAt    sql.NullTime    `json:"created_at"`
+	UpdatedAt    sql.NullTime    `json:"updated_at"`
+}
+
 type FlmTrainerAssign struct {
 	ID        uint64       `json:"id"`
 	TrainerID int64        `json:"trainer_id"`
@@ -193,6 +201,7 @@ type HrEmpSalary struct {
 	EmployeeID              int64           `json:"employee_id"`
 	CreatedAt               sql.NullTime    `json:"created_at"`
 	UpdatedAt               sql.NullTime    `json:"updated_at"`
+	ErID                    sql.NullInt64   `json:"er_id"`
 }
 
 type HrEmpStatus struct {

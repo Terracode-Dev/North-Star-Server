@@ -26,6 +26,7 @@ type Querier interface {
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateExchangeRate(ctx context.Context, arg CreateExchangeRateParams) error
 	CreateFileSubmit(ctx context.Context, arg CreateFileSubmitParams) error
 	CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error
 	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
@@ -47,6 +48,7 @@ type Querier interface {
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
 	DeleteEmployee(ctx context.Context, id int64) error
+	DeleteExchangeRate(ctx context.Context, id int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteHrBranch(ctx context.Context, id int64) error
 	DeleteService(ctx context.Context, id int64) error
@@ -63,6 +65,7 @@ type Querier interface {
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
 	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
+	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]interface{}, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
 	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)

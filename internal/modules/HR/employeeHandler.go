@@ -333,7 +333,10 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 				Employee:   emp,
 				EmpAllowances: emp_allow,
 				EmpFiles:      emp_files,
-			})
+				TrainerCom: TrainerCom{
+					IsTrainer: false,
+					Commission: "0",
+			}})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
 	}
@@ -342,7 +345,10 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 		Employee:   emp,
 		EmpAllowances: emp_allow,
 		EmpFiles:      emp_files,
-		TrainerCom: TrainerData.Commission,
+		TrainerCom: TrainerCom{
+			IsTrainer: true,
+			Commission: TrainerData.Commission.String(),
+		},
 	})
 }
 
