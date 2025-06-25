@@ -215,6 +215,7 @@ type CreateEmpSalaryReqModel struct {
 	TotalNetSalary          string `json:"total_net_salary"`
 	EmployeeID              int64  `json:"employee_id"`
 	UpdatedBy               *int64 `json:"updated_by"`
+	ErID                    int64   `json:"er_id"`
 }
 
 func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpSalaryParams, error) {
@@ -246,6 +247,9 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 	if err != nil {
 		return db.CreateEmpSalaryParams{}, err
 	}
+	var er_id sql.NullInt64
+	er_id.Int64 = M.ErID
+	er_id.Valid = true
 
 	return db.CreateEmpSalaryParams{
 		SalaryType:              M.SalaryType,
@@ -256,6 +260,7 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 		TotalNetSalary:          total_net_salary,
 		EmployeeID:              M.EmployeeID,
 		UpdatedBy:               updated_by,
+		ErID: 				     er_id,
 	}, nil
 }
 
