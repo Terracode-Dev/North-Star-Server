@@ -265,9 +265,9 @@ func (q *Queries) CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatria
 
 const createEmpSalary = `-- name: CreateEmpSalary :exec
 INSERT INTO HR_EMP_Salary (
-    salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary, employee_id, updated_by
+    salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary, employee_id, updated_by, er_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
@@ -280,6 +280,7 @@ type CreateEmpSalaryParams struct {
 	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
 	EmployeeID              int64           `json:"employee_id"`
 	UpdatedBy               sql.NullInt64   `json:"updated_by"`
+	ErID                    sql.NullInt64   `json:"er_id"`
 }
 
 func (q *Queries) CreateEmpSalary(ctx context.Context, arg CreateEmpSalaryParams) error {
@@ -292,6 +293,7 @@ func (q *Queries) CreateEmpSalary(ctx context.Context, arg CreateEmpSalaryParams
 		arg.TotalNetSalary,
 		arg.EmployeeID,
 		arg.UpdatedBy,
+		arg.ErID,
 	)
 	return err
 }

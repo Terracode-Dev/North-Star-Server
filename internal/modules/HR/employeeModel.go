@@ -788,7 +788,12 @@ type EmpResponse struct {
 	Employee   db.GetEmployeeByIDRow `json:"employee"`
 	EmpAllowances []db.GetEmployeeAllowancesRow `json:"allowances"`
 	EmpFiles []db.GetEmpFilesRow `json:"files"`
-	TrainerCom  decimal.Decimal `json:"trainer_data"`
+	TrainerCom  TrainerCom `json:"trainer_data"`
+}
+
+type TrainerCom struct {
+	IsTrainer bool            `json:"is_trainer"`
+ 	Commission string `json:"commission"`
 }
 
 type EmpLoginReqModel struct {

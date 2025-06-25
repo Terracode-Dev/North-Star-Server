@@ -43,7 +43,8 @@ func (S *HRService) uploadFile(c echo.Context) error {
 			defer fileObj.Close()
 
 			ext := filepath.Ext(fileHeader.Filename)
-			newFileName := fmt.Sprintf("%s_%s%s", strings.Split(fieldName, "_")[0], uuid.New().String(), ext)
+			baseFileName := strings.TrimSuffix(fileHeader.Filename, ext)
+			newFileName := fmt.Sprintf("%s-%s%s", baseFileName, uuid.New().String(), ext)
 
 			var bucketName string
 			switch {
