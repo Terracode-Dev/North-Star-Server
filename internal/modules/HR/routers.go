@@ -82,4 +82,8 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/testlogin", S.TestLogin)
 	hrRoute.GET("/testauth", S.TestAuth, rba.AuthMiddelware([]string{"admin", "emp"}))
 	hrRoute.POST("/testS3upload", S.TestS3Upload)
+
+	hrRoute.POST("/exchange-rate", S.CreateExchangeRate, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.DELETE("/exchange-rate/:id", S.DeleteExchangeRate, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/exchange-rate/:type", S.GetExchangeRate, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 }
