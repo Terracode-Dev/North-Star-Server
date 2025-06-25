@@ -13,3 +13,7 @@ LIMIT 1;
 DELETE FROM Exchange_Rate
 WHERE id = ?;
 
+-- name: GetExchangeRateAll :many
+SELECT (exchange_rate, id, currency_type)
+FROM Exchange_Rate
+ORDER BY created_at DESC;

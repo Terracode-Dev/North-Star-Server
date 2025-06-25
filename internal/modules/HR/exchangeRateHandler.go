@@ -47,3 +47,11 @@ func (S *HRService) GetExchangeRate(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, exchange_rate)
 }
+
+func (S *HRService) GetExchangeRateAll(c echo.Context) error {
+ exchange_rates, err := S.q.GetExchangeRateAll(c.Request().Context())
+ if err != nil {
+  return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve exchange rates"})
+ }
+ return c.JSON(http.StatusOK, exchange_rates)
+}

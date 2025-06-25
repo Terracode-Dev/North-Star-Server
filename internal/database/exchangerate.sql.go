@@ -36,6 +36,35 @@ func (q *Queries) DeleteExchangeRate(ctx context.Context, id int64) error {
 	return err
 }
 
+const getExchangeRateAll = `-- name: GetExchangeRateAll :many
+SELECT (exchange_rate, id, currency_type)
+FROM Exchange_Rate
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]interface{}, error) {
+	rows, err := q.db.QueryContext(ctx, getExchangeRateAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []interface{}
+	for rows.Next() {
+		var column_1 interface{}
+		if err := rows.Scan(&column_1); err != nil {
+			return nil, err
+		}
+		items = append(items, column_1)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLatestExchangeRate = `-- name: GetLatestExchangeRate :many
 SELECT (exchange_rate, id)
 FROM Exchange_Rate
