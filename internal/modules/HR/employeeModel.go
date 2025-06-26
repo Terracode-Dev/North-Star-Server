@@ -207,15 +207,20 @@ func (M CreateEmpBankDetailsReqModel) convertToUpdateDbStruct(admin_id int64) (d
 }
 
 type CreateEmpSalaryReqModel struct {
-	SalaryType              string `json:"salary_type"`
-	Amount                  string `json:"amount"`
-	TotalOfSalaryAllowances string `json:"total_of_salary_allowances"`
-	PensionEmployer         string `json:"pension_employer"`
-	PensionEmployee         string `json:"pension_employee"`
-	TotalNetSalary          string `json:"total_net_salary"`
-	EmployeeID              int64  `json:"employee_id"`
-	UpdatedBy               *int64 `json:"updated_by"`
-	ErID                    int64   `json:"er_id"`
+	SalaryType                string          `json:"salary_type"`
+	Amount                    string          `json:"amount"`
+	SalaryAmountType          string          `json:"salary_amount_type"`
+	TotalOfSalaryAllowances   string          `json:"total_of_salary_allowances"`
+	TotalSalaryAllowancesType string          `json:"total_salary_allowances_type"`
+	PensionEmployer           string          `json:"pension_employer"`
+	PensionEmployerType       string          `json:"pension_employer_type"`
+	PensionEmployee           string          `json:"pension_employee"`
+	PensionEmployeeType       string          `json:"pension_employee_type"`
+	TotalNetSalary            string          `json:"total_net_salary"`
+	TotalNetSalaryType        string          `json:"total_net_salary_type"`
+	EmployeeID                int64           `json:"employee_id"`
+	UpdatedBy                 int64           `json:"updated_by"`
+	ErID                      int64           `json:"er_id"`
 }
 
 func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpSalaryParams, error) {
@@ -254,10 +259,15 @@ func (M CreateEmpSalaryReqModel) convertToDbStruct(admin_id int64) (db.CreateEmp
 	return db.CreateEmpSalaryParams{
 		SalaryType:              M.SalaryType,
 		Amount:                  amount,
+		SalaryAmountType:        M.SalaryAmountType,
 		TotalOfSalaryAllowances: total_of_salary_allowances,
+		TotalSalaryAllowancesType: M.TotalSalaryAllowancesType,
 		PensionEmployer:         pension_employer,
+		PensionEmployerType: M.PensionEmployerType,
 		PensionEmployee:         pension_employee,
+		PensionEmployeeType: M.PensionEmployeeType,
 		TotalNetSalary:          total_net_salary,
+		TotalNetSalaryType: M.TotalNetSalaryType,
 		EmployeeID:              M.EmployeeID,
 		UpdatedBy:               updated_by,
 		ErID: 				     er_id,

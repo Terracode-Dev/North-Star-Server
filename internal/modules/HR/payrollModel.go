@@ -31,6 +31,7 @@ type CreatePayrollReqModel struct {
 	TaxPercentage           string          `json:"tax_percentage"`
 	TotalNetSalaryAfterTax  string          `json:"total_net_salary_after_tax"`
 	TotalNetSalaryAfterTaxType string       `json:"total_net_salary_after_tax_type"`
+	ERID                    int64          `json:"er_id"`
 	UpdatedBy               *int64          `json:"updated_by"`
 }
 
@@ -97,6 +98,10 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		pension_employer_type.Valid = true
  	}
 
+	var er_id sql.NullInt64
+	er_id.Int64 = A.ERID
+	er_id.Valid = true
+
 	amount_float := amount.InexactFloat64()
 	total_salary_allowances_float := total_of_salary_allowances.InexactFloat64()
 
@@ -162,6 +167,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		TaxPercentage:           tax_percentage,
 		TotalNetSalaryAfterTax:  total_net_salary_after_tax,
 		TotalNetSalaryAfterTaxType: A.TotalNetSalaryAfterTaxType,
+		ErID: 					er_id,
 		UpdatedBy:               updated_by,
 	}, nil
 }
