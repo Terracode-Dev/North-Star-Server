@@ -49,26 +49,32 @@ func (q *Queries) CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerCom
 
 const createPayroll = `-- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
-    employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by
+    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, updated_by
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
 type CreatePayrollParams struct {
-	Employee                string          `json:"employee"`
-	Date                    time.Time       `json:"date"`
-	SalaryType              string          `json:"salary_type"`
-	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
-	Pension                 bool            `json:"pension"`
-	PensionEmployer         sql.NullString  `json:"pension_employer"`
-	PensionEmployee         sql.NullString  `json:"pension_employee"`
-	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
-	Tax                     bool            `json:"tax"`
-	TaxPercentage           sql.NullString  `json:"tax_percentage"`
-	TotalNetSalaryAfterTax  decimal.Decimal `json:"total_net_salary_after_tax"`
-	UpdatedBy               sql.NullInt64   `json:"updated_by"`
+	Employee                   string          `json:"employee"`
+	Date                       time.Time       `json:"date"`
+	SalaryType                 string          `json:"salary_type"`
+	Amount                     decimal.Decimal `json:"amount"`
+	SalaryAmountType           string          `json:"salary_amount_type"`
+	TotalOfSalaryAllowances    decimal.Decimal `json:"total_of_salary_allowances"`
+	TotalAllowancesType        string          `json:"total_allowances_type"`
+	Pension                    bool            `json:"pension"`
+	PensionEmployer            sql.NullString  `json:"pension_employer"`
+	PensionEmployerType        sql.NullString  `json:"pension_employer_type"`
+	PensionEmployee            sql.NullString  `json:"pension_employee"`
+	PensionEmployeeType        sql.NullString  `json:"pension_employee_type"`
+	TotalNetSalary             decimal.Decimal `json:"total_net_salary"`
+	TotalNetSalaryType         string          `json:"total_net_salary_type"`
+	Tax                        bool            `json:"tax"`
+	TaxPercentage              sql.NullString  `json:"tax_percentage"`
+	TotalNetSalaryAfterTax     decimal.Decimal `json:"total_net_salary_after_tax"`
+	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
+	UpdatedBy                  sql.NullInt64   `json:"updated_by"`
 }
 
 func (q *Queries) CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error) {
@@ -77,37 +83,45 @@ func (q *Queries) CreatePayroll(ctx context.Context, arg CreatePayrollParams) (s
 		arg.Date,
 		arg.SalaryType,
 		arg.Amount,
+		arg.SalaryAmountType,
 		arg.TotalOfSalaryAllowances,
+		arg.TotalAllowancesType,
 		arg.Pension,
 		arg.PensionEmployer,
+		arg.PensionEmployerType,
 		arg.PensionEmployee,
+		arg.PensionEmployeeType,
 		arg.TotalNetSalary,
+		arg.TotalNetSalaryType,
 		arg.Tax,
 		arg.TaxPercentage,
 		arg.TotalNetSalaryAfterTax,
+		arg.TotalNetSalaryAfterTaxType,
 		arg.UpdatedBy,
 	)
 }
 
 const createPayrollAllowances = `-- name: CreatePayrollAllowances :exec
 INSERT INTO HR_Payroll_Allowances (
-    name, amount, payroll_id, updated_by
+    name, amount, amount_type, payroll_id, updated_by
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 )
 `
 
 type CreatePayrollAllowancesParams struct {
-	Name      string          `json:"name"`
-	Amount    decimal.Decimal `json:"amount"`
-	PayrollID int64           `json:"payroll_id"`
-	UpdatedBy sql.NullInt64   `json:"updated_by"`
+	Name       string          `json:"name"`
+	Amount     decimal.Decimal `json:"amount"`
+	AmountType string          `json:"amount_type"`
+	PayrollID  int64           `json:"payroll_id"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 }
 
 func (q *Queries) CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error {
 	_, err := q.db.ExecContext(ctx, createPayrollAllowances,
 		arg.Name,
 		arg.Amount,
+		arg.AmountType,
 		arg.PayrollID,
 		arg.UpdatedBy,
 	)
@@ -121,14 +135,20 @@ SELECT
     p.date,
     p.salary_type,
     p.amount,
+    p.salary_amount_type,
     p.total_of_salary_allowances,
+    p.total_allowances_type,
     p.pension,
     p.pension_employer,
+    p.pension_employer_type,
     p.pension_employee,
+    p.pension_employee_type,
     p.total_net_salary,
+    p.total_net_salary_type,
     p.tax,
     p.tax_percentage,
     p.total_net_salary_after_tax,
+    p.total_net_salary_after_tax_type,
     p.updated_by AS payroll_updated_by,
     p.created_at AS payroll_created_at,
     p.updated_at AS payroll_updated_at,
@@ -145,28 +165,34 @@ WHERE p.id = ?
 `
 
 type GetOnePayrollRow struct {
-	PayrollID               int64           `json:"payroll_id"`
-	Employee                string          `json:"employee"`
-	Date                    time.Time       `json:"date"`
-	SalaryType              string          `json:"salary_type"`
-	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
-	Pension                 bool            `json:"pension"`
-	PensionEmployer         sql.NullString  `json:"pension_employer"`
-	PensionEmployee         sql.NullString  `json:"pension_employee"`
-	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
-	Tax                     bool            `json:"tax"`
-	TaxPercentage           sql.NullString  `json:"tax_percentage"`
-	TotalNetSalaryAfterTax  decimal.Decimal `json:"total_net_salary_after_tax"`
-	PayrollUpdatedBy        sql.NullInt64   `json:"payroll_updated_by"`
-	PayrollCreatedAt        sql.NullTime    `json:"payroll_created_at"`
-	PayrollUpdatedAt        sql.NullTime    `json:"payroll_updated_at"`
-	AllowanceID             sql.NullInt64   `json:"allowance_id"`
-	AllowanceName           sql.NullString  `json:"allowance_name"`
-	AllowanceAmount         sql.NullString  `json:"allowance_amount"`
-	AllowancePayrollID      sql.NullInt64   `json:"allowance_payroll_id"`
-	AllowanceUpdatedBy      sql.NullInt64   `json:"allowance_updated_by"`
-	AllowanceCreatedAt      sql.NullTime    `json:"allowance_created_at"`
+	PayrollID                  int64           `json:"payroll_id"`
+	Employee                   string          `json:"employee"`
+	Date                       time.Time       `json:"date"`
+	SalaryType                 string          `json:"salary_type"`
+	Amount                     decimal.Decimal `json:"amount"`
+	SalaryAmountType           string          `json:"salary_amount_type"`
+	TotalOfSalaryAllowances    decimal.Decimal `json:"total_of_salary_allowances"`
+	TotalAllowancesType        string          `json:"total_allowances_type"`
+	Pension                    bool            `json:"pension"`
+	PensionEmployer            sql.NullString  `json:"pension_employer"`
+	PensionEmployerType        sql.NullString  `json:"pension_employer_type"`
+	PensionEmployee            sql.NullString  `json:"pension_employee"`
+	PensionEmployeeType        sql.NullString  `json:"pension_employee_type"`
+	TotalNetSalary             decimal.Decimal `json:"total_net_salary"`
+	TotalNetSalaryType         string          `json:"total_net_salary_type"`
+	Tax                        bool            `json:"tax"`
+	TaxPercentage              sql.NullString  `json:"tax_percentage"`
+	TotalNetSalaryAfterTax     decimal.Decimal `json:"total_net_salary_after_tax"`
+	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
+	PayrollUpdatedBy           sql.NullInt64   `json:"payroll_updated_by"`
+	PayrollCreatedAt           sql.NullTime    `json:"payroll_created_at"`
+	PayrollUpdatedAt           sql.NullTime    `json:"payroll_updated_at"`
+	AllowanceID                sql.NullInt64   `json:"allowance_id"`
+	AllowanceName              sql.NullString  `json:"allowance_name"`
+	AllowanceAmount            sql.NullString  `json:"allowance_amount"`
+	AllowancePayrollID         sql.NullInt64   `json:"allowance_payroll_id"`
+	AllowanceUpdatedBy         sql.NullInt64   `json:"allowance_updated_by"`
+	AllowanceCreatedAt         sql.NullTime    `json:"allowance_created_at"`
 }
 
 func (q *Queries) GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error) {
@@ -184,14 +210,20 @@ func (q *Queries) GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollR
 			&i.Date,
 			&i.SalaryType,
 			&i.Amount,
+			&i.SalaryAmountType,
 			&i.TotalOfSalaryAllowances,
+			&i.TotalAllowancesType,
 			&i.Pension,
 			&i.PensionEmployer,
+			&i.PensionEmployerType,
 			&i.PensionEmployee,
+			&i.PensionEmployeeType,
 			&i.TotalNetSalary,
+			&i.TotalNetSalaryType,
 			&i.Tax,
 			&i.TaxPercentage,
 			&i.TotalNetSalaryAfterTax,
+			&i.TotalNetSalaryAfterTaxType,
 			&i.PayrollUpdatedBy,
 			&i.PayrollCreatedAt,
 			&i.PayrollUpdatedAt,
@@ -216,7 +248,7 @@ func (q *Queries) GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollR
 }
 
 const getPayrolls = `-- name: GetPayrolls :many
-SELECT id, employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by, created_at, updated_at FROM HR_Payroll
+SELECT id, employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by, created_at, updated_at, salary_amount_type, total_allowances_type, pension_employer_type, pension_employee_type, total_net_salary_type, total_net_salary_after_tax_type FROM HR_Payroll
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
@@ -252,6 +284,12 @@ func (q *Queries) GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrP
 			&i.UpdatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SalaryAmountType,
+			&i.TotalAllowancesType,
+			&i.PensionEmployerType,
+			&i.PensionEmployeeType,
+			&i.TotalNetSalaryType,
+			&i.TotalNetSalaryAfterTaxType,
 		); err != nil {
 			return nil, err
 		}
@@ -308,25 +346,50 @@ func (q *Queries) GetTrainerEmpDataFromID(ctx context.Context, employeeID int64)
 
 const updatePayroll = `-- name: UpdatePayroll :exec
 UPDATE HR_Payroll
-SET employee = ?, date = ?, salary_type = ?, amount = ?, total_of_salary_allowances = ?, pension = ?, pension_employer = ?, pension_employee = ?, total_net_salary = ?, tax = ?, tax_percentage = ?, total_net_salary_after_tax = ?, updated_by = ?
+SET
+    employee = ?,
+    date = ?,
+    salary_type = ?,
+    amount = ?,
+    salary_amount_type = ?,
+    total_of_salary_allowances = ?,
+    total_allowances_type = ?,
+    pension = ?,
+    pension_employer = ?,
+    pension_employer_type = ?,
+    pension_employee = ?,
+    pension_employee_type = ?,
+    total_net_salary = ?,
+    total_net_salary_type = ?,
+    tax = ?,
+    tax_percentage = ?,
+    total_net_salary_after_tax = ?,
+    total_net_salary_after_tax_type = ?,
+    updated_by = ?
 WHERE id = ?
 `
 
 type UpdatePayrollParams struct {
-	Employee                string          `json:"employee"`
-	Date                    time.Time       `json:"date"`
-	SalaryType              string          `json:"salary_type"`
-	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
-	Pension                 bool            `json:"pension"`
-	PensionEmployer         sql.NullString  `json:"pension_employer"`
-	PensionEmployee         sql.NullString  `json:"pension_employee"`
-	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
-	Tax                     bool            `json:"tax"`
-	TaxPercentage           sql.NullString  `json:"tax_percentage"`
-	TotalNetSalaryAfterTax  decimal.Decimal `json:"total_net_salary_after_tax"`
-	UpdatedBy               sql.NullInt64   `json:"updated_by"`
-	ID                      int64           `json:"id"`
+	Employee                   string          `json:"employee"`
+	Date                       time.Time       `json:"date"`
+	SalaryType                 string          `json:"salary_type"`
+	Amount                     decimal.Decimal `json:"amount"`
+	SalaryAmountType           string          `json:"salary_amount_type"`
+	TotalOfSalaryAllowances    decimal.Decimal `json:"total_of_salary_allowances"`
+	TotalAllowancesType        string          `json:"total_allowances_type"`
+	Pension                    bool            `json:"pension"`
+	PensionEmployer            sql.NullString  `json:"pension_employer"`
+	PensionEmployerType        sql.NullString  `json:"pension_employer_type"`
+	PensionEmployee            sql.NullString  `json:"pension_employee"`
+	PensionEmployeeType        sql.NullString  `json:"pension_employee_type"`
+	TotalNetSalary             decimal.Decimal `json:"total_net_salary"`
+	TotalNetSalaryType         string          `json:"total_net_salary_type"`
+	Tax                        bool            `json:"tax"`
+	TaxPercentage              sql.NullString  `json:"tax_percentage"`
+	TotalNetSalaryAfterTax     decimal.Decimal `json:"total_net_salary_after_tax"`
+	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
+	UpdatedBy                  sql.NullInt64   `json:"updated_by"`
+	ID                         int64           `json:"id"`
 }
 
 func (q *Queries) UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error {
@@ -335,14 +398,20 @@ func (q *Queries) UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) er
 		arg.Date,
 		arg.SalaryType,
 		arg.Amount,
+		arg.SalaryAmountType,
 		arg.TotalOfSalaryAllowances,
+		arg.TotalAllowancesType,
 		arg.Pension,
 		arg.PensionEmployer,
+		arg.PensionEmployerType,
 		arg.PensionEmployee,
+		arg.PensionEmployeeType,
 		arg.TotalNetSalary,
+		arg.TotalNetSalaryType,
 		arg.Tax,
 		arg.TaxPercentage,
 		arg.TotalNetSalaryAfterTax,
+		arg.TotalNetSalaryAfterTaxType,
 		arg.UpdatedBy,
 		arg.ID,
 	)
@@ -351,21 +420,23 @@ func (q *Queries) UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) er
 
 const updatePayrollAllowance = `-- name: UpdatePayrollAllowance :exec
 UPDATE HR_Payroll_Allowances
-SET name = ?, amount = ?, updated_by = ?
+SET name = ?, amount = ?, amount_type=?, updated_by = ?
 WHERE payroll_id = ?
 `
 
 type UpdatePayrollAllowanceParams struct {
-	Name      string          `json:"name"`
-	Amount    decimal.Decimal `json:"amount"`
-	UpdatedBy sql.NullInt64   `json:"updated_by"`
-	PayrollID int64           `json:"payroll_id"`
+	Name       string          `json:"name"`
+	Amount     decimal.Decimal `json:"amount"`
+	AmountType string          `json:"amount_type"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
+	PayrollID  int64           `json:"payroll_id"`
 }
 
 func (q *Queries) UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error {
 	_, err := q.db.ExecContext(ctx, updatePayrollAllowance,
 		arg.Name,
 		arg.Amount,
+		arg.AmountType,
 		arg.UpdatedBy,
 		arg.PayrollID,
 	)
