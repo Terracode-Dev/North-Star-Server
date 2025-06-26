@@ -1,8 +1,8 @@
 -- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
-    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, updated_by
+    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, er_id, updated_by
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 SELECT LAST_INSERT_ID() AS id;
 

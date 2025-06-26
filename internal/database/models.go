@@ -288,6 +288,7 @@ type HrPayroll struct {
 	PensionEmployeeType        sql.NullString  `json:"pension_employee_type"`
 	TotalNetSalaryType         string          `json:"total_net_salary_type"`
 	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
+	ErID                       sql.NullInt64   `json:"er_id"`
 }
 
 type HrPayrollAllowance struct {

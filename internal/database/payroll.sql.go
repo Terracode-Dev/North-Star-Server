@@ -49,9 +49,9 @@ func (q *Queries) CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerCom
 
 const createPayroll = `-- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
-    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, updated_by
+    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, er_id, updated_by
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
@@ -74,6 +74,7 @@ type CreatePayrollParams struct {
 	TaxPercentage              sql.NullString  `json:"tax_percentage"`
 	TotalNetSalaryAfterTax     decimal.Decimal `json:"total_net_salary_after_tax"`
 	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
+	ErID                       sql.NullInt64   `json:"er_id"`
 	UpdatedBy                  sql.NullInt64   `json:"updated_by"`
 }
 
@@ -97,6 +98,7 @@ func (q *Queries) CreatePayroll(ctx context.Context, arg CreatePayrollParams) (s
 		arg.TaxPercentage,
 		arg.TotalNetSalaryAfterTax,
 		arg.TotalNetSalaryAfterTaxType,
+		arg.ErID,
 		arg.UpdatedBy,
 	)
 }
@@ -248,7 +250,7 @@ func (q *Queries) GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollR
 }
 
 const getPayrolls = `-- name: GetPayrolls :many
-SELECT id, employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by, created_at, updated_at, salary_amount_type, total_allowances_type, pension_employer_type, pension_employee_type, total_net_salary_type, total_net_salary_after_tax_type FROM HR_Payroll
+SELECT id, employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by, created_at, updated_at, salary_amount_type, total_allowances_type, pension_employer_type, pension_employee_type, total_net_salary_type, total_net_salary_after_tax_type, er_id FROM HR_Payroll
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
@@ -290,6 +292,7 @@ func (q *Queries) GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrP
 			&i.PensionEmployeeType,
 			&i.TotalNetSalaryType,
 			&i.TotalNetSalaryAfterTaxType,
+			&i.ErID,
 		); err != nil {
 			return nil, err
 		}
