@@ -24,9 +24,9 @@ INSERT INTO HR_EMP_Bank_Details (
 
 -- name: CreateEmpSalary :exec
 INSERT INTO HR_EMP_Salary (
-    salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary, employee_id, updated_by, er_id
+    salary_type, amount, salary_amount_type, Total_of_salary_allowances, total_salary_allowances_type, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, employee_id, updated_by, er_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 -- name: CreateEmpCertificates :exec
@@ -139,10 +139,15 @@ SELECT
 
     s.salary_type, 
     s.amount, 
-    s.Total_of_salary_allowances, 
-    s.pension_employer, 
+    s.salary_amount_type,
+    s.Total_of_salary_allowances,
+    s.total_salary_allowances_type, 
+    s.pension_employer,
+    s.pension_employer_type, 
     s.pension_employee, 
-    s.total_net_salary, 
+    s.pension_employee_type,
+    s.total_net_salary,
+    s.total_net_salary_type, 
 
     cert.date AS certificate_date, 
     cert.name AS certificate_name, 

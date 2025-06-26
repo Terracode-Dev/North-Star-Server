@@ -265,32 +265,42 @@ func (q *Queries) CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatria
 
 const createEmpSalary = `-- name: CreateEmpSalary :exec
 INSERT INTO HR_EMP_Salary (
-    salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary, employee_id, updated_by, er_id
+    salary_type, amount, salary_amount_type, Total_of_salary_allowances, total_salary_allowances_type, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, employee_id, updated_by, er_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
 type CreateEmpSalaryParams struct {
-	SalaryType              string          `json:"salary_type"`
-	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
-	PensionEmployer         decimal.Decimal `json:"pension_employer"`
-	PensionEmployee         decimal.Decimal `json:"pension_employee"`
-	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
-	EmployeeID              int64           `json:"employee_id"`
-	UpdatedBy               sql.NullInt64   `json:"updated_by"`
-	ErID                    sql.NullInt64   `json:"er_id"`
+	SalaryType                string          `json:"salary_type"`
+	Amount                    decimal.Decimal `json:"amount"`
+	SalaryAmountType          string          `json:"salary_amount_type"`
+	TotalOfSalaryAllowances   decimal.Decimal `json:"total_of_salary_allowances"`
+	TotalSalaryAllowancesType string          `json:"total_salary_allowances_type"`
+	PensionEmployer           decimal.Decimal `json:"pension_employer"`
+	PensionEmployerType       string          `json:"pension_employer_type"`
+	PensionEmployee           decimal.Decimal `json:"pension_employee"`
+	PensionEmployeeType       string          `json:"pension_employee_type"`
+	TotalNetSalary            decimal.Decimal `json:"total_net_salary"`
+	TotalNetSalaryType        string          `json:"total_net_salary_type"`
+	EmployeeID                int64           `json:"employee_id"`
+	UpdatedBy                 sql.NullInt64   `json:"updated_by"`
+	ErID                      sql.NullInt64   `json:"er_id"`
 }
 
 func (q *Queries) CreateEmpSalary(ctx context.Context, arg CreateEmpSalaryParams) error {
 	_, err := q.db.ExecContext(ctx, createEmpSalary,
 		arg.SalaryType,
 		arg.Amount,
+		arg.SalaryAmountType,
 		arg.TotalOfSalaryAllowances,
+		arg.TotalSalaryAllowancesType,
 		arg.PensionEmployer,
+		arg.PensionEmployerType,
 		arg.PensionEmployee,
+		arg.PensionEmployeeType,
 		arg.TotalNetSalary,
+		arg.TotalNetSalaryType,
 		arg.EmployeeID,
 		arg.UpdatedBy,
 		arg.ErID,
@@ -768,10 +778,15 @@ SELECT
 
     s.salary_type, 
     s.amount, 
-    s.Total_of_salary_allowances, 
-    s.pension_employer, 
+    s.salary_amount_type,
+    s.Total_of_salary_allowances,
+    s.total_salary_allowances_type, 
+    s.pension_employer,
+    s.pension_employer_type, 
     s.pension_employee, 
-    s.total_net_salary, 
+    s.pension_employee_type,
+    s.total_net_salary,
+    s.total_net_salary_type, 
 
     cert.date AS certificate_date, 
     cert.name AS certificate_name, 
@@ -827,73 +842,78 @@ WHERE e.id = ?
 `
 
 type GetEmployeeByIDRow struct {
-	EmployeeID              int64          `json:"employee_id"`
-	FirstName               string         `json:"first_name"`
-	LastName                string         `json:"last_name"`
-	Gender                  string         `json:"gender"`
-	Dob                     time.Time      `json:"dob"`
-	Religion                string         `json:"religion"`
-	PrimaryNumber           string         `json:"primary_number"`
-	SecondaryNumber         string         `json:"secondary_number"`
-	PassportID              string         `json:"passport_id"`
-	Nationality             string         `json:"nationality"`
-	PassportValidTill       time.Time      `json:"passport_valid_till"`
-	Nic                     string         `json:"nic"`
-	Country                 string         `json:"country"`
-	NicValidTill            time.Time      `json:"nic_valid_till"`
-	Address                 string         `json:"address"`
-	CurrentCountry          string         `json:"current_country"`
-	Email                   string         `json:"email"`
-	UpdatedBy               sql.NullInt64  `json:"updated_by"`
-	CreatedAt               sql.NullTime   `json:"created_at"`
-	UpdatedAt               sql.NullTime   `json:"updated_at"`
-	EmergencyFirstName      sql.NullString `json:"emergency_first_name"`
-	EmergencyLastName       sql.NullString `json:"emergency_last_name"`
-	Relationship            sql.NullString `json:"relationship"`
-	EmergencyContact        sql.NullString `json:"emergency_contact"`
-	BankName                sql.NullString `json:"bank_name"`
-	BranchName              sql.NullString `json:"branch_name"`
-	AccountNumber           sql.NullString `json:"account_number"`
-	AccountHolder           sql.NullString `json:"account_holder"`
-	SalaryType              sql.NullString `json:"salary_type"`
-	Amount                  sql.NullString `json:"amount"`
-	TotalOfSalaryAllowances sql.NullString `json:"total_of_salary_allowances"`
-	PensionEmployer         sql.NullString `json:"pension_employer"`
-	PensionEmployee         sql.NullString `json:"pension_employee"`
-	TotalNetSalary          sql.NullString `json:"total_net_salary"`
-	CertificateDate         sql.NullTime   `json:"certificate_date"`
-	CertificateName         sql.NullString `json:"certificate_name"`
-	Status                  sql.NullString `json:"status"`
-	Department              sql.NullString `json:"department"`
-	Designation             sql.NullString `json:"designation"`
-	StatusValidFrom         sql.NullTime   `json:"status_valid_from"`
-	StatusValidTill         sql.NullTime   `json:"status_valid_till"`
-	LeaveStatus             sql.NullBool   `json:"leave_status"`
-	LeaveType               sql.NullString `json:"leave_type"`
-	LeaveCount              sql.NullInt32  `json:"leave_count"`
-	HealthInsurance         sql.NullString `json:"health_insurance"`
-	InsuranceFrom           sql.NullTime   `json:"insurance_from"`
-	InsuranceTill           sql.NullTime   `json:"insurance_till"`
-	RetainmentPlan          sql.NullString `json:"retainment_plan"`
-	RetainmentPlanFrom      sql.NullTime   `json:"retainment_plan_from"`
-	RetainmentPlanTill      sql.NullTime   `json:"retainment_plan_till"`
-	Benifits                sql.NullString `json:"benifits"`
-	BenifitsFrom            sql.NullTime   `json:"benifits_from"`
-	BenifitsTill            sql.NullTime   `json:"benifits_till"`
-	UserEmail               sql.NullString `json:"user_email"`
-	UserPassword            sql.NullString `json:"user_password"`
-	UserBranchID            sql.NullInt64  `json:"user_branch_id"`
-	Expatriate              sql.NullBool   `json:"expatriate"`
-	ExpNationality          sql.NullString `json:"exp_nationality"`
-	VisaType                sql.NullString `json:"visa_type"`
-	VisaFrom                sql.NullTime   `json:"visa_from"`
-	VisaTill                sql.NullTime   `json:"visa_till"`
-	VisaNumber              sql.NullString `json:"visa_number"`
-	VisaFee                 sql.NullString `json:"visa_fee"`
-	Accessibility           sql.NullBool   `json:"accessibility"`
-	AccessibilityFrom       sql.NullTime   `json:"accessibility_from"`
-	AccessibilityTill       sql.NullTime   `json:"accessibility_till"`
-	Enable                  sql.NullBool   `json:"enable"`
+	EmployeeID                int64          `json:"employee_id"`
+	FirstName                 string         `json:"first_name"`
+	LastName                  string         `json:"last_name"`
+	Gender                    string         `json:"gender"`
+	Dob                       time.Time      `json:"dob"`
+	Religion                  string         `json:"religion"`
+	PrimaryNumber             string         `json:"primary_number"`
+	SecondaryNumber           string         `json:"secondary_number"`
+	PassportID                string         `json:"passport_id"`
+	Nationality               string         `json:"nationality"`
+	PassportValidTill         time.Time      `json:"passport_valid_till"`
+	Nic                       string         `json:"nic"`
+	Country                   string         `json:"country"`
+	NicValidTill              time.Time      `json:"nic_valid_till"`
+	Address                   string         `json:"address"`
+	CurrentCountry            string         `json:"current_country"`
+	Email                     string         `json:"email"`
+	UpdatedBy                 sql.NullInt64  `json:"updated_by"`
+	CreatedAt                 sql.NullTime   `json:"created_at"`
+	UpdatedAt                 sql.NullTime   `json:"updated_at"`
+	EmergencyFirstName        sql.NullString `json:"emergency_first_name"`
+	EmergencyLastName         sql.NullString `json:"emergency_last_name"`
+	Relationship              sql.NullString `json:"relationship"`
+	EmergencyContact          sql.NullString `json:"emergency_contact"`
+	BankName                  sql.NullString `json:"bank_name"`
+	BranchName                sql.NullString `json:"branch_name"`
+	AccountNumber             sql.NullString `json:"account_number"`
+	AccountHolder             sql.NullString `json:"account_holder"`
+	SalaryType                sql.NullString `json:"salary_type"`
+	Amount                    sql.NullString `json:"amount"`
+	SalaryAmountType          sql.NullString `json:"salary_amount_type"`
+	TotalOfSalaryAllowances   sql.NullString `json:"total_of_salary_allowances"`
+	TotalSalaryAllowancesType sql.NullString `json:"total_salary_allowances_type"`
+	PensionEmployer           sql.NullString `json:"pension_employer"`
+	PensionEmployerType       sql.NullString `json:"pension_employer_type"`
+	PensionEmployee           sql.NullString `json:"pension_employee"`
+	PensionEmployeeType       sql.NullString `json:"pension_employee_type"`
+	TotalNetSalary            sql.NullString `json:"total_net_salary"`
+	TotalNetSalaryType        sql.NullString `json:"total_net_salary_type"`
+	CertificateDate           sql.NullTime   `json:"certificate_date"`
+	CertificateName           sql.NullString `json:"certificate_name"`
+	Status                    sql.NullString `json:"status"`
+	Department                sql.NullString `json:"department"`
+	Designation               sql.NullString `json:"designation"`
+	StatusValidFrom           sql.NullTime   `json:"status_valid_from"`
+	StatusValidTill           sql.NullTime   `json:"status_valid_till"`
+	LeaveStatus               sql.NullBool   `json:"leave_status"`
+	LeaveType                 sql.NullString `json:"leave_type"`
+	LeaveCount                sql.NullInt32  `json:"leave_count"`
+	HealthInsurance           sql.NullString `json:"health_insurance"`
+	InsuranceFrom             sql.NullTime   `json:"insurance_from"`
+	InsuranceTill             sql.NullTime   `json:"insurance_till"`
+	RetainmentPlan            sql.NullString `json:"retainment_plan"`
+	RetainmentPlanFrom        sql.NullTime   `json:"retainment_plan_from"`
+	RetainmentPlanTill        sql.NullTime   `json:"retainment_plan_till"`
+	Benifits                  sql.NullString `json:"benifits"`
+	BenifitsFrom              sql.NullTime   `json:"benifits_from"`
+	BenifitsTill              sql.NullTime   `json:"benifits_till"`
+	UserEmail                 sql.NullString `json:"user_email"`
+	UserPassword              sql.NullString `json:"user_password"`
+	UserBranchID              sql.NullInt64  `json:"user_branch_id"`
+	Expatriate                sql.NullBool   `json:"expatriate"`
+	ExpNationality            sql.NullString `json:"exp_nationality"`
+	VisaType                  sql.NullString `json:"visa_type"`
+	VisaFrom                  sql.NullTime   `json:"visa_from"`
+	VisaTill                  sql.NullTime   `json:"visa_till"`
+	VisaNumber                sql.NullString `json:"visa_number"`
+	VisaFee                   sql.NullString `json:"visa_fee"`
+	Accessibility             sql.NullBool   `json:"accessibility"`
+	AccessibilityFrom         sql.NullTime   `json:"accessibility_from"`
+	AccessibilityTill         sql.NullTime   `json:"accessibility_till"`
+	Enable                    sql.NullBool   `json:"enable"`
 }
 
 func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error) {
@@ -930,10 +950,15 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByI
 		&i.AccountHolder,
 		&i.SalaryType,
 		&i.Amount,
+		&i.SalaryAmountType,
 		&i.TotalOfSalaryAllowances,
+		&i.TotalSalaryAllowancesType,
 		&i.PensionEmployer,
+		&i.PensionEmployerType,
 		&i.PensionEmployee,
+		&i.PensionEmployeeType,
 		&i.TotalNetSalary,
+		&i.TotalNetSalaryType,
 		&i.CertificateDate,
 		&i.CertificateName,
 		&i.Status,

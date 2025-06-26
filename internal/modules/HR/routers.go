@@ -86,4 +86,5 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/exchange-rate", S.CreateExchangeRate, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/exchange-rate/:id", S.DeleteExchangeRate, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/exchange-rate/:type", S.GetExchangeRate, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.GET("/exchange-rate", S.GetExchangeRateAll, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 }
