@@ -16,15 +16,21 @@ type CreatePayrollReqModel struct {
 	Date                    string          `json:"date"`
 	SalaryType              string          `json:"salary_type"`
 	Amount                  string          `json:"amount"`
+	SalaryAmountType        string          `json:"salary_amount_type"`
 	TotalOfSalaryAllowances string          `json:"total_of_salary_allowances"`
+	TotalAllowancesType     string          `json:"total_allowances_type"`
 	Pension                 bool            `json:"pension"`
 	PensionEmployer         string          `json:"pension_employer"`
+	PensionEmployerType     string          `json:"pension_employer_type"`
 	PensionEmployee         string          `json:"pension_employee"`
+	PensionEmployeeType     string          `json:"pension_employee_type"`
 	TotalNetSalary          string          `json:"total_net_salary"`
+	TotalNetSalaryType      string          `json:"total_net_salary_type"`
 	Tax                     bool            `json:"tax"`
 	TrainerCom              float64         `json:"trainer_com"`
 	TaxPercentage           string          `json:"tax_percentage"`
 	TotalNetSalaryAfterTax  string          `json:"total_net_salary_after_tax"`
+	TotalNetSalaryAfterTaxType string       `json:"total_net_salary_after_tax_type"`
 	UpdatedBy               *int64          `json:"updated_by"`
 }
 
@@ -79,6 +85,18 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		pension_employee.Valid = true
 	}
 
+	var pension_employee_type sql.NullString
+	if A.PensionEmployeeType != "" {
+		pension_employee_type.String = A.PensionEmployeeType
+		pension_employee_type.Valid = true
+	}
+
+	var pension_employer_type sql.NullString
+ 	if A.PensionEmployerType != "" {
+		pension_employer_type.String = A.PensionEmployerType
+		pension_employer_type.Valid = true
+ 	}
+
 	amount_float := amount.InexactFloat64()
 	total_salary_allowances_float := total_of_salary_allowances.InexactFloat64()
 
@@ -130,14 +148,20 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 		Date:                    date,
 		SalaryType:              A.SalaryType,
 		Amount:                  amount,
+		SalaryAmountType: 		 A.SalaryAmountType,
 		TotalOfSalaryAllowances: total_of_salary_allowances,
+		TotalAllowancesType:     A.TotalAllowancesType,
 		Pension:                 A.Pension,
 		PensionEmployer:         pension_employer,
+		PensionEmployerType: 	 pension_employer_type,
 		PensionEmployee:         pension_employee,
+		PensionEmployeeType: 	 pension_employee_type,
 		TotalNetSalary:          total_net_salary,
+		TotalNetSalaryType: 	 A.TotalNetSalaryType,
 		Tax:                     A.Tax,
 		TaxPercentage:           tax_percentage,
 		TotalNetSalaryAfterTax:  total_net_salary_after_tax,
+		TotalNetSalaryAfterTaxType: A.TotalNetSalaryAfterTaxType,
 		UpdatedBy:               updated_by,
 	}, nil
 }
@@ -149,7 +173,17 @@ func (A *CreatePayrollReqModel) ToUpdatePayrollParams(id int64, admin_id int64) 
 		updated_by.Int64 = admin_id
 		updated_by.Valid = true
 	}
+	var pension_employee_type sql.NullString
+	if A.PensionEmployeeType != "" {
+		pension_employee_type.String = A.PensionEmployeeType
+		pension_employee_type.Valid = true
+	}
 
+	var pension_employer_type sql.NullString
+ 	if A.PensionEmployerType != "" {
+		pension_employer_type.String = A.PensionEmployerType
+		pension_employer_type.Valid = true
+ 	}
 	date, err := time.Parse(time.RFC3339, A.Date)
 	if err != nil {
 		log.Printf("Error parsing dob: %v", err)
@@ -199,14 +233,20 @@ func (A *CreatePayrollReqModel) ToUpdatePayrollParams(id int64, admin_id int64) 
 		Date:                    date,
 		SalaryType:              A.SalaryType,
 		Amount:                  amount,
+		SalaryAmountType: 		 A.SalaryAmountType,
 		TotalOfSalaryAllowances: total_of_salary_allowances,
+		TotalAllowancesType:     A.TotalAllowancesType,
 		Pension:                 A.Pension,
 		PensionEmployer:         pension_employer,
+		PensionEmployerType: 	 pension_employer_type,
 		PensionEmployee:         pension_employee,
+		PensionEmployeeType: 	 pension_employee_type,
 		TotalNetSalary:          total_net_salary,
+		TotalNetSalaryType: 	 A.TotalNetSalaryType,
 		Tax:                     A.Tax,
 		TaxPercentage:           tax_percentage,
 		TotalNetSalaryAfterTax:  total_net_salary_after_tax,
+		TotalNetSalaryAfterTaxType: A.TotalNetSalaryAfterTaxType,
 		UpdatedBy:               updated_by,
 		ID:                      id,
 	},nil
@@ -215,6 +255,7 @@ func (A *CreatePayrollReqModel) ToUpdatePayrollParams(id int64, admin_id int64) 
 type CreatePayrollAllowancesParams struct {
 	Name      string          `json:"name"`
 	Amount    string          `json:"amount"`
+	AmountType string          `json:"amount_type"`
 	PayrollID int64           `json:"payroll_id"`
 	UpdatedBy *int64          `json:"updated_by"`
 }
@@ -234,6 +275,7 @@ func (A *CreatePayrollAllowancesParams) ToCreatePayrollAllowancesParams(admin_id
 	return db.CreatePayrollAllowancesParams{
 		Name:      A.Name,
 		Amount:    amount,
+		AmountType: A.AmountType,
 		PayrollID: A.PayrollID,
 		UpdatedBy: updated_by,
 	}, nil

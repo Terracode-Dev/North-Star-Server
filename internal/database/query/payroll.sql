@@ -1,8 +1,8 @@
 -- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
-    employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by
+    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, updated_by
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 SELECT LAST_INSERT_ID() AS id;
 
@@ -18,14 +18,20 @@ SELECT
     p.date,
     p.salary_type,
     p.amount,
+    p.salary_amount_type,
     p.total_of_salary_allowances,
+    p.total_allowances_type,
     p.pension,
     p.pension_employer,
+    p.pension_employer_type,
     p.pension_employee,
+    p.pension_employee_type,
     p.total_net_salary,
+    p.total_net_salary_type,
     p.tax,
     p.tax_percentage,
     p.total_net_salary_after_tax,
+    p.total_net_salary_after_tax_type,
     p.updated_by AS payroll_updated_by,
     p.created_at AS payroll_created_at,
     p.updated_at AS payroll_updated_at,
@@ -42,19 +48,38 @@ WHERE p.id = ?;
 
 -- name: UpdatePayroll :exec
 UPDATE HR_Payroll
-SET employee = ?, date = ?, salary_type = ?, amount = ?, total_of_salary_allowances = ?, pension = ?, pension_employer = ?, pension_employee = ?, total_net_salary = ?, tax = ?, tax_percentage = ?, total_net_salary_after_tax = ?, updated_by = ?
+SET
+    employee = ?,
+    date = ?,
+    salary_type = ?,
+    amount = ?,
+    salary_amount_type = ?,
+    total_of_salary_allowances = ?,
+    total_allowances_type = ?,
+    pension = ?,
+    pension_employer = ?,
+    pension_employer_type = ?,
+    pension_employee = ?,
+    pension_employee_type = ?,
+    total_net_salary = ?,
+    total_net_salary_type = ?,
+    tax = ?,
+    tax_percentage = ?,
+    total_net_salary_after_tax = ?,
+    total_net_salary_after_tax_type = ?,
+    updated_by = ?
 WHERE id = ?;
 
 -- name: CreatePayrollAllowances :exec
 INSERT INTO HR_Payroll_Allowances (
-    name, amount, payroll_id, updated_by
+    name, amount, amount_type, payroll_id, updated_by
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?
 );
 
 -- name: UpdatePayrollAllowance :exec
 UPDATE HR_Payroll_Allowances
-SET name = ?, amount = ?, updated_by = ?
+SET name = ?, amount = ?, amount_type=?, updated_by = ?
 WHERE payroll_id = ?;
 
 -- name: GetTrainerEmpDataFromID :one
