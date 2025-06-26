@@ -37,24 +37,30 @@ func (q *Queries) DeleteExchangeRate(ctx context.Context, id int64) error {
 }
 
 const getExchangeRateAll = `-- name: GetExchangeRateAll :many
-SELECT (exchange_rate, id, currency_type)
+SELECT exchange_rate, id, currency_type
 FROM Exchange_Rate
 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]interface{}, error) {
+type GetExchangeRateAllRow struct {
+	ExchangeRate decimal.Decimal `json:"exchange_rate"`
+	ID           int64           `json:"id"`
+	CurrencyType string          `json:"currency_type"`
+}
+
+func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error) {
 	rows, err := q.db.QueryContext(ctx, getExchangeRateAll)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []interface{}
+	var items []GetExchangeRateAllRow
 	for rows.Next() {
-		var column_1 interface{}
-		if err := rows.Scan(&column_1); err != nil {
+		var i GetExchangeRateAllRow
+		if err := rows.Scan(&i.ExchangeRate, &i.ID, &i.CurrencyType); err != nil {
 			return nil, err
 		}
-		items = append(items, column_1)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -66,26 +72,31 @@ func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]interface{}, error)
 }
 
 const getLatestExchangeRate = `-- name: GetLatestExchangeRate :many
-SELECT (exchange_rate, id)
+SELECT exchange_rate, id
 FROM Exchange_Rate
 WHERE currency_type = ?
 ORDER BY created_at DESC
 LIMIT 1
 `
 
-func (q *Queries) GetLatestExchangeRate(ctx context.Context, currencyType string) ([]interface{}, error) {
+type GetLatestExchangeRateRow struct {
+	ExchangeRate decimal.Decimal `json:"exchange_rate"`
+	ID           int64           `json:"id"`
+}
+
+func (q *Queries) GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error) {
 	rows, err := q.db.QueryContext(ctx, getLatestExchangeRate, currencyType)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []interface{}
+	var items []GetLatestExchangeRateRow
 	for rows.Next() {
-		var column_1 interface{}
-		if err := rows.Scan(&column_1); err != nil {
+		var i GetLatestExchangeRateRow
+		if err := rows.Scan(&i.ExchangeRate, &i.ID); err != nil {
 			return nil, err
 		}
-		items = append(items, column_1)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

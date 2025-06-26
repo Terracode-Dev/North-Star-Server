@@ -190,18 +190,23 @@ type HrEmpExpatriate struct {
 }
 
 type HrEmpSalary struct {
-	ID                      int64           `json:"id"`
-	SalaryType              string          `json:"salary_type"`
-	Amount                  decimal.Decimal `json:"amount"`
-	TotalOfSalaryAllowances decimal.Decimal `json:"total_of_salary_allowances"`
-	PensionEmployer         decimal.Decimal `json:"pension_employer"`
-	PensionEmployee         decimal.Decimal `json:"pension_employee"`
-	TotalNetSalary          decimal.Decimal `json:"total_net_salary"`
-	UpdatedBy               sql.NullInt64   `json:"updated_by"`
-	EmployeeID              int64           `json:"employee_id"`
-	CreatedAt               sql.NullTime    `json:"created_at"`
-	UpdatedAt               sql.NullTime    `json:"updated_at"`
-	ErID                    sql.NullInt64   `json:"er_id"`
+	ID                        int64           `json:"id"`
+	SalaryType                string          `json:"salary_type"`
+	Amount                    decimal.Decimal `json:"amount"`
+	TotalOfSalaryAllowances   decimal.Decimal `json:"total_of_salary_allowances"`
+	PensionEmployer           decimal.Decimal `json:"pension_employer"`
+	PensionEmployee           decimal.Decimal `json:"pension_employee"`
+	TotalNetSalary            decimal.Decimal `json:"total_net_salary"`
+	UpdatedBy                 sql.NullInt64   `json:"updated_by"`
+	EmployeeID                int64           `json:"employee_id"`
+	CreatedAt                 sql.NullTime    `json:"created_at"`
+	UpdatedAt                 sql.NullTime    `json:"updated_at"`
+	ErID                      sql.NullInt64   `json:"er_id"`
+	SalaryAmountType          string          `json:"salary_amount_type"`
+	TotalSalaryAllowancesType string          `json:"total_salary_allowances_type"`
+	PensionEmployerType       string          `json:"pension_employer_type"`
+	PensionEmployeeType       string          `json:"pension_employee_type"`
+	TotalNetSalaryType        string          `json:"total_net_salary_type"`
 }
 
 type HrEmpStatus struct {
