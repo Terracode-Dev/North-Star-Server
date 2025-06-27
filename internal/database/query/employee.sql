@@ -24,16 +24,16 @@ INSERT INTO HR_EMP_Bank_Details (
 
 -- name: CreateEmpSalary :exec
 INSERT INTO HR_EMP_Salary (
-    salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary, employee_id, updated_by
+    salary_type, amount, salary_amount_type, Total_of_salary_allowances, total_salary_allowances_type, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, employee_id, updated_by, er_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 -- name: CreateEmpCertificates :exec
 INSERT INTO HR_EMP_Certificates (
-    date, name, image_path, updated_by, employee_id
+    date, name,updated_by, employee_id
 ) VALUES (
-    ?, ?, ?, ?, ?
+    ?, ?, ?, ?
 );
 
 -- name: CreateEmpStatus :exec
@@ -66,9 +66,9 @@ INSERT INTO HR_EMP_Allowances (
 
 -- name: CreateEmpExpatriate :exec
 INSERT INTO HR_EMP_Expatriate (
-    expatriate, nationality, visa_type, visa_from, visa_till, visa_number, visa_fee, visa_image_path, updated_by, employee_id
+    expatriate, nationality, visa_type, visa_from, visa_till, visa_number, visa_fee, updated_by, employee_id
 ) VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 -- name: CreateEmpAccessiability :exec
@@ -104,7 +104,7 @@ LIMIT ? OFFSET ?;
 -- name: GetEmployeeDOB :one
 SELECT dob FROM HR_Employee WHERE id = ?;
 
--- name: GetEmployeeByID :many
+-- name: GetEmployeeByID :one
 SELECT 
     e.id AS employee_id, 
     e.first_name, 
@@ -139,15 +139,19 @@ SELECT
 
     s.salary_type, 
     s.amount, 
-    s.Total_of_salary_allowances, 
-    s.pension_employer, 
+    s.salary_amount_type,
+    s.Total_of_salary_allowances,
+    s.total_salary_allowances_type, 
+    s.pension_employer,
+    s.pension_employer_type, 
     s.pension_employee, 
-    s.total_net_salary, 
+    s.pension_employee_type,
+    s.total_net_salary,
+    s.total_net_salary_type, 
 
     cert.date AS certificate_date, 
     cert.name AS certificate_name, 
-    cert.image_path AS certificate_image, 
-
+    
     stat.status, 
     stat.department, 
     stat.designation, 
@@ -169,10 +173,7 @@ SELECT
 
     usr.email AS user_email, 
     usr.password AS user_password, 
-    usr.branch_id AS user_branch_id,
-
-    allw.name AS allowance_name, 
-    allw.amount AS allowance_amount, 
+    usr.branch_id AS user_branch_id, 
 
     exp.expatriate, 
     exp.nationality AS exp_nationality, 
@@ -181,12 +182,11 @@ SELECT
     exp.visa_till, 
     exp.visa_number, 
     exp.visa_fee, 
-    exp.visa_image_path, 
-
+    
     acc.accessibility, 
     acc.accessibility_from, 
     acc.accessibility_till, 
-    acc.enable 
+    acc.enable
 
 FROM HR_Employee e
 LEFT JOIN HR_EMP_Emergency_Details ed ON e.id = ed.employee_id
@@ -196,7 +196,6 @@ LEFT JOIN HR_EMP_Certificates cert ON e.id = cert.employee_id
 LEFT JOIN HR_EMP_Status stat ON e.id = stat.employee_id
 LEFT JOIN HR_EMP_Benifits ben ON e.id = ben.employee_id
 LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
-LEFT JOIN HR_EMP_Allowances allw ON e.id = allw.employee_id
 LEFT JOIN HR_EMP_Expatriate exp ON e.id = exp.employee_id
 LEFT JOIN HR_EMP_Accessiability acc ON e.id = acc.employee_id
 
@@ -227,7 +226,13 @@ WHERE employee_id = ?;
 
 -- name: UpdateEmpCertificates :exec
 UPDATE HR_EMP_Certificates SET
-    date = ?, name = ?, image_path = ?, updated_by = ?
+    date = ?, name = ?, updated_by = ?
+WHERE employee_id = ?;
+
+-- name: UpdateTrainerCommission :exec
+UPDATE HR_Trainer_Emp SET
+    commission = ?,
+    updated_by = ?
 WHERE employee_id = ?;
 
 -- name: UpdateEmpStatus :exec
@@ -255,7 +260,7 @@ WHERE employee_id = ?;
 -- name: UpdateEmpExpatriate :exec
 UPDATE HR_EMP_Expatriate SET
     expatriate = ?, nationality = ?, visa_type = ?, visa_from = ?, visa_till = ?, 
-    visa_number = ?, visa_fee = ?, visa_image_path = ?, updated_by = ?
+    visa_number = ?, visa_fee = ?, updated_by = ?
 WHERE employee_id = ?;
 
 -- name: UpdateEmpAccessiability :exec
@@ -294,6 +299,9 @@ DELETE FROM HR_EMP_Allowances WHERE employee_id = ?;
 -- name: DeleteEmpExpatriate :exec
 DELETE FROM HR_EMP_Expatriate WHERE employee_id = ?;
 
+-- name: DeleteEmpFiles :exec
+DELETE FROM HR_FileSubmit WHERE file_name = ? AND employee_id = ? AND file_type = ?;
+
 -- name: DeleteEmpAccessiability :exec
 DELETE FROM HR_EMP_Accessiability WHERE employee_id = ?;
 
@@ -303,10 +311,10 @@ FROM HR_EMP_User
 WHERE email = ?;
 
 -- name: GetCertificateFile :one
-SELECT image_path FROM HR_EMP_Certificates WHERE employee_id = ?;
+SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'certificate';
 
 -- name: GetVisaFile :one
-SELECT visa_image_path FROM HR_EMP_Expatriate WHERE employee_id = ?;
+SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'visa';
 
 -- name: GetEmployeeFromBranch :many
 SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS full_name
@@ -323,6 +331,31 @@ WHERE employee_id = ?;
 SELECT name, amount
 FROM HR_EMP_Allowances
 WHERE employee_id = ?;
+
+-- name: CheckTrainerFromEmail :one
+SELECT attendee_id, user_id, branch_id, username, email, phone, nic, role
+FROM door_lock_users
+WHERE email = ? AND role = 'trainer';
+
+-- name: CreateTrainerEmp :exec
+INSERT INTO HR_Trainer_Emp (
+    trainer_id, employee_id, attendee_id, commission
+) VALUES (
+    ?, ?, ?, ?
+);
+
+-- name: GetTrainerEmp :one
+SELECT
+    trainer_id, employee_id, attendee_id, commission
+FROM HR_Trainer_Emp
+WHERE employee_id = ?;
+
+-- name: GetEmpFiles :many
+SELECT file_name, file_type
+FROM HR_FileSubmit
+WHERE employee_id = ?;
+
+
 
 
 

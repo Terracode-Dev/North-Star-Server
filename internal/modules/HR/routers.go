@@ -33,9 +33,16 @@ func (S *HRService) registerRoutes() {
 	hrRoute.PUT("/employee/allowances", S.updateEmpAllowances, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/expatriate", S.updateEmpExpatriate, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/accessibility", S.updateEmpAccessiability, rba.AuthMiddelware([]string{"admin", "mod"}))
+	//update trainer commission
+	hrRoute.PUT("/employee/trainerCom", S.UpdateEmpCommission, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/employee/:id", S.deleteEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/login", S.employeeLogin)
 	hrRoute.PUT("/employee/empbank", S.empOnlyBankDetailsUpdate, rba.AuthMiddelware([]string{"emp"}))
+	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer , rba.AuthMiddelware([]string{"admin", "mod",}))
+	//Delete employee certificates from the HR_FileSub,it table and S3
+	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+
 
 	// service routes
 	hrRoute.POST("/service", S.createAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
@@ -58,13 +65,14 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/calculatetrainercom/:trainer_id", S.CalculateTrainerCommision)
 
 	hrRoute.POST("/hrbranch", S.addHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/hrbranch", S.getAllHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/hrbranch/protect", S.getProtectedHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/hrbranch/:id", S.deleteHRBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 
-	hrRoute.POST("/fileupload", S.uploadFile, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/fileupload", S.uploadFile)
 	hrRoute.POST("/getfileurl", S.getFileDownloadUrl, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 
 	hrRoute.GET("/verify-auth-emp", S.empVerifyAuth, rba.AuthMiddelware([]string{"emp"}))
@@ -74,4 +82,9 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/testlogin", S.TestLogin)
 	hrRoute.GET("/testauth", S.TestAuth, rba.AuthMiddelware([]string{"admin", "emp"}))
 	hrRoute.POST("/testS3upload", S.TestS3Upload)
+
+	hrRoute.POST("/exchange-rate", S.CreateExchangeRate, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.DELETE("/exchange-rate/:id", S.DeleteExchangeRate, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/exchange-rate/:type", S.GetExchangeRate, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.GET("/exchange-rate", S.GetExchangeRateAll, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 }
