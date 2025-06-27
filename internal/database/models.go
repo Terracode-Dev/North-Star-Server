@@ -333,3 +333,15 @@ type HrTrainerEmp struct {
 	Commission decimal.Decimal `json:"commission"`
 	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 }
+
+type Workout struct {
+	ID                  int64          `json:"id"`
+	Title               string         `json:"title"`
+	Description         sql.NullString `json:"description"`
+	AnimationUrl        sql.NullString `json:"animation_url"`
+	PreviewAnimationUrl sql.NullString `json:"preview_animation_url"`
+	Categories          sql.NullString `json:"categories"`
+	Optional            sql.NullString `json:"optional"`
+	CreatedAt           sql.NullTime   `json:"created_at"`
+	UpdatedAt           sql.NullTime   `json:"updated_at"`
+}

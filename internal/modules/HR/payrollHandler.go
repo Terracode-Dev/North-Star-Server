@@ -35,7 +35,13 @@ func (S *HRService) createPayroll(c echo.Context) error {
 		return c.JSON(400, "user not found")
 	}
 
-	paytollParams, err := pay.Payroll.ToCreatePayrollParams(int64(updated_by))
+	er_data, err := qtx.GetExhangeRateById(c.Request().Context(), pay.Payroll.ERID)
+
+	ex_rate := er_data.ExchangeRate.InexactFloat64()
+
+
+
+	paytollParams, err := pay.Payroll.ToCreatePayrollParams(int64(updated_by), ex_rate)
 	if err != nil {
 		return c.JSON(400, err.Error())
 	}

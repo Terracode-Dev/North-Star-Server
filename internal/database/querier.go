@@ -66,6 +66,7 @@ type Querier interface {
 	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
 	GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error)
+	GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error)
 	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
