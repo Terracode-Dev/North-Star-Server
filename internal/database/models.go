@@ -334,6 +334,58 @@ type HrTrainerEmp struct {
 	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 }
 
+type SessionWorkout struct {
+	ID              int64          `json:"id"`
+	PresetSessionID int64          `json:"preset_session_id"`
+	ActiveDay       int64          `json:"active_day"`
+	WorkoutID       int64          `json:"workout_id"`
+	Status          sql.NullString `json:"status"`
+	SessionID       int64          `json:"session_id"`
+	CreatedAt       sql.NullTime   `json:"created_at"`
+	UpdatedAt       sql.NullTime   `json:"updated_at"`
+}
+
+type V2preset struct {
+	ID          int64          `json:"id"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	TrainerID   int64          `json:"trainer_id"`
+	CreatedAt   sql.NullTime   `json:"created_at"`
+	UpdatedAt   sql.NullTime   `json:"updated_at"`
+}
+
+type V2presetSession struct {
+	ID            int64        `json:"id"`
+	PresetID      int64        `json:"preset_id"`
+	ClientID      int64        `json:"client_id"`
+	AssignSession int64        `json:"assign_session"`
+	ActiveDay     int64        `json:"active_day"`
+	MaxDay        int64        `json:"max_day"`
+	State         string       `json:"state"`
+	CreatedAt     sql.NullTime `json:"created_at"`
+	UpdatedAt     sql.NullTime `json:"updated_at"`
+}
+
+type V2presetWorkout struct {
+	ID        int64          `json:"id"`
+	PresetID  int64          `json:"preset_id"`
+	WorkoutID int64          `json:"workout_id"`
+	Weight    sql.NullString `json:"weight"`
+	Notes     sql.NullString `json:"notes"`
+	CreatedAt sql.NullTime   `json:"created_at"`
+	UpdatedAt sql.NullTime   `json:"updated_at"`
+	Reps      int64          `json:"reps"`
+	Sets      int64          `json:"sets"`
+}
+
+type V2session struct {
+	ID        int64        `json:"id"`
+	ClientID  int64        `json:"client_id"`
+	TrainerID int64        `json:"trainer_id"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
 type Workout struct {
 	ID                  int64          `json:"id"`
 	Title               string         `json:"title"`
