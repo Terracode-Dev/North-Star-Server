@@ -3,7 +3,7 @@ INSERT INTO Exchange_Rate (exchange_rate, currency_type)
 VALUES (?, ?);
 
 -- name: GetLatestExchangeRate :many
-SELECT exchange_rate, id
+SELECT exchange_rate, id, created_at
 FROM Exchange_Rate
 WHERE currency_type = ?
 ORDER BY created_at DESC
