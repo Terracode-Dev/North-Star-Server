@@ -17,3 +17,8 @@ WHERE id = ?;
 SELECT exchange_rate, id, currency_type
 FROM Exchange_Rate
 ORDER BY created_at DESC;
+
+-- name: GetExhangeRateById :one
+SELECT exchange_rate, currency_type
+FROM Exchange_Rate
+WHERE id = ?;

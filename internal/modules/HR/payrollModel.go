@@ -35,7 +35,7 @@ type CreatePayrollReqModel struct {
 	UpdatedBy               *int64          `json:"updated_by"`
 }
 
-func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.CreatePayrollParams, error) {
+func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate float64) (db.CreatePayrollParams, error) {
 
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
@@ -102,7 +102,15 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64) (db.Create
 	er_id.Int64 = A.ERID
 	er_id.Valid = true
 
-	amount_float := amount.InexactFloat64()
+	var amount_float float64
+
+	if A.SalaryAmountType == "USD" {
+		amount_float = amount.InexactFloat64() * ex_rate
+	}else{
+		amount_float = amount.InexactFloat64()
+	}
+    
+	
 	total_salary_allowances_float := total_of_salary_allowances.InexactFloat64()
 
 	Total_Gross_Salary := amount_float + total_salary_allowances_float

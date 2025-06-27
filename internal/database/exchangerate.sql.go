@@ -71,6 +71,24 @@ func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllR
 	return items, nil
 }
 
+const getExhangeRateById = `-- name: GetExhangeRateById :one
+SELECT exchange_rate, currency_type
+FROM Exchange_Rate
+WHERE id = ?
+`
+
+type GetExhangeRateByIdRow struct {
+	ExchangeRate decimal.Decimal `json:"exchange_rate"`
+	CurrencyType string          `json:"currency_type"`
+}
+
+func (q *Queries) GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error) {
+	row := q.db.QueryRowContext(ctx, getExhangeRateById, id)
+	var i GetExhangeRateByIdRow
+	err := row.Scan(&i.ExchangeRate, &i.CurrencyType)
+	return i, err
+}
+
 const getLatestExchangeRate = `-- name: GetLatestExchangeRate :many
 SELECT exchange_rate, id
 FROM Exchange_Rate
