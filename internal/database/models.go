@@ -189,6 +189,16 @@ type HrEmpExpatriate struct {
 	UpdatedAt   sql.NullTime    `json:"updated_at"`
 }
 
+type HrEmpLeafe struct {
+	ID         int64         `json:"id"`
+	EmpID      int64         `json:"emp_id"`
+	LeaveType  string        `json:"leave_type"`
+	LeaveDate  time.Time     `json:"leave_date"`
+	Reason     string        `json:"reason"`
+	CreateDate sql.NullTime  `json:"create_date"`
+	AddedBy    sql.NullInt64 `json:"added_by"`
+}
+
 type HrEmpSalary struct {
 	ID                        int64           `json:"id"`
 	SalaryType                string          `json:"salary_type"`
@@ -207,6 +217,45 @@ type HrEmpSalary struct {
 	PensionEmployerType       string          `json:"pension_employer_type"`
 	PensionEmployeeType       string          `json:"pension_employee_type"`
 	TotalNetSalaryType        string          `json:"total_net_salary_type"`
+}
+
+type HrEmpSchedual struct {
+	ID    int64 `json:"id"`
+	EmpID int64 `json:"emp_id"`
+	// true = working day, false = off day
+	Monday        sql.NullBool `json:"monday"`
+	MondayFrom    sql.NullTime `json:"monday_from"`
+	MondayTo      sql.NullTime `json:"monday_to"`
+	Tuesday       sql.NullBool `json:"tuesday"`
+	TuesdayFrom   sql.NullTime `json:"tuesday_from"`
+	TuesdayTo     sql.NullTime `json:"tuesday_to"`
+	Wednesday     sql.NullBool `json:"wednesday"`
+	WednesdayFrom sql.NullTime `json:"wednesday_from"`
+	WednesdayTo   sql.NullTime `json:"wednesday_to"`
+	Thursday      sql.NullBool `json:"thursday"`
+	ThursdayFrom  sql.NullTime `json:"thursday_from"`
+	ThursdayTo    sql.NullTime `json:"thursday_to"`
+	Friday        sql.NullBool `json:"friday"`
+	FridayFrom    sql.NullTime `json:"friday_from"`
+	FridayTo      sql.NullTime `json:"friday_to"`
+	Saturday      sql.NullBool `json:"saturday"`
+	SaturdayFrom  sql.NullTime `json:"saturday_from"`
+	SaturdayTo    sql.NullTime `json:"saturday_to"`
+	Sunday        sql.NullBool `json:"sunday"`
+	SundayFrom    sql.NullTime `json:"sunday_from"`
+	SundayTo      sql.NullTime `json:"sunday_to"`
+	CreatedAt     sql.NullTime `json:"created_at"`
+	UpdatedAt     sql.NullTime `json:"updated_at"`
+}
+
+type HrEmpSchedualAdditional struct {
+	ID        int64        `json:"id"`
+	EmpID     int64        `json:"emp_id"`
+	Date      time.Time    `json:"date"`
+	FromTime  sql.NullTime `json:"from_time"`
+	ToTime    sql.NullTime `json:"to_time"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
 }
 
 type HrEmpStatus struct {

@@ -13,7 +13,11 @@ import (
 type Querier interface {
 	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
+	CheckLeaveCountForYear(ctx context.Context, arg CheckLeaveCountForYearParams) (CheckLeaveCountForYearRow, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
+	// Count total employees for pagination (with same filters)
+	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
+	CreateAdditionalSchedule(ctx context.Context, arg CreateAdditionalScheduleParams) error
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
@@ -26,10 +30,12 @@ type Querier interface {
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateEmployeeSchedule(ctx context.Context, arg CreateEmployeeScheduleParams) error
 	CreateExchangeRate(ctx context.Context, arg CreateExchangeRateParams) error
 	CreateFileSubmit(ctx context.Context, arg CreateFileSubmitParams) error
 	CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error
 	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
+	CreateLeave(ctx context.Context, arg CreateLeaveParams) error
 	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
 	CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error
 	CreatePreset(ctx context.Context, arg CreatePresetParams) error
@@ -40,6 +46,8 @@ type Querier interface {
 	CreateSessionWorkout(ctx context.Context, arg CreateSessionWorkoutParams) error
 	CreateTax(ctx context.Context, arg CreateTaxParams) error
 	CreateTrainerEmp(ctx context.Context, arg CreateTrainerEmpParams) error
+	DeleteAdditionalSchedule(ctx context.Context, arg DeleteAdditionalScheduleParams) error
+	DeleteAllAdditionalSchedules(ctx context.Context, empID int64) error
 	DeleteAllowance(ctx context.Context, id int64) error
 	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
 	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
@@ -53,9 +61,11 @@ type Querier interface {
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
 	DeleteEmployee(ctx context.Context, id int64) error
+	DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	DeleteExchangeRate(ctx context.Context, id int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteHrBranch(ctx context.Context, id int64) error
+	DeleteLeave(ctx context.Context, arg DeleteLeaveParams) error
 	DeletePreset(ctx context.Context, id int64) error
 	DeletePresetSession(ctx context.Context, id int64) error
 	DeletePresetWorkout(ctx context.Context, id int64) error
@@ -74,10 +84,17 @@ type Querier interface {
 	GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error)
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
 	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
+	GetEmployeeIdByEmail(ctx context.Context, email string) (int64, error)
+	GetEmployeeLeaveBenefits(ctx context.Context, employeeID int64) ([]GetEmployeeLeaveBenefitsRow, error)
+	GetEmployeeLeaves(ctx context.Context, arg GetEmployeeLeavesParams) ([]GetEmployeeLeavesRow, error)
+	GetEmployeeListWithWorkDays(ctx context.Context, arg GetEmployeeListWithWorkDaysParams) ([]GetEmployeeListWithWorkDaysRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
+	GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmployeeWorkDaysBreakdownParams) (GetEmployeeWorkDaysBreakdownRow, error)
 	GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error)
 	GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error)
 	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error)
+	GetLeaveSummaryByEmployee(ctx context.Context, arg GetLeaveSummaryByEmployeeParams) ([]GetLeaveSummaryByEmployeeRow, error)
+	GetLeaveTypesForEmployee(ctx context.Context, employeeID int64) ([]GetLeaveTypesForEmployeeRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
 	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
@@ -100,6 +117,7 @@ type Querier interface {
 	SelectSessionWorkout(ctx context.Context, id int64) (SelectSessionWorkoutRow, error)
 	SelectpresetSessionAll(ctx context.Context) ([]SelectpresetSessionAllRow, error)
 	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
+	UpdateAdditionalSchedule(ctx context.Context, arg UpdateAdditionalScheduleParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
 	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
 	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
@@ -112,8 +130,10 @@ type Querier interface {
 	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
 	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error
 	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) error
+	UpdateEmployeeSchedule(ctx context.Context, arg UpdateEmployeeScheduleParams) error
 	UpdateFileSubmit(ctx context.Context, arg UpdateFileSubmitParams) error
 	UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error
+	UpdateLeave(ctx context.Context, arg UpdateLeaveParams) error
 	UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error
 	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
 	UpdatePreset(ctx context.Context, arg UpdatePresetParams) error
