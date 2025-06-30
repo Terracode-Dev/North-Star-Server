@@ -28,6 +28,15 @@ func (q *Queries) CreateFileSubmit(ctx context.Context, arg CreateFileSubmitPara
 	return err
 }
 
+const deleteFileSubmit = `-- name: DeleteFileSubmit :exec
+DELETE FROM HR_FileSubmit WHERE employee_id = ?
+`
+
+func (q *Queries) DeleteFileSubmit(ctx context.Context, employeeID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteFileSubmit, employeeID)
+	return err
+}
+
 const updateFileSubmit = `-- name: UpdateFileSubmit :exec
 UPDATE HR_FileSubmit
 SET file_name = ?, file_type = ?

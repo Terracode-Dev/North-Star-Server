@@ -557,6 +557,15 @@ func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
 	return err
 }
 
+const deleteTrainerEmp = `-- name: DeleteTrainerEmp :exec
+DELETE FROM HR_Trainer_Emp WHERE employee_id = ?
+`
+
+func (q *Queries) DeleteTrainerEmp(ctx context.Context, employeeID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteTrainerEmp, employeeID)
+	return err
+}
+
 const employeeLogin = `-- name: EmployeeLogin :one
 SELECT employee_id, password, email, branch_id
 FROM HR_EMP_User

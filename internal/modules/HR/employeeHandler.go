@@ -899,10 +899,30 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
 		return c.JSON(500, "Error deleting employee accessiability")
 	}
 
+
+	files := qtx.DeleteFileSubmit(c.Request().Context(),empID)
+	if files != nil {
+		return c.JSON(500, "Error deleting employee files: "+files.Error())
+	}
+
+    _, err = qtx.GetTrainerEmp(c.Request().Context(), empID)
+    if err != nil && err != sql.ErrNoRows {
+        return c.JSON(http.StatusInternalServerError, map[string]string{
+            "error": "Failed to check trainer status: " + err.Error(),
+        })
+    } else if err == nil {
+        // Employee is a trainer, delete the trainer data
+        if err := qtx.DeleteTrainerEmp(c.Request().Context(), empID); err != nil {
+            return c.JSON(http.StatusInternalServerError, map[string]string{
+                "error": "Failed to delete trainer data: " + err.Error(),
+            })
+        }
+    }
 	employee := qtx.DeleteEmployee(c.Request().Context(), empID)
 	if employee != nil {
 		return c.JSON(500, employee.Error())
 	}
+
 
 	if err := tx.Commit(); err != nil {
 		return c.JSON(500, map[string]string{"error": "Error committing transaction"})

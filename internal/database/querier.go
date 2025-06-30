@@ -63,6 +63,7 @@ type Querier interface {
 	DeleteEmployee(ctx context.Context, id int64) error
 	DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	DeleteExchangeRate(ctx context.Context, id int64) error
+	DeleteFileSubmit(ctx context.Context, employeeID int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteHrBranch(ctx context.Context, id int64) error
 	DeleteLeave(ctx context.Context, arg DeleteLeaveParams) error
@@ -73,6 +74,7 @@ type Querier interface {
 	DeleteSession(ctx context.Context, id int64) error
 	DeleteSessionWorkout(ctx context.Context, id int64) error
 	DeleteTax(ctx context.Context, id int64) error
+	DeleteTrainerEmp(ctx context.Context, employeeID int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
 	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
