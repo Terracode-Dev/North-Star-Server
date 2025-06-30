@@ -33,16 +33,15 @@ func (S *HRService) registerRoutes() {
 	hrRoute.PUT("/employee/allowances", S.updateEmpAllowances, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/expatriate", S.updateEmpExpatriate, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/accessibility", S.updateEmpAccessiability, rba.AuthMiddelware([]string{"admin", "mod"}))
-	//update trainer commission
+	// update trainer commission
 	hrRoute.PUT("/employee/trainerCom", S.UpdateEmpCommission, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/employee/:id", S.deleteEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/login", S.employeeLogin)
 	hrRoute.PUT("/employee/empbank", S.empOnlyBankDetailsUpdate, rba.AuthMiddelware([]string{"emp"}))
-	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer , rba.AuthMiddelware([]string{"admin", "mod",}))
-	//Delete employee certificates from the HR_FileSub,it table and S3
+	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer, rba.AuthMiddelware([]string{"admin", "mod"}))
+	// Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
-
 
 	// service routes
 	hrRoute.POST("/service", S.createAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
@@ -88,15 +87,15 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/exchange-rate/:type", S.GetExchangeRate, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 	hrRoute.GET("/exchange-rate", S.GetExchangeRateAll, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 
-	//v2 routes
+	// v2 routes
 	hrRoute.POST("/V2/preset", S.CreatePreset, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/V2/preset", S.GetAllPresets, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/V2/preset/:id", S.GetPresetByID, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/V2/preset/:id", S.UpdatePreset, rba.AuthMiddelware([]string{"admin", "mod"}))
- 	hrRoute.DELETE("/V2/preset/:id", S.DeletePreset, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.DELETE("/V2/preset/:id", S.DeletePreset, rba.AuthMiddelware([]string{"admin", "mod"}))
 
 	hrRoute.POST("/V2/preset-workout", S.CreatePresetWorkout, rba.AuthMiddelware([]string{"admin", "mod"}))
- 	hrRoute.GET("/V2/preset-workout", S.GetAllPresetWorkouts, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/V2/preset-workout", S.GetAllPresetWorkouts, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/V2/preset-workout/:id", S.UpdatePresetWorkout, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/V2/preset-workout/:id", S.DeletePresetWorkout, rba.AuthMiddelware([]string{"admin", "mod"}))
 
@@ -113,4 +112,30 @@ func (S *HRService) registerRoutes() {
 	hrRoute.GET("/V2/session-workout", S.GetAllSessionWorkouts, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/V2/session-workout/:id", S.UpdateSessionWorkout, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/V2/session-workout/:id", S.DeleteSessionWorkout, rba.AuthMiddelware([]string{"admin", "mod"}))
+
+	leaves := hrRoute.Group("/leaves")
+
+	leaves.POST("", S.CreateLeave)
+	leaves.PUT("/:id/employee/:emp_id", S.UpdateLeave)
+	leaves.DELETE("/:id/employee/:emp_id", S.DeleteLeave)
+	leaves.GET("/employee/:emp_id", S.GetEmployeeLeaves)
+	leaves.GET("/summary", S.GetLeaveSummary)
+	leaves.GET("/types/:emp_id", S.GetLeaveTypesForEmployee)
+	leaves.GET("/benefits/:emp_id", S.GetEmployeeLeaveBenefits)
+	leaves.GET("/validate", S.ValidateLeaveCreation)
+
+	empSchedule := hrRoute.Group("/scheduale")
+
+	// Employee lookup
+	empSchedule.GET("/employee/id-by-email", S.GetEmployeeIdByEmail)
+
+	// Schedule CRUD operations
+	empSchedule.POST("/employee/schedule", S.CreateEmployeeSchedule)
+	empSchedule.PUT("/employee/:id/schedule", S.UpdateEmployeeSchedule)
+	empSchedule.DELETE("/employee/:id/schedule", S.DeleteEmployeeSchedule)
+	empSchedule.DELETE("/employee/:id/schedule/additional/:date", S.DeleteAdditionalSchedule)
+
+	// Employee list with work days
+	empSchedule.GET("/employees", S.GetEmployeeList)
+	empSchedule.GET("/employee/:id/workdays-breakdown", S.GetEmployeeWorkDaysBreakdown)
 }

@@ -144,7 +144,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 		tax_percentage_float = 1.0
 	}
 
-	total_net_salary_after_tax_float_req := total_net_salary_float * tax_percentage_float
+	total_net_salary_after_tax_float_req := total_net_salary_float- (total_net_salary_float * tax_percentage_float)
 
 	total_net_salary_after_tax_float := total_net_salary_after_tax.InexactFloat64()
 
