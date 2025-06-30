@@ -14,7 +14,7 @@ DELETE FROM Exchange_Rate
 WHERE id = ?;
 
 -- name: GetExchangeRateAll :many
-SELECT exchange_rate, id, currency_type
+SELECT exchange_rate, id, currency_type, created_at
 FROM Exchange_Rate
 ORDER BY created_at DESC;
 
