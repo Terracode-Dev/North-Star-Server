@@ -1,28 +1,14 @@
--- name: GetEmployeeLeaveBenefits :many
-SELECT 
-    id,
-    leave_status,
-    leave_type,
-    leave_count,
-    employee_id
-FROM HR_EMP_Benifits 
-WHERE employee_id = ? AND leave_status = 1;
-
--- name: CheckLeaveCountForYear :one
-SELECT 
-    COALESCE(COUNT(*), 0) as used_leaves,
-    COALESCE(b.leave_count, 0) as total_allowed
-FROM HR_EMP_LEAVES l
-RIGHT JOIN HR_EMP_Benifits b ON l.emp_id = b.employee_id 
-    AND l.leave_type = b.leave_type
-WHERE b.employee_id = ? 
-    AND b.leave_type = ? 
-    AND b.leave_status = 1
-    AND (l.leave_date IS NULL OR YEAR(l.leave_date) = YEAR(CURDATE()));
-
--- name: CreateLeave :exec
+-- name: CreateLeave :execresult
 INSERT INTO HR_EMP_LEAVES (emp_id, leave_type, leave_date, reason, added_by)
 VALUES (?, ?, ?, ?, ?);
+
+-- name: DeleteLeave :exec
+DELETE FROM HR_EMP_LEAVES 
+WHERE id = ?;
+
+-- name: DeleteLeaveByEmpAndDate :exec
+DELETE FROM HR_EMP_LEAVES 
+WHERE emp_id = ? AND leave_date = ?;
 
 -- name: UpdateLeave :exec
 UPDATE HR_EMP_LEAVES 
@@ -30,50 +16,87 @@ SET
     leave_type = ?,
     leave_date = ?,
     reason = ?,
-    updated_at = CURRENT_TIMESTAMP
-WHERE id = ? AND emp_id = ?;
+    added_by = ?
+WHERE id = ?;
 
--- name: DeleteLeave :exec
-DELETE FROM HR_EMP_LEAVES 
-WHERE id = ? AND emp_id = ?;
+-- name: GetLeaveById :one
+SELECT 
+    el.id,
+    el.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) AS employee_name,
+    e.email AS employee_email,
+    el.leave_type,
+    el.leave_date,
+    el.reason,
+    el.create_date,
+    a.user_name AS added_by_name
+FROM HR_EMP_LEAVES el
+INNER JOIN HR_Employee e ON el.emp_id = e.id
+LEFT JOIN HR_Admin a ON el.added_by = a.id
+WHERE el.id = ?;
+
+-- name: GetEmployeeLeaveBenefits :one
+SELECT 
+    eb.leave_type,
+    eb.leave_count,
+    eb.leave_status
+FROM HR_EMP_Benifits eb
+WHERE eb.employee_id = ? AND eb.leave_status = 1
+ORDER BY eb.leave_type;
 
 -- name: GetEmployeeLeaves :many
 SELECT 
-    l.id,
-    l.emp_id,
-    l.leave_type,
-    l.leave_date,
-    l.reason,
-    l.create_date,
-    COUNT(*) OVER() as total_count
-FROM HR_EMP_LEAVES l
-WHERE l.emp_id = ?
-ORDER BY l.leave_date DESC
+    el.id as leave_id,
+    el.emp_id,
+    el.leave_type,
+    el.leave_date,
+    el.reason,
+    el.create_date
+FROM HR_EMP_LEAVES el
+WHERE el.emp_id = ?
+    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR YEAR(el.leave_date) = ?)
+ORDER BY 
+    CASE WHEN ? = 'date_asc' THEN el.leave_date END ASC,
+    CASE WHEN ? = 'date_desc' THEN el.leave_date END DESC,
+    CASE WHEN ? = 'type_asc' THEN el.leave_type END ASC,
+    CASE WHEN ? = 'type_desc' THEN el.leave_type END DESC,
+    el.leave_date DESC
 LIMIT ? OFFSET ?;
 
--- name: GetLeaveSummaryByEmployee :many
+-- name: GetAllLeaves :many
 SELECT 
-    l.emp_id,
-    l.leave_type,
-    COUNT(*) as used_count,
-    b.leave_count as allowed_count,
-    (b.leave_count - COUNT(*)) as remaining_count,
+    el.id as leave_id,
+    el.emp_id,
     e.first_name,
-    e.last_name
-FROM HR_EMP_LEAVES l
-JOIN HR_Employee e ON l.emp_id = e.id
-JOIN HR_EMP_Benifits b ON l.emp_id = b.employee_id AND l.leave_type = b.leave_type
+    e.last_name,
+    e.email,
+    el.leave_type,
+    el.leave_date
+FROM HR_EMP_LEAVES el
+INNER JOIN HR_Employee e ON el.emp_id = e.id
 WHERE 
-    YEAR(l.leave_date) = YEAR(CURDATE()) AND
-    b.leave_status = 1 AND
-    (? = 0 OR l.emp_id = ?)
-GROUP BY l.emp_id, l.leave_type, b.leave_count, e.first_name, e.last_name
-ORDER BY e.first_name, e.last_name, l.leave_type;
+    (? = '' OR e.first_name LIKE CONCAT('%', ?, '%') OR e.last_name LIKE CONCAT('%', ?, '%'))
+    AND (? = '' OR e.email LIKE CONCAT('%', ?, '%'))
+    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR el.leave_date >= ?)
+    AND (? IS NULL OR el.leave_date <= ?)
+ORDER BY 
+    CASE WHEN ? = 'name_asc' THEN e.first_name END ASC,
+    CASE WHEN ? = 'name_desc' THEN e.first_name END DESC,
+    CASE WHEN ? = 'email_asc' THEN e.email END ASC,
+    CASE WHEN ? = 'email_desc' THEN e.email END DESC,
+    CASE WHEN ? = 'leave_type_asc' THEN el.leave_type END ASC,
+    CASE WHEN ? = 'leave_type_desc' THEN el.leave_type END DESC,
+    CASE WHEN ? = 'date_asc' THEN el.leave_date END ASC,
+    CASE WHEN ? = 'date_desc' THEN el.leave_date END DESC,
+    el.leave_date DESC
+LIMIT ? OFFSET ?;
 
--- name: GetLeaveTypesForEmployee :many
-SELECT 
-    leave_type,
-    leave_count,
-    leave_status
-FROM HR_EMP_Benifits 
-WHERE employee_id = ? AND leave_status = 1;
+-- name: GetEmployeeLeavesCount :one
+SELECT COUNT(*) as total_count
+FROM HR_EMP_LEAVES el
+WHERE el.emp_id = ?
+    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR el.leave_date >= ?)
+    AND (? IS NULL OR el.leave_date <= ?);

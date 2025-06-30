@@ -13,7 +13,6 @@ import (
 type Querier interface {
 	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
-	CheckLeaveCountForYear(ctx context.Context, arg CheckLeaveCountForYearParams) (CheckLeaveCountForYearRow, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
 	// Count total employees for pagination (with same filters)
 	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
@@ -35,7 +34,7 @@ type Querier interface {
 	CreateFileSubmit(ctx context.Context, arg CreateFileSubmitParams) error
 	CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error
 	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
-	CreateLeave(ctx context.Context, arg CreateLeaveParams) error
+	CreateLeave(ctx context.Context, arg CreateLeaveParams) (sql.Result, error)
 	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
 	CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error
 	CreatePreset(ctx context.Context, arg CreatePresetParams) error
@@ -65,7 +64,8 @@ type Querier interface {
 	DeleteExchangeRate(ctx context.Context, id int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteHrBranch(ctx context.Context, id int64) error
-	DeleteLeave(ctx context.Context, arg DeleteLeaveParams) error
+	DeleteLeave(ctx context.Context, id int64) error
+	DeleteLeaveByEmpAndDate(ctx context.Context, arg DeleteLeaveByEmpAndDateParams) error
 	DeletePreset(ctx context.Context, id int64) error
 	DeletePresetSession(ctx context.Context, id int64) error
 	DeletePresetWorkout(ctx context.Context, id int64) error
@@ -75,6 +75,7 @@ type Querier interface {
 	DeleteTax(ctx context.Context, id int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
 	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
+	GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]GetAllLeavesRow, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
 	GetAllowances(ctx context.Context) ([]GetAllowancesRow, error)
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
@@ -85,16 +86,16 @@ type Querier interface {
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
 	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
 	GetEmployeeIdByEmail(ctx context.Context, email string) (int64, error)
-	GetEmployeeLeaveBenefits(ctx context.Context, employeeID int64) ([]GetEmployeeLeaveBenefitsRow, error)
+	GetEmployeeLeaveBenefits(ctx context.Context, employeeID int64) (GetEmployeeLeaveBenefitsRow, error)
 	GetEmployeeLeaves(ctx context.Context, arg GetEmployeeLeavesParams) ([]GetEmployeeLeavesRow, error)
+	GetEmployeeLeavesCount(ctx context.Context, arg GetEmployeeLeavesCountParams) (int64, error)
 	GetEmployeeListWithWorkDays(ctx context.Context, arg GetEmployeeListWithWorkDaysParams) ([]GetEmployeeListWithWorkDaysRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
 	GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmployeeWorkDaysBreakdownParams) (GetEmployeeWorkDaysBreakdownRow, error)
 	GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error)
 	GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error)
 	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error)
-	GetLeaveSummaryByEmployee(ctx context.Context, arg GetLeaveSummaryByEmployeeParams) ([]GetLeaveSummaryByEmployeeRow, error)
-	GetLeaveTypesForEmployee(ctx context.Context, employeeID int64) ([]GetLeaveTypesForEmployeeRow, error)
+	GetLeaveById(ctx context.Context, id int64) (GetLeaveByIdRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
 	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
