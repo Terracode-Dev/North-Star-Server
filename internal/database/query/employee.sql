@@ -355,6 +355,9 @@ SELECT file_name, file_type
 FROM HR_FileSubmit
 WHERE employee_id = ?;
 
+-- name: DeleteTrainerEmp :exec
+DELETE FROM HR_Trainer_Emp WHERE employee_id = ?
+
 
 
 
