@@ -215,9 +215,7 @@ func (s *HRService) CreateEmployeeSchedule(c echo.Context) error {
 
 	// Create weekly schedule
 	if err := s.q.CreateEmployeeSchedule(ctx, weeklyParams); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to create weekly schedule",
-		})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	// Create additional schedules

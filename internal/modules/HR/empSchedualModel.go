@@ -98,18 +98,26 @@ type WorkDaysBreakdownResponse struct {
 
 // Utility functions
 func parseTime(timeStr string) (sql.NullTime, error) {
-	if timeStr == "" {
-		return sql.NullTime{Valid: false}, nil
-	}
-	t, err := time.Parse("15:04:05", timeStr)
-	if err != nil {
-		return sql.NullTime{Valid: false}, err
-	}
-	return sql.NullTime{Time: t, Valid: true}, nil
+    if timeStr == "" {
+        return sql.NullTime{Valid: false}, nil
+    }
+    
+    t, err := time.Parse("15:04:05", timeStr)
+    if err != nil {
+        return sql.NullTime{Valid: false}, err
+    }
+    
+    baseTime := time.Date(1970, 1, 1, t.Hour(), t.Minute(), t.Second(), 0, time.UTC)
+    
+    return sql.NullTime{Time: baseTime, Valid: true}, nil
 }
 
 func parseDate(dateStr string) (time.Time, error) {
-	return time.Parse("2006-01-02", dateStr)
+    t, err := time.Parse("2006-01-02", dateStr)
+    if err != nil {
+        return time.Time{}, err
+    }
+    return t, nil
 }
 
 func interfaceToString(val interface{}) string {
