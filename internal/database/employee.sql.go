@@ -13,26 +13,27 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-const checkTrainerAssignmentForToday = `-- name: CheckTrainerAssignmentForToday :one
+const checkTrainerAssignmentAtTime = `-- name: CheckTrainerAssignmentAtTime :one
 SELECT 
     EXISTS (
         SELECT 1
         FROM FLM_trainer_assign 
         WHERE trainer_id = ? 
         AND client_id = ?
-        AND DATE(CONVERT_TZ(NOW(), '+00:00', '+05:00')) BETWEEN 
-            DATE(CONVERT_TZ(` + "`" + `from` + "`" + `, '+00:00', '+05:00')) AND 
-            DATE(CONVERT_TZ(` + "`" + `to` + "`" + `, '+00:00', '+05:00'))
+        AND CONVERT_TZ(?, '+00:00', '+05:00') BETWEEN 
+            CONVERT_TZ(` + "`" + `from` + "`" + `, '+00:00', '+05:00') AND 
+            CONVERT_TZ(` + "`" + `to` + "`" + `, '+00:00', '+05:00')
     ) as is_assigned
 `
 
-type CheckTrainerAssignmentForTodayParams struct {
-	TrainerID int64 `json:"trainer_id"`
-	ClientID  int64 `json:"client_id"`
+type CheckTrainerAssignmentAtTimeParams struct {
+	TrainerID int64     `json:"trainer_id"`
+	ClientID  int64     `json:"client_id"`
+	CONVERTTZ time.Time `json:"CONVERT_TZ"`
 }
 
-func (q *Queries) CheckTrainerAssignmentForToday(ctx context.Context, arg CheckTrainerAssignmentForTodayParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkTrainerAssignmentForToday, arg.TrainerID, arg.ClientID)
+func (q *Queries) CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkTrainerAssignmentAtTime, arg.TrainerID, arg.ClientID, arg.CONVERTTZ)
 	var is_assigned bool
 	err := row.Scan(&is_assigned)
 	return is_assigned, err

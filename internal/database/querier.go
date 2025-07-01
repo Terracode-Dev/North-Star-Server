@@ -14,7 +14,7 @@ type Querier interface {
 	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
 	CheckLeaveCountForYear(ctx context.Context, arg CheckLeaveCountForYearParams) (CheckLeaveCountForYearRow, error)
-	CheckTrainerAssignmentForToday(ctx context.Context, arg CheckTrainerAssignmentForTodayParams) (bool, error)
+	CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
 	// Count total employees for pagination (with same filters)
 	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
