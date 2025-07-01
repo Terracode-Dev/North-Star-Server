@@ -1020,8 +1020,6 @@ func (S *HRService) employeeLogin(c echo.Context) error {
         Token: token,
         Data:  payload,
     }
-    log.Printf("hashed pass %f", emp.Password)
-	log.Printf("loging pass %f", login.Password)
     return c.JSON(http.StatusOK, res)
 }
 
