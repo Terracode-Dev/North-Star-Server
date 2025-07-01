@@ -1195,4 +1195,15 @@ func (S *HRService) UpdateEmpCommission(c echo.Context) error {
 
 
 
-	// Return employee data
+func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
+	var req database.CheckTrainerAssignmentForTodayParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Error binding request")
+	}
+	value , err := S.q.CheckTrainerAssignmentForToday(c.Request().Context(), req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
+	}
+	return c.JSON(http.StatusOK, map[string]bool{"is_assigned": value})
+}
+

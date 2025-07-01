@@ -13,6 +13,31 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const checkTrainerAssignmentForToday = `-- name: CheckTrainerAssignmentForToday :one
+SELECT 
+    EXISTS (
+        SELECT 1
+        FROM FLM_trainer_assign 
+        WHERE trainer_id = ? 
+        AND client_id = ?
+        AND DATE(CONVERT_TZ(NOW(), '+00:00', '+05:00')) BETWEEN 
+            DATE(CONVERT_TZ(` + "`" + `from` + "`" + `, '+00:00', '+05:00')) AND 
+            DATE(CONVERT_TZ(` + "`" + `to` + "`" + `, '+00:00', '+05:00'))
+    ) as is_assigned
+`
+
+type CheckTrainerAssignmentForTodayParams struct {
+	TrainerID int64 `json:"trainer_id"`
+	ClientID  int64 `json:"client_id"`
+}
+
+func (q *Queries) CheckTrainerAssignmentForToday(ctx context.Context, arg CheckTrainerAssignmentForTodayParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkTrainerAssignmentForToday, arg.TrainerID, arg.ClientID)
+	var is_assigned bool
+	err := row.Scan(&is_assigned)
+	return is_assigned, err
+}
+
 const checkTrainerFromEmail = `-- name: CheckTrainerFromEmail :one
 SELECT attendee_id, user_id, branch_id, username, email, phone, nic, role
 FROM door_lock_users
