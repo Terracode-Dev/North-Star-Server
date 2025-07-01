@@ -1196,11 +1196,15 @@ func (S *HRService) UpdateEmpCommission(c echo.Context) error {
 
 
 func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
-	var req database.CheckTrainerAssignmentForTodayParams
+	var req CheckTrainerAssignmentAtTimereq
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, "Error binding request")
 	}
-	value , err := S.q.CheckTrainerAssignmentForToday(c.Request().Context(), req)
+	params, err := req.ConvertToDbStruct()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error converting request to database struct")
+	}
+	value , err := S.q.CheckTrainerAssignmentAtTime(c.Request().Context(), params)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
 	}
