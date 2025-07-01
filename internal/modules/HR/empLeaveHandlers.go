@@ -118,7 +118,7 @@ func (s *HRService) CreateLeaveHandler(c echo.Context) error {
 
 	result, err := s.q.CreateLeave(c.Request().Context(), params)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create leave"})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	id, _ := result.LastInsertId()
@@ -315,7 +315,7 @@ func (s *HRService) DeleteLeaveHandler(c echo.Context) error {
 // =====================================================
 
 func (s *HRService) GetEmployeeLeavesHandler(c echo.Context) error {
-	empId, err := strconv.ParseInt(c.Param("emp_id"), 10, 64)
+	empId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID"})
 	}
@@ -384,7 +384,7 @@ func (s *HRService) GetEmployeeLeavesHandler(c echo.Context) error {
 // =====================================================
 
 func (s *HRService) GetEmployeeLeaveBenefitsHandler(c echo.Context) error {
-	empId, err := strconv.ParseInt(c.Param("emp_id"), 10, 64)
+	empId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID"})
 	}
