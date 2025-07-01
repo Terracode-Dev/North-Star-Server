@@ -116,14 +116,13 @@ func (S *HRService) registerRoutes() {
 
 	leaves := hrRoute.Group("/leaves")
 
-	leaves.POST("", S.CreateLeave)
-	leaves.PUT("/:id/employee/:emp_id", S.UpdateLeave)
-	leaves.DELETE("/:id/employee/:emp_id", S.DeleteLeave)
-	leaves.GET("/employee/:emp_id", S.GetEmployeeLeaves)
-	leaves.GET("/summary", S.GetLeaveSummary)
-	leaves.GET("/types/:emp_id", S.GetLeaveTypesForEmployee)
-	leaves.GET("/benefits/:emp_id", S.GetEmployeeLeaveBenefits)
-	leaves.GET("/validate", S.ValidateLeaveCreation)
+	leaves.POST("", S.CreateLeaveHandler)
+	leaves.GET("", S.GetAllLeavesHandler)
+	leaves.GET("/:id", S.GetLeaveByIdHandler)
+	leaves.PUT("/:id", S.UpdateLeaveHandler)
+	leaves.DELETE("/:id", S.DeleteLeaveHandler)
+	leaves.GET("/:id/emp-leave", S.GetEmployeeLeavesHandler)
+	leaves.GET("/:id/benifit-leave", S.GetEmployeeLeaveBenefitsHandler)
 
 	empSchedule := hrRoute.Group("/scheduale")
 
