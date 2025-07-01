@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/shopspring/decimal"
 )
@@ -37,7 +38,7 @@ func (q *Queries) DeleteExchangeRate(ctx context.Context, id int64) error {
 }
 
 const getExchangeRateAll = `-- name: GetExchangeRateAll :many
-SELECT exchange_rate, id, currency_type
+SELECT exchange_rate, id, currency_type, created_at
 FROM Exchange_Rate
 ORDER BY created_at DESC
 `
@@ -46,6 +47,7 @@ type GetExchangeRateAllRow struct {
 	ExchangeRate decimal.Decimal `json:"exchange_rate"`
 	ID           int64           `json:"id"`
 	CurrencyType string          `json:"currency_type"`
+	CreatedAt    sql.NullTime    `json:"created_at"`
 }
 
 func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error) {
@@ -57,7 +59,12 @@ func (q *Queries) GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllR
 	var items []GetExchangeRateAllRow
 	for rows.Next() {
 		var i GetExchangeRateAllRow
-		if err := rows.Scan(&i.ExchangeRate, &i.ID, &i.CurrencyType); err != nil {
+		if err := rows.Scan(
+			&i.ExchangeRate,
+			&i.ID,
+			&i.CurrencyType,
+			&i.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -90,7 +97,7 @@ func (q *Queries) GetExhangeRateById(ctx context.Context, id int64) (GetExhangeR
 }
 
 const getLatestExchangeRate = `-- name: GetLatestExchangeRate :many
-SELECT exchange_rate, id
+SELECT exchange_rate, id, created_at
 FROM Exchange_Rate
 WHERE currency_type = ?
 ORDER BY created_at DESC
@@ -100,6 +107,7 @@ LIMIT 1
 type GetLatestExchangeRateRow struct {
 	ExchangeRate decimal.Decimal `json:"exchange_rate"`
 	ID           int64           `json:"id"`
+	CreatedAt    sql.NullTime    `json:"created_at"`
 }
 
 func (q *Queries) GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error) {
@@ -111,7 +119,7 @@ func (q *Queries) GetLatestExchangeRate(ctx context.Context, currencyType string
 	var items []GetLatestExchangeRateRow
 	for rows.Next() {
 		var i GetLatestExchangeRateRow
-		if err := rows.Scan(&i.ExchangeRate, &i.ID); err != nil {
+		if err := rows.Scan(&i.ExchangeRate, &i.ID, &i.CreatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

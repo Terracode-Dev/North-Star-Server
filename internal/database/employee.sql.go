@@ -13,6 +13,32 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const checkTrainerAssignmentAtTime = `-- name: CheckTrainerAssignmentAtTime :one
+SELECT 
+    EXISTS (
+        SELECT 1
+        FROM FLM_trainer_assign 
+        WHERE trainer_id = ? 
+        AND client_id = ?
+        AND CONVERT_TZ(?, '+00:00', '+05:00') BETWEEN 
+            CONVERT_TZ(` + "`" + `from` + "`" + `, '+00:00', '+05:00') AND 
+            CONVERT_TZ(` + "`" + `to` + "`" + `, '+00:00', '+05:00')
+    ) as is_assigned
+`
+
+type CheckTrainerAssignmentAtTimeParams struct {
+	TrainerID int64     `json:"trainer_id"`
+	ClientID  int64     `json:"client_id"`
+	CONVERTTZ time.Time `json:"CONVERT_TZ"`
+}
+
+func (q *Queries) CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkTrainerAssignmentAtTime, arg.TrainerID, arg.ClientID, arg.CONVERTTZ)
+	var is_assigned bool
+	err := row.Scan(&is_assigned)
+	return is_assigned, err
+}
+
 const checkTrainerFromEmail = `-- name: CheckTrainerFromEmail :one
 SELECT attendee_id, user_id, branch_id, username, email, phone, nic, role
 FROM door_lock_users
@@ -554,6 +580,15 @@ DELETE FROM HR_Employee WHERE id = ?
 
 func (q *Queries) DeleteEmployee(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteEmployee, id)
+	return err
+}
+
+const deleteTrainerEmp = `-- name: DeleteTrainerEmp :exec
+DELETE FROM HR_Trainer_Emp WHERE employee_id = ?
+`
+
+func (q *Queries) DeleteTrainerEmp(ctx context.Context, employeeID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteTrainerEmp, employeeID)
 	return err
 }
 

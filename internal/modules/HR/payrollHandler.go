@@ -36,10 +36,11 @@ func (S *HRService) createPayroll(c echo.Context) error {
 	}
 
 	er_data, err := qtx.GetExhangeRateById(c.Request().Context(), pay.Payroll.ERID)
+	if err != nil {
+		return c.JSON(500, "Error fetching exchange rate")
+ 	}
 
 	ex_rate := er_data.ExchangeRate.InexactFloat64()
-
-
 
 	paytollParams, err := pay.Payroll.ToCreatePayrollParams(int64(updated_by), ex_rate)
 	if err != nil {

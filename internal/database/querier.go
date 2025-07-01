@@ -13,7 +13,11 @@ import (
 type Querier interface {
 	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
+	CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
+	// Count total employees for pagination (with same filters)
+	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
+	CreateAdditionalSchedule(ctx context.Context, arg CreateAdditionalScheduleParams) error
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
@@ -26,15 +30,24 @@ type Querier interface {
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
 	CreateEmployee(ctx context.Context, arg CreateEmployeeParams) (sql.Result, error)
+	CreateEmployeeSchedule(ctx context.Context, arg CreateEmployeeScheduleParams) error
 	CreateExchangeRate(ctx context.Context, arg CreateExchangeRateParams) error
 	CreateFileSubmit(ctx context.Context, arg CreateFileSubmitParams) error
 	CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerComParams) error
 	CreateHrAdmin(ctx context.Context, arg CreateHrAdminParams) error
+	CreateLeave(ctx context.Context, arg CreateLeaveParams) (sql.Result, error)
 	CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error)
 	CreatePayrollAllowances(ctx context.Context, arg CreatePayrollAllowancesParams) error
+	CreatePreset(ctx context.Context, arg CreatePresetParams) error
+	CreatePresetSession(ctx context.Context, arg CreatePresetSessionParams) error
+	CreatePresetWorkout(ctx context.Context, arg CreatePresetWorkoutParams) error
 	CreateServices(ctx context.Context, arg CreateServicesParams) error
+	CreateSession(ctx context.Context, arg CreateSessionParams) error
+	CreateSessionWorkout(ctx context.Context, arg CreateSessionWorkoutParams) error
 	CreateTax(ctx context.Context, arg CreateTaxParams) error
 	CreateTrainerEmp(ctx context.Context, arg CreateTrainerEmpParams) error
+	DeleteAdditionalSchedule(ctx context.Context, arg DeleteAdditionalScheduleParams) error
+	DeleteAllAdditionalSchedules(ctx context.Context, empID int64) error
 	DeleteAllowance(ctx context.Context, id int64) error
 	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
 	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
@@ -48,13 +61,24 @@ type Querier interface {
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error
 	DeleteEmployee(ctx context.Context, id int64) error
+	DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	DeleteExchangeRate(ctx context.Context, id int64) error
+	DeleteFileSubmit(ctx context.Context, employeeID int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteHrBranch(ctx context.Context, id int64) error
+	DeleteLeave(ctx context.Context, id int64) error
+	DeleteLeaveByEmpAndDate(ctx context.Context, arg DeleteLeaveByEmpAndDateParams) error
+	DeletePreset(ctx context.Context, id int64) error
+	DeletePresetSession(ctx context.Context, id int64) error
+	DeletePresetWorkout(ctx context.Context, id int64) error
 	DeleteService(ctx context.Context, id int64) error
+	DeleteSession(ctx context.Context, id int64) error
+	DeleteSessionWorkout(ctx context.Context, id int64) error
 	DeleteTax(ctx context.Context, id int64) error
+	DeleteTrainerEmp(ctx context.Context, employeeID int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
 	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
+	GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]GetAllLeavesRow, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
 	GetAllowances(ctx context.Context) ([]GetAllowancesRow, error)
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
@@ -64,10 +88,17 @@ type Querier interface {
 	GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error)
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
 	GetEmployeeFromBranch(ctx context.Context, branchID int64) ([]GetEmployeeFromBranchRow, error)
+	GetEmployeeIdByEmail(ctx context.Context, email string) (int64, error)
+	GetEmployeeLeaveBenefits(ctx context.Context, employeeID int64) (GetEmployeeLeaveBenefitsRow, error)
+	GetEmployeeLeaves(ctx context.Context, arg GetEmployeeLeavesParams) ([]GetEmployeeLeavesRow, error)
+	GetEmployeeLeavesCount(ctx context.Context, arg GetEmployeeLeavesCountParams) (int64, error)
+	GetEmployeeListWithWorkDays(ctx context.Context, arg GetEmployeeListWithWorkDaysParams) ([]GetEmployeeListWithWorkDaysRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
+	GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmployeeWorkDaysBreakdownParams) (GetEmployeeWorkDaysBreakdownRow, error)
 	GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error)
 	GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error)
 	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error)
+	GetLeaveById(ctx context.Context, id int64) (GetLeaveByIdRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
 	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
@@ -78,9 +109,19 @@ type Querier interface {
 	GetTrainerEmp(ctx context.Context, employeeID int64) (GetTrainerEmpRow, error)
 	GetTrainerEmpDataFromID(ctx context.Context, employeeID int64) (GetTrainerEmpDataFromIDRow, error)
 	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
+	SelectAllPresetWorkouts(ctx context.Context) ([]SelectAllPresetWorkoutsRow, error)
+	SelectAllPresets(ctx context.Context) ([]SelectAllPresetsRow, error)
+	SelectAllSessionWorkouts(ctx context.Context) ([]SelectAllSessionWorkoutsRow, error)
+	SelectAllSessions(ctx context.Context) ([]SelectAllSessionsRow, error)
 	SelectHrAdmin(ctx context.Context, arg SelectHrAdminParams) ([]SelectHrAdminRow, error)
 	SelectOneHrAdmin(ctx context.Context, id int64) (HrAdmin, error)
+	SelectPreset(ctx context.Context, id int64) (SelectPresetRow, error)
+	SelectPresetByname(ctx context.Context, name string) ([]SelectPresetBynameRow, error)
+	SelectSession(ctx context.Context, id int64) (SelectSessionRow, error)
+	SelectSessionWorkout(ctx context.Context, id int64) (SelectSessionWorkoutRow, error)
+	SelectpresetSessionAll(ctx context.Context) ([]SelectpresetSessionAllRow, error)
 	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
+	UpdateAdditionalSchedule(ctx context.Context, arg UpdateAdditionalScheduleParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
 	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
 	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
@@ -93,11 +134,17 @@ type Querier interface {
 	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
 	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error
 	UpdateEmployee(ctx context.Context, arg UpdateEmployeeParams) error
+	UpdateEmployeeSchedule(ctx context.Context, arg UpdateEmployeeScheduleParams) error
 	UpdateFileSubmit(ctx context.Context, arg UpdateFileSubmitParams) error
 	UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error
+	UpdateLeave(ctx context.Context, arg UpdateLeaveParams) error
 	UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error
 	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
+	UpdatePreset(ctx context.Context, arg UpdatePresetParams) error
+	UpdatePresetSession(ctx context.Context, arg UpdatePresetSessionParams) error
+	UpdatePresetWorkout(ctx context.Context, arg UpdatePresetWorkoutParams) error
 	UpdateService(ctx context.Context, arg UpdateServiceParams) error
+	UpdateSessionWorkout(ctx context.Context, arg UpdateSessionWorkoutParams) error
 	UpdateTax(ctx context.Context, arg UpdateTaxParams) error
 	UpdateTrainerCommission(ctx context.Context, arg UpdateTrainerCommissionParams) error
 }

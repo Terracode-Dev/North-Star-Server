@@ -954,3 +954,23 @@ func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpFileDbStruct() (db.Crea
 	}, nil
 }
 	
+// request body for trainer client session check
+type CheckTrainerAssignmentAtTimereq struct {
+	TrainerID int64     `json:"trainer_id"`
+	ClientID  int64     `json:"client_id"`
+	CONVERTTZ string    `json:"date_time"`
+}
+
+func (c *CheckTrainerAssignmentAtTimereq) ConvertToDbStruct() (db.CheckTrainerAssignmentAtTimeParams, error) {
+	// Parse the date_time string to time.Time
+	dateTime, err := time.Parse(time.RFC3339, c.CONVERTTZ)
+	if err != nil {
+		return db.CheckTrainerAssignmentAtTimeParams{}, err
+	}
+
+	return db.CheckTrainerAssignmentAtTimeParams{
+		TrainerID: c.TrainerID,
+		ClientID:  c.ClientID,
+		CONVERTTZ:  dateTime,
+	}, nil
+}
