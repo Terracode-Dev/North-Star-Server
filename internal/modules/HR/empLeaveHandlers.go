@@ -150,6 +150,13 @@ func (s *HRService) GetAllLeavesHandler(c echo.Context) error {
 	if limit < 1 || limit > 100 {
 		limit = 10
 	}
+
+    if limit > 2147483647 { // Max value of int32
+        return c.JSON(http.StatusBadRequest, map[string]string{
+            "error": "Limit value too large",
+        })
+    }
+
 	offset := (page - 1) * limit
 
 	// Parse dates
@@ -334,6 +341,13 @@ func (s *HRService) GetEmployeeLeavesHandler(c echo.Context) error {
 	if limit < 1 || limit > 100 {
 		limit = 10
 	}
+
+	if limit > 2147483647 { // Max value of int32
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Limit value too large",
+		})
+	}
+	
 	offset := (page - 1) * limit
 
 	// Parse year
