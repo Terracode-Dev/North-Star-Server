@@ -13,6 +13,8 @@ import (
 type Querier interface {
 	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
+	CheckLeaveCountForYear(ctx context.Context, arg CheckLeaveCountForYearParams) (CheckLeaveCountForYearRow, error)
+	CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
 	// Count total employees for pagination (with same filters)
 	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
@@ -62,6 +64,7 @@ type Querier interface {
 	DeleteEmployee(ctx context.Context, id int64) error
 	DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	DeleteExchangeRate(ctx context.Context, id int64) error
+	DeleteFileSubmit(ctx context.Context, employeeID int64) error
 	DeleteHrAdmin(ctx context.Context, id int64) error
 	DeleteHrBranch(ctx context.Context, id int64) error
 	DeleteLeave(ctx context.Context, id int64) error
@@ -73,6 +76,7 @@ type Querier interface {
 	DeleteSession(ctx context.Context, id int64) error
 	DeleteSessionWorkout(ctx context.Context, id int64) error
 	DeleteTax(ctx context.Context, id int64) error
+	DeleteTrainerEmp(ctx context.Context, employeeID int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
 	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
 	GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]GetAllLeavesRow, error)

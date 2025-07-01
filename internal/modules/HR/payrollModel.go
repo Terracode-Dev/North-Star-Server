@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"math"
 	"time"
 
 	db "github.com/Terracode-Dev/North-Star-Server/internal/database"
@@ -138,15 +139,20 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 		return db.CreatePayrollParams{}, fmt.Errorf("invalid tax_percentage format: %v", err)
 	}
 	var tax_percentage_float float64
-	if A.Tax == true {
+	if A.Tax {
 		tax_percentage_float = tax_float / 100
 	} else {
-		tax_percentage_float = 1.0
+		tax_percentage_float = 0.0
 	}
 
 	total_net_salary_after_tax_float_req := total_net_salary_float- (total_net_salary_float * tax_percentage_float)
 
 	total_net_salary_after_tax_float := total_net_salary_after_tax.InexactFloat64()
+
+	total_net_salary_float_req = math.Round(total_net_salary_float_req*100) / 100
+	total_net_salary_float = math.Round(total_net_salary_float*100) / 100
+	total_net_salary_after_tax_float_req = math.Round(total_net_salary_after_tax_float_req*100) / 100
+	total_net_salary_after_tax_float = math.Round(total_net_salary_after_tax_float*100) / 100
 
 	if total_net_salary_float != total_net_salary_float_req || total_net_salary_after_tax_float != total_net_salary_after_tax_float_req {
 		log.Printf("Salary calculation mismatch detected:")
@@ -158,6 +164,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 		log.Printf("    Pension: %f (employer: %f, employee: %f)", total_pension_float, pension_employer_float, employee_pension_float)
 		log.Printf("    Trainer commission: %f", A.TrainerCom)
 		log.Printf("    Tax percentage: %f%%", tax_float)
+		log.Printf("Tax Perecentage float : %f", tax_percentage_float)
 		return db.CreatePayrollParams{}, fmt.Errorf("total net salary does not match the calculated value")
 	}
 

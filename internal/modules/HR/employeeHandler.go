@@ -899,10 +899,30 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
 		return c.JSON(500, "Error deleting employee accessiability")
 	}
 
+
+	files := qtx.DeleteFileSubmit(c.Request().Context(),empID)
+	if files != nil {
+		return c.JSON(500, "Error deleting employee files: "+files.Error())
+	}
+
+    _, err = qtx.GetTrainerEmp(c.Request().Context(), empID)
+    if err != nil && err != sql.ErrNoRows {
+        return c.JSON(http.StatusInternalServerError, map[string]string{
+            "error": "Failed to check trainer status: " + err.Error(),
+        })
+    } else if err == nil {
+        // Employee is a trainer, delete the trainer data
+        if err := qtx.DeleteTrainerEmp(c.Request().Context(), empID); err != nil {
+            return c.JSON(http.StatusInternalServerError, map[string]string{
+                "error": "Failed to delete trainer data: " + err.Error(),
+            })
+        }
+    }
 	employee := qtx.DeleteEmployee(c.Request().Context(), empID)
 	if employee != nil {
-		return c.JSON(500, "Error deleting employee")
+		return c.JSON(500, employee.Error())
 	}
+
 
 	if err := tx.Commit(); err != nil {
 		return c.JSON(500, map[string]string{"error": "Error committing transaction"})
@@ -921,45 +941,88 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
 // @Failure 400 {string} string "bad request"
 // @Failure 500 {string} string "internal server error"
 // @Router /employee/login [post]
+// @Summary Employee login
+// @Description Authenticates employee and returns a JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body EmpLoginReqModel true "Employee credentials"
+// @Success 200 {object} LoginEmpResponse "Login successful"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 401 {object} map[string]string "Authentication failed"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /employee/login [post]
 func (S *HRService) employeeLogin(c echo.Context) error {
-	var login EmpLoginReqModel
-	if err := c.Bind(&login); err != nil {
-		return c.JSON(500, err)
-	}
-	emp, err := S.q.EmployeeLogin(c.Request().Context(), login.Email)
-	if err != nil {
-		return c.JSON(301, "invalid email")
-	}
-
-	err = bcrypt.CompareHashAndPassword([]byte(emp.Password), []byte(login.Password))
-	if err != nil {
-		return c.JSON(301, "invalid Password")
-	}
-
-	payload := rba.RBAauth{
-		Id:     int(emp.EmployeeID),
-		Role:   "emp",
-		Email:  emp.Email,
-		Branch: int(emp.BranchID),
-	}
-
-	t, err := rba.GenarateJWTkey(time.Hour*24, payload, []byte(S.cfg.JWTSecret))
-	if err != nil {
-		log.Println(err)
-		return c.JSON(500, t)
-	}
-
-	cookie := new(http.Cookie)
-	cookie.Name = "auth_token"
-	cookie.Value = t
-	cookie.Path = "/"
-	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
-	c.SetCookie(cookie)
-	res := LoginEmpResponse{
-		Token: t,
-		Data:  payload,
-	}
-	return c.JSON(200, res)
+    // Parse request body
+    var login EmpLoginReqModel
+    if err := c.Bind(&login); err != nil {
+        return c.JSON(http.StatusBadRequest, map[string]string{
+            "error": "Invalid request format",
+        })
+    }
+    
+    // Validate input
+    if login.Email == "" || login.Password == "" {
+        return c.JSON(http.StatusBadRequest, map[string]string{
+            "error": "Email and password are required",
+        })
+    }
+    
+    // Get employee from database
+    emp, err := S.q.EmployeeLogin(c.Request().Context(), login.Email)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return c.JSON(http.StatusUnauthorized, map[string]string{
+                "error": "Invalid email or password",
+            })
+        }
+        log.Printf("Database error in employee login: %v", err)
+        return c.JSON(http.StatusInternalServerError, map[string]string{
+            "error": "Internal server error",
+        })
+    }
+    
+    // Verify password
+    err = bcrypt.CompareHashAndPassword([]byte(emp.Password), []byte(login.Password))
+    if err != nil {
+        return c.JSON(http.StatusUnauthorized, err.Error())
+    }
+    
+    // Create JWT payload
+    payload := rba.RBAauth{
+        Id:     int(emp.EmployeeID),
+        Role:   "emp",
+        Email:  emp.Email,
+        Branch: int(emp.BranchID),
+    }
+    
+    // Generate JWT token
+    token, err := rba.GenarateJWTkey(time.Hour*time.Duration(S.cfg.JwtExpHour), payload, []byte(S.cfg.JWTSecret))
+    if err != nil {
+        log.Printf("JWT generation error: %v", err)
+        return c.JSON(http.StatusInternalServerError, map[string]string{
+            "error": "Failed to generate authentication token",
+        })
+    }
+    
+    // Set cookie
+    cookie := new(http.Cookie)
+    cookie.Name = "auth_token"
+    cookie.Value = token
+    cookie.Path = "/"
+    cookie.HttpOnly = false  // Prevent JavaScript access to the cookie
+    cookie.SameSite = http.SameSiteStrictMode  // Prevent CSRF attacks
+    cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
+    c.SetCookie(cookie)
+    
+    // Return response
+    res := LoginEmpResponse{
+        Token: token,
+        Data:  payload,
+    }
+    log.Printf("hashed pass %f", emp.Password)
+	log.Printf("loging pass %f", login.Password)
+    return c.JSON(http.StatusOK, res)
 }
 
 // @Summary user loginout
@@ -1132,4 +1195,19 @@ func (S *HRService) UpdateEmpCommission(c echo.Context) error {
 
 
 
-	// Return employee data
+func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
+	var req CheckTrainerAssignmentAtTimereq
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Error binding request")
+	}
+	params, err := req.ConvertToDbStruct()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error converting request to database struct")
+	}
+	value , err := S.q.CheckTrainerAssignmentAtTime(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
+	}
+	return c.JSON(http.StatusOK, map[string]bool{"is_assigned": value})
+}
+
