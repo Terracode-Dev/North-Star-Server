@@ -356,7 +356,19 @@ FROM HR_FileSubmit
 WHERE employee_id = ?;
 
 -- name: DeleteTrainerEmp :exec
-DELETE FROM HR_Trainer_Emp WHERE employee_id = ?
+DELETE FROM HR_Trainer_Emp WHERE employee_id = ?;
+
+-- name: CheckTrainerAssignmentForToday :one
+SELECT 
+    EXISTS (
+        SELECT 1
+        FROM FLM_trainer_assign 
+        WHERE trainer_id = ? 
+        AND client_id = ?
+        AND DATE(CONVERT_TZ(NOW(), '+00:00', '+05:00')) BETWEEN 
+            DATE(CONVERT_TZ(`from`, '+00:00', '+05:00')) AND 
+            DATE(CONVERT_TZ(`to`, '+00:00', '+05:00'))
+    ) as is_assigned;
 
 
 

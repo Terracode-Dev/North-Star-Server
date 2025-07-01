@@ -42,6 +42,7 @@ func (S *HRService) registerRoutes() {
 	// Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.POST("/employee/checktodaysession", S.CheckFortodayTrainerClientSession , rba.AuthMiddelware([]string{"admin"}))
 
 	// service routes
 	hrRoute.POST("/service", S.createAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
