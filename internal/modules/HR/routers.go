@@ -42,7 +42,7 @@ func (S *HRService) registerRoutes() {
 	// Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
-	hrRoute.POST("/employee/checktodaysession", S.CheckFortodayTrainerClientSession , rba.AuthMiddelware([]string{"admin"}))
+	hrRoute.POST("/employee/checktodaysession", S.CheckFortodayTrainerClientSession)
 
 	// service routes
 	hrRoute.POST("/service", S.createAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
@@ -118,6 +118,7 @@ func (S *HRService) registerRoutes() {
 
 	leaves.POST("", S.CreateLeaveHandler)
 	leaves.GET("", S.GetAllLeavesHandler)
+	leaves.POST("/checkuser", S.CheckValideteEmp)
 	leaves.GET("/:id", S.GetLeaveByIdHandler)
 	leaves.PUT("/:id", S.UpdateLeaveHandler)
 	leaves.DELETE("/:id", S.DeleteLeaveHandler)
