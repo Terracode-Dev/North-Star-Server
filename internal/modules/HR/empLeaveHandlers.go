@@ -2,6 +2,7 @@ package hr
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -26,6 +27,7 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 			"msg": "invalid email",
 		})
 	}
+	log.Printf("empId: %d", empId)
 
 	leaveData, err := s.q.GetEmployeeLeaveBenefits(c.Request().Context(), empId)
 	if err != nil {
