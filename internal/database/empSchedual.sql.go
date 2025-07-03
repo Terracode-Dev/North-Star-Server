@@ -164,6 +164,42 @@ func (q *Queries) DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	return err
 }
 
+const getEmployeeByEmail = `-- name: GetEmployeeByEmail :one
+SELECT 
+    e.id as employee_id,
+    e.first_name,
+    e.last_name,
+    s.department,
+    s.designation
+FROM HR_Employee e
+INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
+WHERE e.email = ?
+  AND CURDATE() BETWEEN s.valid_from AND s.valid_till
+ORDER BY s.created_at DESC
+LIMIT 1
+`
+
+type GetEmployeeByEmailRow struct {
+	EmployeeID  int64  `json:"employee_id"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Department  string `json:"department"`
+	Designation string `json:"designation"`
+}
+
+func (q *Queries) GetEmployeeByEmail(ctx context.Context, email string) (GetEmployeeByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getEmployeeByEmail, email)
+	var i GetEmployeeByEmailRow
+	err := row.Scan(
+		&i.EmployeeID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Department,
+		&i.Designation,
+	)
+	return i, err
+}
+
 const getEmployeeIdByEmail = `-- name: GetEmployeeIdByEmail :one
 SELECT employee_id FROM HR_EMP_User WHERE email = ?
 `
