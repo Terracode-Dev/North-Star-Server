@@ -11,16 +11,28 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type GetEmployeeIdByEmailRequest struct {
+	Email string `json:"email" query:"email"`
+}
+
 func (s *HRService) GetEmployeeIdByEmail(c echo.Context) error {
-	email := c.QueryParam("email")
-	if email == "" {
+	// email := c.QueryParam("email")
+	var req GetEmployeeIdByEmailRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request body",
+		})
+	}
+	fmt.Println("Email received:", req.Email)
+	if req.Email == "" {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "email parameter is required",
 		})
 	}
 
-	employee, err := s.q.GetEmployeeByEmail(c.Request().Context(), email)
+	employee, err := s.q.GetEmployeeByEmail(c.Request().Context(), req.Email)
 	if err != nil {
+		fmt.Println("Error fetching employee by email:", err)
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusNotFound, map[string]string{
 				"error": "employee not found",
@@ -34,7 +46,7 @@ func (s *HRService) GetEmployeeIdByEmail(c echo.Context) error {
 	// Create response with the required format
 	response := EmployeeResponse{
 		ID:         employee.EmployeeID,
-		Email:      email,
+		Email:      req.Email,
 		Name:       fmt.Sprintf("%s %s", employee.FirstName, employee.LastName),
 		Department: employee.Department,
 		Position:   employee.Designation,

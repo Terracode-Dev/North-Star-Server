@@ -166,7 +166,7 @@ func (q *Queries) DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 
 const getEmployeeByEmail = `-- name: GetEmployeeByEmail :one
 SELECT 
-    e.id as employee_id,
+    e.id AS employee_id,
     e.first_name,
     e.last_name,
     s.department,
@@ -174,7 +174,6 @@ SELECT
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 WHERE e.email = ?
-  AND CURDATE() BETWEEN s.valid_from AND s.valid_till
 ORDER BY s.created_at DESC
 LIMIT 1
 `

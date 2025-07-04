@@ -128,7 +128,7 @@ func (S *HRService) registerRoutes() {
 	empSchedule := hrRoute.Group("/schedule")
 
 	// Employee lookup
-	empSchedule.GET("/employee/id-by-email", S.GetEmployeeIdByEmail)
+	empSchedule.POST("/employee/id-by-email", S.GetEmployeeIdByEmail)
 
 	// Schedule CRUD operations
 	empSchedule.POST("/employee/schedule", S.CreateEmployeeSchedule)
