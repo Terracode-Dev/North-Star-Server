@@ -125,7 +125,7 @@ func (S *HRService) registerRoutes() {
 	leaves.GET("/:id/emp-leave", S.GetEmployeeLeavesHandler)
 	leaves.GET("/:id/benifit-leave", S.GetEmployeeLeaveBenefitsHandler)
 
-	empSchedule := hrRoute.Group("/scheduale")
+	empSchedule := hrRoute.Group("/schedule")
 
 	// Employee lookup
 	empSchedule.GET("/employee/id-by-email", S.GetEmployeeIdByEmail)

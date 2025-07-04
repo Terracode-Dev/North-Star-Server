@@ -2,6 +2,7 @@ package hr
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GetEmployeeIdByEmail - GET /api/employee/id-by-email?email=...
 func (s *HRService) GetEmployeeIdByEmail(c echo.Context) error {
 	email := c.QueryParam("email")
 	if email == "" {
@@ -19,7 +19,7 @@ func (s *HRService) GetEmployeeIdByEmail(c echo.Context) error {
 		})
 	}
 
-	empID, err := s.q.GetEmployeeIdByEmail(c.Request().Context(), email)
+	employee, err := s.q.GetEmployeeByEmail(c.Request().Context(), email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusNotFound, map[string]string{
@@ -27,13 +27,20 @@ func (s *HRService) GetEmployeeIdByEmail(c echo.Context) error {
 			})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "failed to get employee ID",
+			"error": "failed to get employee information",
 		})
 	}
 
-	return c.JSON(http.StatusOK, map[string]int64{
-		"employee_id": empID,
-	})
+	// Create response with the required format
+	response := EmployeeResponse{
+		ID:         employee.EmployeeID,
+		Email:      email,
+		Name:       fmt.Sprintf("%s %s", employee.FirstName, employee.LastName),
+		Department: employee.Department,
+		Position:   employee.Designation,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // CreateEmployeeSchedule - POST /api/employee/schedule
