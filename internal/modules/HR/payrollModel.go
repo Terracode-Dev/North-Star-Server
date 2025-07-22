@@ -13,7 +13,7 @@ import (
 )
 
 type CreatePayrollReqModel struct {
-	Employee                   string  `json:"employee"`
+	EmployeeID                 int64   `json:"emp_id"`
 	Date                       string  `json:"date"`
 	SalaryType                 string  `json:"salary_type"`
 	Amount                     string  `json:"amount"`
@@ -66,6 +66,12 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 	total_net_salary_after_tax, err := decimal.NewFromString(A.TotalNetSalaryAfterTax)
 	if err != nil {
 		return db.CreatePayrollParams{}, fmt.Errorf("invalid total_net_salary_after_tax format: %v", err)
+	}
+
+	var emp_id sql.NullInt64
+	if A.EmployeeID != 0 {
+		emp_id.Int64 = A.EmployeeID
+		emp_id.Valid = true
 	}
 
 	var tax_percentage sql.NullString
@@ -169,7 +175,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 	}
 
 	return db.CreatePayrollParams{
-		Employee:                   A.Employee,
+		EmpID:                      emp_id,
 		Date:                       date,
 		SalaryType:                 A.SalaryType,
 		Amount:                     amount,
@@ -255,7 +261,6 @@ func (A *CreatePayrollReqModel) ToUpdatePayrollParams(id int64, admin_id int64) 
 	}
 
 	return db.UpdatePayrollParams{
-		Employee:                   A.Employee,
 		Date:                       date,
 		SalaryType:                 A.SalaryType,
 		Amount:                     amount,

@@ -1209,3 +1209,14 @@ func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]bool{"is_assigned": value})
 }
 
+func (S *HRService) BanUser(c echo.Context) error {
+	var req database.BanEmployeeParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, "Error binding request")
+	}
+	err := S.q.BanEmployee(c.Request().Context(), req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
+	}
+	return c.JSON(http.StatusOK, map[string]string{"message": "User banned successfully"})	
+}

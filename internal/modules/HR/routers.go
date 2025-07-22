@@ -39,6 +39,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/employee/login", S.employeeLogin)
 	hrRoute.PUT("/employee/empbank", S.empOnlyBankDetailsUpdate, rba.AuthMiddelware([]string{"emp"}))
 	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/employee/ban", S.BanUser, rba.AuthMiddelware([]string{"admin", "mod"}))
 	// Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
@@ -139,4 +140,12 @@ func (S *HRService) registerRoutes() {
 	// Employee list with work days
 	empSchedule.GET("/employees", S.GetEmployeeList)
 	empSchedule.GET("/employee/:id/workdays-breakdown", S.GetEmployeeWorkDaysBreakdown)
+
+	//reports 
+	hrReports := hrRoute.Group("/reports")
+	hrReports.POST("/salary-transfer", S.SalaryTransfer, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrReports.GET("/expired-visa-or-reports", S.GetExpiredVisaOrReports, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrReports.GET("/soon-expiring-passports-and-reports", S.GetSoonExpiringPassportsAndReports, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrReports.POST("/staff-payroll", S.GetStaffPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrReports.GET("/employee-insurance", S.GetemployeeInsurance, rba.AuthMiddelware([]string{"admin", "mod"}))
 }
