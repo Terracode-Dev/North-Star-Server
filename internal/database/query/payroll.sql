@@ -1,6 +1,6 @@
 -- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
-    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, er_id, updated_by
+    emp_id, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, er_id, updated_by
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
@@ -14,7 +14,7 @@ LIMIT ? OFFSET ?;
 -- name: GetOnePayroll :many
 SELECT 
     p.id AS payroll_id,
-    p.employee,
+    p.emp_id,
     p.date,
     p.salary_type,
     p.amount,
@@ -49,7 +49,7 @@ WHERE p.id = ?;
 -- name: UpdatePayroll :exec
 UPDATE HR_Payroll
 SET
-    employee = ?,
+    emp_id = ?,
     date = ?,
     salary_type = ?,
     amount = ?,

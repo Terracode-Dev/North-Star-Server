@@ -13,6 +13,20 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const banEmployee = `-- name: BanEmployee :exec
+UPDATE HR_Employee SET is_ban = ? WHERE id = ?
+`
+
+type BanEmployeeParams struct {
+	IsBan bool  `json:"is_ban"`
+	ID    int64 `json:"id"`
+}
+
+func (q *Queries) BanEmployee(ctx context.Context, arg BanEmployeeParams) error {
+	_, err := q.db.ExecContext(ctx, banEmployee, arg.IsBan, arg.ID)
+	return err
+}
+
 const checkTrainerAssignmentAtTime = `-- name: CheckTrainerAssignmentAtTime :one
 SELECT 
     EXISTS (

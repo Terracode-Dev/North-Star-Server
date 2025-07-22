@@ -303,6 +303,7 @@ type HrEmployee struct {
 	UpdatedBy         sql.NullInt64 `json:"updated_by"`
 	CreatedAt         sql.NullTime  `json:"created_at"`
 	UpdatedAt         sql.NullTime  `json:"updated_at"`
+	IsBan             bool          `json:"is_ban"`
 }
 
 type HrFilesubmit struct {
@@ -316,7 +317,6 @@ type HrFilesubmit struct {
 
 type HrPayroll struct {
 	ID                         int64           `json:"id"`
-	Employee                   string          `json:"employee"`
 	Date                       time.Time       `json:"date"`
 	SalaryType                 string          `json:"salary_type"`
 	Amount                     decimal.Decimal `json:"amount"`
@@ -338,6 +338,7 @@ type HrPayroll struct {
 	TotalNetSalaryType         string          `json:"total_net_salary_type"`
 	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
 	ErID                       sql.NullInt64   `json:"er_id"`
+	EmpID                      sql.NullInt64   `json:"emp_id"`
 }
 
 type HrPayrollAllowance struct {
