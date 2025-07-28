@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"net/http"
 	"github.com/labstack/echo/v4"
+    "github.com/Terracode-Dev/North-Star-Server/internal/database"
 )
 
 func (S *HRService) SalaryTransfer(c echo.Context) error {
-    var req ReportsReq
+    var req GetAccountDetailsReqParams
     if err := c.Bind(&req); err != nil {
         return c.JSON(http.StatusBadRequest, err.Error())
     }
@@ -39,7 +40,11 @@ func (S *HRService) SalaryTransfer(c echo.Context) error {
 }
 
 func (S *HRService) GetExpiredVisaOrReports(c echo.Context) error {
-	data, err := S.q.GetExpiredVisaOrReports(c.Request().Context())
+    var req database.GetExpiredVisaOrReportsParams
+    if err := c.Bind(&req); err != nil {
+        return c.JSON(http.StatusBadRequest, err.Error())
+    }
+	data, err := S.q.GetExpiredVisaOrReports(c.Request().Context(), req)
     if err != nil {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No expired visa or reports found")
@@ -50,7 +55,12 @@ func (S *HRService) GetExpiredVisaOrReports(c echo.Context) error {
 }
 
 func (S *HRService) GetSoonExpiringPassportsAndReports(c echo.Context) error {
-    data, err := S.q.GetVisaOrPassportExpiringSoon(c.Request().Context())
+    var req database.GetVisaOrPassportExpiringSoonParams
+    if err := c.Bind(&req); err != nil {
+        return c.JSON(http.StatusBadRequest, err.Error())
+    }
+
+    data, err := S.q.GetVisaOrPassportExpiringSoon(c.Request().Context(), req)
     if err != nil {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No soon expiring passports or reports found")
@@ -61,7 +71,7 @@ func (S *HRService) GetSoonExpiringPassportsAndReports(c echo.Context) error {
 }
 
 func (S *HRService) GetStaffPayroll(c echo.Context) error {
-    var req ReportsReq
+    var req GetStaffPayrollReqParams
     if err := c.Bind(&req); err != nil {
         return c.JSON(http.StatusBadRequest, err.Error())
     }
@@ -74,13 +84,17 @@ func (S *HRService) GetStaffPayroll(c echo.Context) error {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No staff payroll found for the given date")
         }
-        return c.JSON(http.StatusInternalServerError, "Error fetching staff payroll")
+        return c.JSON(http.StatusInternalServerError, err.Error())
     }
     return c.JSON(http.StatusOK, data)
 }
 
 func (S *HRService) GetemployeeInsurance(c echo.Context) error {
-    data , err := S.q.GetempployeeInsurance(c.Request().Context())
+    branchID, err := strconv.ParseInt(c.Param("branch_id"), 10, 64)
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, "Invalid branch ID")
+    }
+    data , err := S.q.GetempployeeInsurance(c.Request().Context() , branchID)
     if err != nil {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No employee insurance found")

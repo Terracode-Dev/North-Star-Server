@@ -6,6 +6,8 @@ SELECT
     s.designation,
     s.status as employee_status,
     CONCAT(DATE_FORMAT(s.valid_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(s.valid_till, '%Y-%m-%d')) as status_from_to,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     ex.nationality,
     ex.visa_type,
     e.passport_id as passport_no,
@@ -14,10 +16,17 @@ SELECT
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 INNER JOIN HR_EMP_Expatriate ex ON e.id = ex.employee_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE (
     ex.visa_till < CONVERT_TZ(NOW(), '+00:00', '+05:00') 
     OR e.passport_valid_till < CONVERT_TZ(NOW(), '+00:00', '+05:00')
-);
+)
+AND (
+    u.branch_id = ? OR u.branch_id = ''
+)
+ORDER BY e.id
+LIMIT ? OFFSET ?;
 
 -- name: GetVisaOrPassportExpiringSoon :many
 SELECT 
@@ -27,6 +36,8 @@ SELECT
     s.designation,
     s.status as employee_status,
     CONCAT(DATE_FORMAT(s.valid_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(s.valid_till, '%Y-%m-%d')) as status_from_to,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     ex.nationality,
     ex.visa_type,
     e.passport_id as passport_no,
@@ -35,6 +46,8 @@ SELECT
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 INNER JOIN HR_EMP_Expatriate ex ON e.id = ex.employee_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE (
     (
         ex.visa_till > CONVERT_TZ(NOW(), '+00:00', '+05:00') AND
@@ -45,7 +58,12 @@ WHERE (
         e.passport_valid_till > CONVERT_TZ(NOW(), '+00:00', '+05:00') AND
         e.passport_valid_till <= DATE_ADD(CONVERT_TZ(NOW(), '+00:00', '+05:00'), INTERVAL 7 DAY)
     )
-);
+)
+AND (
+     u.branch_id = ? OR u.branch_id = ''
+)
+ORDER BY e.id
+LIMIT ? OFFSET ?;
 
 -- name: GetStaffPayroll :many
 SELECT 
@@ -54,6 +72,8 @@ SELECT
     s.department,
     s.designation,
     s.status as employee_status,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     DATE_FORMAT(p.date, '%Y-%m') as month,
     p.amount as gross_salary,
     p.total_of_salary_allowances as allowance,
@@ -65,20 +85,33 @@ SELECT
     p.created_at as process_date
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
-INNER JOIN HR_Payroll p ON e.id = p.employee
-WHERE (
-    Month(CONVERT_TZ(p.date,'+00:00', '+05:00'))  = Month(?)
-);
+INNER JOIN HR_Payroll p ON e.id = p.emp_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
+WHERE 
+    DATE_FORMAT(CONVERT_TZ(p.date, '+00:00', '+05:00'), '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
+    AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+    OR (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+    AND (
+        u.branch_id = ? OR ? = 0
+    );
 
 -- name: GetAccountDetails :many
 SELECT 
     b.account_number as account_number,
     b.account_holder as account_name,
-    p.total_net_salary_after_tax as amount_paid
+    p.total_net_salary_after_tax as amount_paid,
+    u.branch_id as branch_id,
+    br.name as branch_name
 FROM HR_EMP_Bank_Details b
 INNER JOIN HR_Payroll p ON b.employee_id = p.emp_id
+INNER JOIN HR_EMP_User u ON b.employee_id = u.employee_id
+INNER JOIN HR_Branch br ON u.branch_id = br.id
 WHERE (
-    Month(CONVERT_TZ(p.date,'+00:00', '+05:00'))  = Month(?)
+DATE_FORMAT(CONVERT_TZ(p.date, '+00:00', '+05:00'), '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
+    AND (
+        u.branch_id = ? OR u.branch_id = ''
+    )
 );
 
 -- name: GetempployeeInsurance :many
@@ -89,11 +122,18 @@ SELECT
     s.designation,
     s.status as employee_status,
     CONCAT(DATE_FORMAT(s.valid_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(s.valid_till, '%Y-%m-%d')) as status_from_to,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     ex.nationality,
     i.health_insurance,
     CONCAT(DATE_FORMAT(i.insurance_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(i.insurance_till, '%Y-%m-%d')) as insurance_from_to
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 INNER JOIN HR_EMP_Expatriate ex ON e.id = ex.employee_id
-INNER JOIN HR_EMP_Benifits i ON e.id = i.employee_id;
+INNER JOIN HR_EMP_Benifits i ON e.id = i.employee_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
+WHERE (
+    u.branch_id = ? OR u.branch_id = ''
+);
 

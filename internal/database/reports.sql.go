@@ -17,22 +17,36 @@ const getAccountDetails = `-- name: GetAccountDetails :many
 SELECT 
     b.account_number as account_number,
     b.account_holder as account_name,
-    p.total_net_salary_after_tax as amount_paid
+    p.total_net_salary_after_tax as amount_paid,
+    u.branch_id as branch_id,
+    br.name as branch_name
 FROM HR_EMP_Bank_Details b
 INNER JOIN HR_Payroll p ON b.employee_id = p.emp_id
+INNER JOIN HR_EMP_User u ON b.employee_id = u.employee_id
+INNER JOIN HR_Branch br ON u.branch_id = br.id
 WHERE (
-    Month(CONVERT_TZ(p.date,'+00:00', '+05:00'))  = Month(?)
+DATE_FORMAT(CONVERT_TZ(p.date, '+00:00', '+05:00'), '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
+    AND (
+        u.branch_id = ? OR u.branch_id = ''
+    )
 )
 `
+
+type GetAccountDetailsParams struct {
+	DATEFORMAT time.Time `json:"DATE_FORMAT"`
+	BranchID   int64     `json:"branch_id"`
+}
 
 type GetAccountDetailsRow struct {
 	AccountNumber string          `json:"account_number"`
 	AccountName   string          `json:"account_name"`
 	AmountPaid    decimal.Decimal `json:"amount_paid"`
+	BranchID      int64           `json:"branch_id"`
+	BranchName    string          `json:"branch_name"`
 }
 
-func (q *Queries) GetAccountDetails(ctx context.Context, month time.Time) ([]GetAccountDetailsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getAccountDetails, month)
+func (q *Queries) GetAccountDetails(ctx context.Context, arg GetAccountDetailsParams) ([]GetAccountDetailsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAccountDetails, arg.DATEFORMAT, arg.BranchID)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +54,13 @@ func (q *Queries) GetAccountDetails(ctx context.Context, month time.Time) ([]Get
 	var items []GetAccountDetailsRow
 	for rows.Next() {
 		var i GetAccountDetailsRow
-		if err := rows.Scan(&i.AccountNumber, &i.AccountName, &i.AmountPaid); err != nil {
+		if err := rows.Scan(
+			&i.AccountNumber,
+			&i.AccountName,
+			&i.AmountPaid,
+			&i.BranchID,
+			&i.BranchName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -62,6 +82,8 @@ SELECT
     s.designation,
     s.status as employee_status,
     CONCAT(DATE_FORMAT(s.valid_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(s.valid_till, '%Y-%m-%d')) as status_from_to,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     ex.nationality,
     ex.visa_type,
     e.passport_id as passport_no,
@@ -70,11 +92,24 @@ SELECT
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 INNER JOIN HR_EMP_Expatriate ex ON e.id = ex.employee_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE (
     ex.visa_till < CONVERT_TZ(NOW(), '+00:00', '+05:00') 
     OR e.passport_valid_till < CONVERT_TZ(NOW(), '+00:00', '+05:00')
 )
+AND (
+    u.branch_id = ? OR u.branch_id = ''
+)
+ORDER BY e.id
+LIMIT ? OFFSET ?
 `
+
+type GetExpiredVisaOrReportsParams struct {
+	BranchID int64 `json:"branch_id"`
+	Limit    int32 `json:"limit"`
+	Offset   int32 `json:"offset"`
+}
 
 type GetExpiredVisaOrReportsRow struct {
 	EmployeeID     int64  `json:"employee id"`
@@ -83,6 +118,8 @@ type GetExpiredVisaOrReportsRow struct {
 	Designation    string `json:"designation"`
 	EmployeeStatus string `json:"employee_status"`
 	StatusFromTo   string `json:"status_from_to"`
+	BranchID       int64  `json:"branch_id"`
+	BranchName     string `json:"branch_name"`
 	Nationality    string `json:"nationality"`
 	VisaType       string `json:"visa_type"`
 	PassportNo     string `json:"passport_no"`
@@ -90,8 +127,8 @@ type GetExpiredVisaOrReportsRow struct {
 	VisaFromTo     string `json:"visa_from_to"`
 }
 
-func (q *Queries) GetExpiredVisaOrReports(ctx context.Context) ([]GetExpiredVisaOrReportsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getExpiredVisaOrReports)
+func (q *Queries) GetExpiredVisaOrReports(ctx context.Context, arg GetExpiredVisaOrReportsParams) ([]GetExpiredVisaOrReportsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getExpiredVisaOrReports, arg.BranchID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +143,8 @@ func (q *Queries) GetExpiredVisaOrReports(ctx context.Context) ([]GetExpiredVisa
 			&i.Designation,
 			&i.EmployeeStatus,
 			&i.StatusFromTo,
+			&i.BranchID,
+			&i.BranchName,
 			&i.Nationality,
 			&i.VisaType,
 			&i.PassportNo,
@@ -132,6 +171,8 @@ SELECT
     s.department,
     s.designation,
     s.status as employee_status,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     DATE_FORMAT(p.date, '%Y-%m') as month,
     p.amount as gross_salary,
     p.total_of_salary_allowances as allowance,
@@ -143,11 +184,27 @@ SELECT
     p.created_at as process_date
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
-INNER JOIN HR_Payroll p ON e.id = p.employee
-WHERE (
-    Month(CONVERT_TZ(p.date,'+00:00', '+05:00'))  = Month(?)
-)
+INNER JOIN HR_Payroll p ON e.id = p.emp_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
+WHERE 
+    DATE_FORMAT(CONVERT_TZ(p.date, '+00:00', '+05:00'), '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
+    AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+    OR (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+    AND (
+        u.branch_id = ? OR ? = 0
+    )
 `
+
+type GetStaffPayrollParams struct {
+	DATEFORMAT time.Time   `json:"DATE_FORMAT"`
+	Column2    interface{} `json:"column_2"`
+	CONCAT     interface{} `json:"CONCAT"`
+	Column4    interface{} `json:"column_4"`
+	CONCAT_2   interface{} `json:"CONCAT_2"`
+	BranchID   int64       `json:"branch_id"`
+	Column7    interface{} `json:"column_7"`
+}
 
 type GetStaffPayrollRow struct {
 	EmployeeID        int64           `json:"employee id"`
@@ -155,6 +212,8 @@ type GetStaffPayrollRow struct {
 	Department        string          `json:"department"`
 	Designation       string          `json:"designation"`
 	EmployeeStatus    string          `json:"employee_status"`
+	BranchID          int64           `json:"branch_id"`
+	BranchName        string          `json:"branch_name"`
 	Month             string          `json:"month"`
 	GrossSalary       decimal.Decimal `json:"gross_salary"`
 	Allowance         decimal.Decimal `json:"allowance"`
@@ -166,8 +225,16 @@ type GetStaffPayrollRow struct {
 	ProcessDate       sql.NullTime    `json:"process_date"`
 }
 
-func (q *Queries) GetStaffPayroll(ctx context.Context, month time.Time) ([]GetStaffPayrollRow, error) {
-	rows, err := q.db.QueryContext(ctx, getStaffPayroll, month)
+func (q *Queries) GetStaffPayroll(ctx context.Context, arg GetStaffPayrollParams) ([]GetStaffPayrollRow, error) {
+	rows, err := q.db.QueryContext(ctx, getStaffPayroll,
+		arg.DATEFORMAT,
+		arg.Column2,
+		arg.CONCAT,
+		arg.Column4,
+		arg.CONCAT_2,
+		arg.BranchID,
+		arg.Column7,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -181,6 +248,8 @@ func (q *Queries) GetStaffPayroll(ctx context.Context, month time.Time) ([]GetSt
 			&i.Department,
 			&i.Designation,
 			&i.EmployeeStatus,
+			&i.BranchID,
+			&i.BranchName,
 			&i.Month,
 			&i.GrossSalary,
 			&i.Allowance,
@@ -212,6 +281,8 @@ SELECT
     s.designation,
     s.status as employee_status,
     CONCAT(DATE_FORMAT(s.valid_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(s.valid_till, '%Y-%m-%d')) as status_from_to,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     ex.nationality,
     ex.visa_type,
     e.passport_id as passport_no,
@@ -220,6 +291,8 @@ SELECT
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 INNER JOIN HR_EMP_Expatriate ex ON e.id = ex.employee_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE (
     (
         ex.visa_till > CONVERT_TZ(NOW(), '+00:00', '+05:00') AND
@@ -231,7 +304,18 @@ WHERE (
         e.passport_valid_till <= DATE_ADD(CONVERT_TZ(NOW(), '+00:00', '+05:00'), INTERVAL 7 DAY)
     )
 )
+AND (
+     u.branch_id = ? OR u.branch_id = ''
+)
+ORDER BY e.id
+LIMIT ? OFFSET ?
 `
+
+type GetVisaOrPassportExpiringSoonParams struct {
+	BranchID int64 `json:"branch_id"`
+	Limit    int32 `json:"limit"`
+	Offset   int32 `json:"offset"`
+}
 
 type GetVisaOrPassportExpiringSoonRow struct {
 	EmployeeID     int64  `json:"employee id"`
@@ -240,6 +324,8 @@ type GetVisaOrPassportExpiringSoonRow struct {
 	Designation    string `json:"designation"`
 	EmployeeStatus string `json:"employee_status"`
 	StatusFromTo   string `json:"status_from_to"`
+	BranchID       int64  `json:"branch_id"`
+	BranchName     string `json:"branch_name"`
 	Nationality    string `json:"nationality"`
 	VisaType       string `json:"visa_type"`
 	PassportNo     string `json:"passport_no"`
@@ -247,8 +333,8 @@ type GetVisaOrPassportExpiringSoonRow struct {
 	VisaFromTo     string `json:"visa_from_to"`
 }
 
-func (q *Queries) GetVisaOrPassportExpiringSoon(ctx context.Context) ([]GetVisaOrPassportExpiringSoonRow, error) {
-	rows, err := q.db.QueryContext(ctx, getVisaOrPassportExpiringSoon)
+func (q *Queries) GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error) {
+	rows, err := q.db.QueryContext(ctx, getVisaOrPassportExpiringSoon, arg.BranchID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -263,6 +349,8 @@ func (q *Queries) GetVisaOrPassportExpiringSoon(ctx context.Context) ([]GetVisaO
 			&i.Designation,
 			&i.EmployeeStatus,
 			&i.StatusFromTo,
+			&i.BranchID,
+			&i.BranchName,
 			&i.Nationality,
 			&i.VisaType,
 			&i.PassportNo,
@@ -290,6 +378,8 @@ SELECT
     s.designation,
     s.status as employee_status,
     CONCAT(DATE_FORMAT(s.valid_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(s.valid_till, '%Y-%m-%d')) as status_from_to,
+    u.branch_id as branch_id,
+    b.name as branch_name,
     ex.nationality,
     i.health_insurance,
     CONCAT(DATE_FORMAT(i.insurance_from, '%Y-%m-%d'), ' / ', DATE_FORMAT(i.insurance_till, '%Y-%m-%d')) as insurance_from_to
@@ -297,6 +387,11 @@ FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 INNER JOIN HR_EMP_Expatriate ex ON e.id = ex.employee_id
 INNER JOIN HR_EMP_Benifits i ON e.id = i.employee_id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
+WHERE (
+    u.branch_id = ? OR u.branch_id = ''
+)
 `
 
 type GetempployeeInsuranceRow struct {
@@ -306,13 +401,15 @@ type GetempployeeInsuranceRow struct {
 	Designation     string `json:"designation"`
 	EmployeeStatus  string `json:"employee_status"`
 	StatusFromTo    string `json:"status_from_to"`
+	BranchID        int64  `json:"branch_id"`
+	BranchName      string `json:"branch_name"`
 	Nationality     string `json:"nationality"`
 	HealthInsurance string `json:"health_insurance"`
 	InsuranceFromTo string `json:"insurance_from_to"`
 }
 
-func (q *Queries) GetempployeeInsurance(ctx context.Context) ([]GetempployeeInsuranceRow, error) {
-	rows, err := q.db.QueryContext(ctx, getempployeeInsurance)
+func (q *Queries) GetempployeeInsurance(ctx context.Context, branchID int64) ([]GetempployeeInsuranceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getempployeeInsurance, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -327,6 +424,8 @@ func (q *Queries) GetempployeeInsurance(ctx context.Context) ([]GetempployeeInsu
 			&i.Designation,
 			&i.EmployeeStatus,
 			&i.StatusFromTo,
+			&i.BranchID,
+			&i.BranchName,
 			&i.Nationality,
 			&i.HealthInsurance,
 			&i.InsuranceFromTo,
