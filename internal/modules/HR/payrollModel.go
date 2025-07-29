@@ -350,17 +350,16 @@ type PayrollAllowances struct {
 }
 
 type GetPayrollsReqModel struct {
-	Limit      int32 `json:"limit"`
-	PageNumber int32 `json:"page"`
+	Limit    int32 `json:"limit"`
+	Offset   int32 `json:"offset"`
 }
 
-func (A *GetPayrollsReqModel) ToGetPayrollsParams() (db.GetPayrollsParams, error) {
-
-	offset := (A.PageNumber - 1) * A.Limit
+func (A *GetPayrollsReqModel) ToGetPayrollsParams(id int64) (db.GetPayrollsParams, error) {
 
 	return db.GetPayrollsParams{
-		Limit:  A.Limit,
-		Offset: offset,
+		BranchID: id,
+		Limit:    A.Limit,
+		Offset:   A.Offset,
 	}, nil
 }
 

@@ -7,8 +7,39 @@ INSERT INTO HR_Payroll (
 SELECT LAST_INSERT_ID() AS id;
 
 -- name: GetPayrolls :many
-SELECT * FROM HR_Payroll
-ORDER BY id DESC
+SELECT 
+    p.id,
+    p.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+    p.date,
+    p.salary_type,
+    p.amount,
+    p.salary_amount_type,
+    p.total_of_salary_allowances,
+    p.total_allowances_type,
+    p.pension,
+    p.pension_employer,
+    p.pension_employer_type,
+    p.pension_employee,
+    p.pension_employee_type,
+    p.total_net_salary,
+    p.total_net_salary_type,
+    p.tax,
+    p.tax_percentage,
+    p.total_net_salary_after_tax,
+    p.total_net_salary_after_tax_type,
+    p.er_id,
+    p.updated_by,
+    p.created_at,
+    p.updated_at,
+    u.branch_id,
+    b.name as branch_name
+FROM HR_Payroll p
+INNER JOIN HR_Employee e ON p.emp_id = e.id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
+WHERE u.branch_id = ?
+ORDER BY p.id DESC
 LIMIT ? OFFSET ?;
 
 -- name: GetOnePayroll :many

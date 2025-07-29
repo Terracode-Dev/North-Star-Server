@@ -105,7 +105,7 @@ type Querier interface {
 	GetLeaveById(ctx context.Context, id int64) (GetLeaveByIdRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
-	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
+	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]GetPayrollsRow, error)
 	GetService(ctx context.Context, category string) ([]GetServiceRow, error)
 	GetServices(ctx context.Context) ([]HrCreateService, error)
 	GetStaffPayroll(ctx context.Context, arg GetStaffPayrollParams) ([]GetStaffPayrollRow, error)
