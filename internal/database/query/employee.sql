@@ -373,6 +373,17 @@ SELECT
 -- name: BanEmployee :exec
 UPDATE HR_Employee SET is_ban = ? WHERE id = ?;
 
+-- name: GetBranchwiseEmpCount :one
+SELECT 
+    b.id as branch_id,
+    b.name as branch_name,
+    COUNT(e.id) as employee_count
+FROM HR_Branch b
+LEFT JOIN HR_EMP_User u ON b.id = u.branch_id
+LEFT JOIN HR_Employee e ON u.employee_id = e.id
+WHERE b.id = ?
+GROUP BY b.id, b.name;
+
 
 
 
