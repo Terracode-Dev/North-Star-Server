@@ -63,7 +63,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/tax", S.createTax, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/tax/:id", S.deleteTax, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/payroll", S.createPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/calculatetrainercom/:trainer_id", S.CalculateTrainerCommision)
@@ -144,8 +144,8 @@ func (S *HRService) registerRoutes() {
 	//reports 
 	hrReports := hrRoute.Group("/reports")
 	hrReports.POST("/salary-transfer", S.SalaryTransfer, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrReports.GET("/expired-visa-or-reports", S.GetExpiredVisaOrReports, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrReports.GET("/soon-expiring-passports-and-reports", S.GetSoonExpiringPassportsAndReports, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrReports.POST("/staff-payroll", S.GetStaffPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrReports.GET("/employee-insurance", S.GetemployeeInsurance, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrReports.POST("/expired-visa-or-reports", S.GetExpiredVisaOrReports)
+	hrReports.POST("/soon-expiring-passports-and-reports", S.GetSoonExpiringPassportsAndReports)
+	hrReports.POST("/staff-payroll", S.GetStaffPayroll)
+	hrReports.GET("/employee-insurance/:branch_id", S.GetemployeeInsurance)
 }
