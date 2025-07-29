@@ -111,7 +111,7 @@ func (S *HRService) createPayroll(c echo.Context) error {
 // @Failure 500 {string} string "internal server error"
 // @Router /payroll [get]
 func (S *HRService) getPayroll(c echo.Context) error {
-	branch_id , ok := c.Get("branch_id").(int)
+	branch_id , ok := c.Get("branch").(int)
 	if !ok {
 		return c.JSON(400, "branch not found")
 	}
