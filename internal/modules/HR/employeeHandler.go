@@ -1220,3 +1220,15 @@ func (S *HRService) BanUser(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, map[string]string{"message": "User banned successfully"})	
 }
+
+func (S *HRService) GetEmpCountByBranch(c echo.Context) error {
+	branchID, ok := c.Get("branch").(int)
+	if !ok {
+		return c.JSON(http.StatusInternalServerError, "Error getting branch ID")
+	}
+	count, err := S.q.GetBranchwiseEmpCount(c.Request().Context(), int64(branchID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
+	}
+	return c.JSON(http.StatusOK, count)
+}

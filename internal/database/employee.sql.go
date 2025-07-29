@@ -631,6 +631,31 @@ func (q *Queries) EmployeeLogin(ctx context.Context, email string) (EmployeeLogi
 	return i, err
 }
 
+const getBranchwiseEmpCount = `-- name: GetBranchwiseEmpCount :one
+SELECT 
+    b.id as branch_id,
+    b.name as branch_name,
+    COUNT(e.id) as employee_count
+FROM HR_Branch b
+LEFT JOIN HR_EMP_User u ON b.id = u.branch_id
+LEFT JOIN HR_Employee e ON u.employee_id = e.id
+WHERE b.id = ?
+GROUP BY b.id, b.name
+`
+
+type GetBranchwiseEmpCountRow struct {
+	BranchID      int64  `json:"branch_id"`
+	BranchName    string `json:"branch_name"`
+	EmployeeCount int64  `json:"employee_count"`
+}
+
+func (q *Queries) GetBranchwiseEmpCount(ctx context.Context, id int64) (GetBranchwiseEmpCountRow, error) {
+	row := q.db.QueryRowContext(ctx, getBranchwiseEmpCount, id)
+	var i GetBranchwiseEmpCountRow
+	err := row.Scan(&i.BranchID, &i.BranchName, &i.EmployeeCount)
+	return i, err
+}
+
 const getCertificateFile = `-- name: GetCertificateFile :one
 SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'certificate'
 `
