@@ -49,14 +49,14 @@ func (q *Queries) CreateHRTrainerCom(ctx context.Context, arg CreateHRTrainerCom
 
 const createPayroll = `-- name: CreatePayroll :execresult
 INSERT INTO HR_Payroll (
-    employee, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, er_id, updated_by
+    emp_id, date, salary_type, amount, salary_amount_type, total_of_salary_allowances,total_allowances_type, pension, pension_employer, pension_employer_type, pension_employee, pension_employee_type, total_net_salary, total_net_salary_type, tax, tax_percentage, total_net_salary_after_tax, total_net_salary_after_tax_type, er_id, updated_by
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 `
 
 type CreatePayrollParams struct {
-	Employee                   string          `json:"employee"`
+	EmpID                      sql.NullInt64   `json:"emp_id"`
 	Date                       time.Time       `json:"date"`
 	SalaryType                 string          `json:"salary_type"`
 	Amount                     decimal.Decimal `json:"amount"`
@@ -80,7 +80,7 @@ type CreatePayrollParams struct {
 
 func (q *Queries) CreatePayroll(ctx context.Context, arg CreatePayrollParams) (sql.Result, error) {
 	return q.db.ExecContext(ctx, createPayroll,
-		arg.Employee,
+		arg.EmpID,
 		arg.Date,
 		arg.SalaryType,
 		arg.Amount,
@@ -133,7 +133,7 @@ func (q *Queries) CreatePayrollAllowances(ctx context.Context, arg CreatePayroll
 const getOnePayroll = `-- name: GetOnePayroll :many
 SELECT 
     p.id AS payroll_id,
-    p.employee,
+    p.emp_id,
     p.date,
     p.salary_type,
     p.amount,
@@ -168,7 +168,7 @@ WHERE p.id = ?
 
 type GetOnePayrollRow struct {
 	PayrollID                  int64           `json:"payroll_id"`
-	Employee                   string          `json:"employee"`
+	EmpID                      sql.NullInt64   `json:"emp_id"`
 	Date                       time.Time       `json:"date"`
 	SalaryType                 string          `json:"salary_type"`
 	Amount                     decimal.Decimal `json:"amount"`
@@ -208,7 +208,7 @@ func (q *Queries) GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollR
 		var i GetOnePayrollRow
 		if err := rows.Scan(
 			&i.PayrollID,
-			&i.Employee,
+			&i.EmpID,
 			&i.Date,
 			&i.SalaryType,
 			&i.Amount,
@@ -250,49 +250,113 @@ func (q *Queries) GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollR
 }
 
 const getPayrolls = `-- name: GetPayrolls :many
-SELECT id, employee, date, salary_type, amount, total_of_salary_allowances, pension, pension_employer, pension_employee, total_net_salary, tax, tax_percentage, total_net_salary_after_tax, updated_by, created_at, updated_at, salary_amount_type, total_allowances_type, pension_employer_type, pension_employee_type, total_net_salary_type, total_net_salary_after_tax_type, er_id FROM HR_Payroll
-ORDER BY id DESC
+SELECT 
+    p.id,
+    p.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as employee_name,
+    p.date,
+    p.salary_type,
+    p.amount,
+    p.salary_amount_type,
+    p.total_of_salary_allowances,
+    p.total_allowances_type,
+    p.pension,
+    p.pension_employer,
+    p.pension_employer_type,
+    p.pension_employee,
+    p.pension_employee_type,
+    p.total_net_salary,
+    p.total_net_salary_type,
+    p.tax,
+    p.tax_percentage,
+    p.total_net_salary_after_tax,
+    p.total_net_salary_after_tax_type,
+    p.er_id,
+    p.updated_by,
+    p.created_at,
+    p.updated_at,
+    u.branch_id,
+    b.name as branch_name
+FROM HR_Payroll p
+INNER JOIN HR_Employee e ON p.emp_id = e.id
+INNER JOIN HR_EMP_User u ON e.id = u.employee_id
+INNER JOIN HR_Branch b ON u.branch_id = b.id
+WHERE u.branch_id = ?
+ORDER BY p.id DESC
 LIMIT ? OFFSET ?
 `
 
 type GetPayrollsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	BranchID int64 `json:"branch_id"`
+	Limit    int32 `json:"limit"`
+	Offset   int32 `json:"offset"`
 }
 
-func (q *Queries) GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error) {
-	rows, err := q.db.QueryContext(ctx, getPayrolls, arg.Limit, arg.Offset)
+type GetPayrollsRow struct {
+	ID                         int64           `json:"id"`
+	EmpID                      sql.NullInt64   `json:"emp_id"`
+	EmployeeName               string          `json:"employee_name"`
+	Date                       time.Time       `json:"date"`
+	SalaryType                 string          `json:"salary_type"`
+	Amount                     decimal.Decimal `json:"amount"`
+	SalaryAmountType           string          `json:"salary_amount_type"`
+	TotalOfSalaryAllowances    decimal.Decimal `json:"total_of_salary_allowances"`
+	TotalAllowancesType        string          `json:"total_allowances_type"`
+	Pension                    bool            `json:"pension"`
+	PensionEmployer            sql.NullString  `json:"pension_employer"`
+	PensionEmployerType        sql.NullString  `json:"pension_employer_type"`
+	PensionEmployee            sql.NullString  `json:"pension_employee"`
+	PensionEmployeeType        sql.NullString  `json:"pension_employee_type"`
+	TotalNetSalary             decimal.Decimal `json:"total_net_salary"`
+	TotalNetSalaryType         string          `json:"total_net_salary_type"`
+	Tax                        bool            `json:"tax"`
+	TaxPercentage              sql.NullString  `json:"tax_percentage"`
+	TotalNetSalaryAfterTax     decimal.Decimal `json:"total_net_salary_after_tax"`
+	TotalNetSalaryAfterTaxType string          `json:"total_net_salary_after_tax_type"`
+	ErID                       sql.NullInt64   `json:"er_id"`
+	UpdatedBy                  sql.NullInt64   `json:"updated_by"`
+	CreatedAt                  sql.NullTime    `json:"created_at"`
+	UpdatedAt                  sql.NullTime    `json:"updated_at"`
+	BranchID                   int64           `json:"branch_id"`
+	BranchName                 string          `json:"branch_name"`
+}
+
+func (q *Queries) GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]GetPayrollsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPayrolls, arg.BranchID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []HrPayroll
+	var items []GetPayrollsRow
 	for rows.Next() {
-		var i HrPayroll
+		var i GetPayrollsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Employee,
+			&i.EmpID,
+			&i.EmployeeName,
 			&i.Date,
 			&i.SalaryType,
 			&i.Amount,
+			&i.SalaryAmountType,
 			&i.TotalOfSalaryAllowances,
+			&i.TotalAllowancesType,
 			&i.Pension,
 			&i.PensionEmployer,
+			&i.PensionEmployerType,
 			&i.PensionEmployee,
+			&i.PensionEmployeeType,
 			&i.TotalNetSalary,
+			&i.TotalNetSalaryType,
 			&i.Tax,
 			&i.TaxPercentage,
 			&i.TotalNetSalaryAfterTax,
+			&i.TotalNetSalaryAfterTaxType,
+			&i.ErID,
 			&i.UpdatedBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.SalaryAmountType,
-			&i.TotalAllowancesType,
-			&i.PensionEmployerType,
-			&i.PensionEmployeeType,
-			&i.TotalNetSalaryType,
-			&i.TotalNetSalaryAfterTaxType,
-			&i.ErID,
+			&i.BranchID,
+			&i.BranchName,
 		); err != nil {
 			return nil, err
 		}
@@ -350,7 +414,7 @@ func (q *Queries) GetTrainerEmpDataFromID(ctx context.Context, employeeID int64)
 const updatePayroll = `-- name: UpdatePayroll :exec
 UPDATE HR_Payroll
 SET
-    employee = ?,
+    emp_id = ?,
     date = ?,
     salary_type = ?,
     amount = ?,
@@ -373,7 +437,7 @@ WHERE id = ?
 `
 
 type UpdatePayrollParams struct {
-	Employee                   string          `json:"employee"`
+	EmpID                      sql.NullInt64   `json:"emp_id"`
 	Date                       time.Time       `json:"date"`
 	SalaryType                 string          `json:"salary_type"`
 	Amount                     decimal.Decimal `json:"amount"`
@@ -397,7 +461,7 @@ type UpdatePayrollParams struct {
 
 func (q *Queries) UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error {
 	_, err := q.db.ExecContext(ctx, updatePayroll,
-		arg.Employee,
+		arg.EmpID,
 		arg.Date,
 		arg.SalaryType,
 		arg.Amount,

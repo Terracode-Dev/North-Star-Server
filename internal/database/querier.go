@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	AddHRBranch(ctx context.Context, name string) error
 	AdminLogin(ctx context.Context, email string) (AdminLoginRow, error)
+	BanEmployee(ctx context.Context, arg BanEmployeeParams) error
 	CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
 	// Count total employees for pagination (with same filters)
@@ -77,6 +78,7 @@ type Querier interface {
 	DeleteTax(ctx context.Context, id int64) error
 	DeleteTrainerEmp(ctx context.Context, employeeID int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
+	GetAccountDetails(ctx context.Context, arg GetAccountDetailsParams) ([]GetAccountDetailsRow, error)
 	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
 	GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]GetAllLeavesRow, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
@@ -98,18 +100,22 @@ type Querier interface {
 	GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmployeeWorkDaysBreakdownParams) (GetEmployeeWorkDaysBreakdownRow, error)
 	GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error)
 	GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error)
+	GetExpiredVisaOrReports(ctx context.Context, arg GetExpiredVisaOrReportsParams) ([]GetExpiredVisaOrReportsRow, error)
 	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error)
 	GetLeaveById(ctx context.Context, id int64) (GetLeaveByIdRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
-	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]HrPayroll, error)
+	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]GetPayrollsRow, error)
 	GetService(ctx context.Context, category string) ([]GetServiceRow, error)
 	GetServices(ctx context.Context) ([]HrCreateService, error)
+	GetStaffPayroll(ctx context.Context, arg GetStaffPayrollParams) ([]GetStaffPayrollRow, error)
 	GetTax(ctx context.Context) ([]GetTaxRow, error)
 	GetTrainerAssingedCount(ctx context.Context, trainerID int64) (int64, error)
 	GetTrainerEmp(ctx context.Context, employeeID int64) (GetTrainerEmpRow, error)
 	GetTrainerEmpDataFromID(ctx context.Context, employeeID int64) (GetTrainerEmpDataFromIDRow, error)
 	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
+	GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error)
+	GetempployeeInsurance(ctx context.Context, branchID int64) ([]GetempployeeInsuranceRow, error)
 	SelectAllPresetWorkouts(ctx context.Context) ([]SelectAllPresetWorkoutsRow, error)
 	SelectAllPresets(ctx context.Context) ([]SelectAllPresetsRow, error)
 	SelectAllSessionWorkouts(ctx context.Context) ([]SelectAllSessionWorkoutsRow, error)

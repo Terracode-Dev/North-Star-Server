@@ -39,6 +39,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/employee/login", S.employeeLogin)
 	hrRoute.PUT("/employee/empbank", S.empOnlyBankDetailsUpdate, rba.AuthMiddelware([]string{"emp"}))
 	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/employee/ban", S.BanUser, rba.AuthMiddelware([]string{"admin", "mod"}))
 	// Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employeefiles/:id", S.GetFileData, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
@@ -62,7 +63,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/tax", S.createTax, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/tax/:id", S.deleteTax, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/payroll", S.createPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.GET("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/payroll", S.getPayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/payroll/:id", S.getOnePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/payroll/:id", S.updatePayroll, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/calculatetrainercom/:trainer_id", S.CalculateTrainerCommision)
@@ -139,4 +140,12 @@ func (S *HRService) registerRoutes() {
 	// Employee list with work days
 	empSchedule.GET("/employees", S.GetEmployeeList)
 	empSchedule.GET("/employee/:id/workdays-breakdown", S.GetEmployeeWorkDaysBreakdown)
+
+	//reports 
+	hrReports := hrRoute.Group("/reports")
+	hrReports.POST("/salary-transfer", S.SalaryTransfer, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrReports.POST("/expired-visa-or-reports", S.GetExpiredVisaOrReports)
+	hrReports.POST("/soon-expiring-passports-and-reports", S.GetSoonExpiringPassportsAndReports)
+	hrReports.POST("/staff-payroll", S.GetStaffPayroll)
+	hrReports.GET("/employee-insurance/:branch_id", S.GetemployeeInsurance)
 }

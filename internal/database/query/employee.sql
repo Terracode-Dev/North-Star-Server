@@ -370,6 +370,8 @@ SELECT
             CONVERT_TZ(`to`, '+00:00', '+05:00')
     ) as is_assigned;
 
+-- name: BanEmployee :exec
+UPDATE HR_Employee SET is_ban = ? WHERE id = ?;
 
 
 
