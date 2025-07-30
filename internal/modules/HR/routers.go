@@ -33,7 +33,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.PUT("/employee/allowances", S.updateEmpAllowances, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/expatriate", S.updateEmpExpatriate, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/accessibility", S.updateEmpAccessiability, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.PUT("/employeecount", S.GetEmpCountByBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employeecount", S.GetEmpCountByBranch, rba.AuthMiddelware([]string{"admin", "mod"}))
 	// update trainer commission
 	hrRoute.PUT("/employee/trainerCom", S.UpdateEmpCommission, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/employee/:id", S.deleteEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
