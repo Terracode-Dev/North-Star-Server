@@ -788,7 +788,7 @@ type EmpReqModel struct {
 	Emergency      CreateEmpEmergencyDetailsReqModel `json:"emergency"`
 	Bank           CreateEmpBankDetailsReqModel      `json:"bank"`
 	Salary         CreateEmpSalaryReqModel           `json:"salary"`
-	Certificates   CreateEmpCertificatesReqModel     `json:"certificates"`
+	// Certificates   CreateEmpCertificatesReqModel     `json:"certificates"`
 	Status         CreateEmpStatusReqModel           `json:"status"`
 	Benifits       CreateEmpBenifitsReqModel         `json:"benifits"`
 	User           CreateEmpUserReqModel             `json:"user"`
