@@ -65,7 +65,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	emp.Emergency.EmployeeID = employeeID
 	emp.Bank.EmployeeID = employeeID
 	emp.Salary.EmployeeID = employeeID
-	emp.Certificates.EmployeeID = employeeID
+	// emp.Certificates.EmployeeID = employeeID
 	emp.Status.EmployeeID = employeeID
 	emp.Benifits.EmployeeID = employeeID
 	emp.User.EmployeeID = employeeID
@@ -101,14 +101,14 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		return c.JSON(500, "Error creating employee salary"+salary.Error())
 	}
 
-	certificatesParams, err := emp.Certificates.convertToDbStruct(int64(updated_by))
-	if err != nil {
-		return c.JSON(500, "Error converting employee certificates to db struct")
-	}
-	certificates := qtx.CreateEmpCertificates(c.Request().Context(), certificatesParams)
-	if certificates != nil {
-		return c.JSON(500, "Error creating employee certificates")
-	}
+	// certificatesParams, err := emp.Certificates.convertToDbStruct(int64(updated_by))
+	// if err != nil {
+	// 	return c.JSON(500, "Error converting employee certificates to db struct")
+	// }
+	// certificates := qtx.CreateEmpCertificates(c.Request().Context(), certificatesParams)
+	// if certificates != nil {
+	// 	return c.JSON(500, "Error creating employee certificates")
+	// }
 
 	statusParams, err := emp.Status.convertToDbStruct(int64(updated_by))
 	if err != nil {
