@@ -31,11 +31,10 @@ func (S *HRService) createPayroll(c echo.Context) error {
 	defer tx.Rollback()
 	qtx := S.q.WithTx(tx)
 
-	// updated_by, ok:= c.Get("user_id").(int)
-	// if !ok {
-	// 	return c.JSON(400, "user not found")
-	// }
-	updated_by := 1
+	updated_by, ok:= c.Get("user_id").(int)
+	if !ok {
+		return c.JSON(400, "user not found")
+	}
 
 	er_data, err := qtx.GetExhangeRateById(c.Request().Context(), pay.Payroll.ERID)
 	if err != nil {
