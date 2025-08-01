@@ -44,6 +44,12 @@ FROM HR_EMP_Benifits eb
 WHERE eb.employee_id = ? AND eb.leave_status = 1
 ORDER BY eb.leave_type;
 
+-- name: GetEmployeeApprovedLeaveCount :one
+SELECT 
+    COUNT(*) AS approved_leave_count
+FROM HR_EMP_LEAVES
+WHERE emp_id = ? AND leave_type = ?;
+
 -- name: GetEmployeeLeaves :many
 SELECT 
     el.id as leave_id,

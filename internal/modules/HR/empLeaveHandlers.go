@@ -37,10 +37,24 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 		})
 	}
 
+	approvedLeaveCount, err := s.q.GetEmployeeApprovedLeaveCount(c.Request().Context(),database.GetEmployeeApprovedLeaveCountParams{
+		EmpID:     empId,
+		LeaveType: leaveData.LeaveType,
+	})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"err": err.Error(),
+			"msg": "failed to get approved leave count",
+		})
+	}
+
+	remainingLeaves := int64(leaveData.LeaveCount) - approvedLeaveCount
+
 	res := CheckValideteEmpRes{
 		EmpId:      empId,
 		LeaveType:  leaveData.LeaveType,
 		LeaveCount: int64(leaveData.LeaveCount),
+		RemainingLeaves: remainingLeaves,
 	}
 	return c.JSON(http.StatusOK, res)
 }
