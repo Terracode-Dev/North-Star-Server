@@ -150,5 +150,5 @@ func (S *HRService) registerRoutes() {
 	hrReports.POST("/expired-visa-or-reports", S.GetExpiredVisaOrReports)
 	hrReports.POST("/soon-expiring-passports-and-reports", S.GetSoonExpiringPassportsAndReports)
 	hrReports.POST("/staff-payroll", S.GetStaffPayroll)
-	hrReports.GET("/employee-insurance/:branch_id", S.GetemployeeInsurance)
+	hrReports.POST("/employee-insurance/:branch_id", S.GetemployeeInsurance)
 }
