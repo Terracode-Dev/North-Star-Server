@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"net/http"
 	"github.com/labstack/echo/v4"
-    "github.com/Terracode-Dev/North-Star-Server/internal/database"
 )
 
 func (S *HRService) SalaryTransfer(c echo.Context) error {
@@ -40,11 +39,16 @@ func (S *HRService) SalaryTransfer(c echo.Context) error {
 }
 
 func (S *HRService) GetExpiredVisaOrReports(c echo.Context) error {
-    var req database.GetExpiredVisaOrReportsParams
+    var req GetExpiredVisaOrReportsReqParams
     if err := c.Bind(&req); err != nil {
         return c.JSON(http.StatusBadRequest, err.Error())
     }
-	data, err := S.q.GetExpiredVisaOrReports(c.Request().Context(), req)
+    expParams, err:= req.ConvertToDbParams()
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, err.Error())
+    }
+
+	data, err := S.q.GetExpiredVisaOrReports(c.Request().Context(), expParams)
     if err != nil {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No expired visa or reports found")
@@ -55,12 +59,16 @@ func (S *HRService) GetExpiredVisaOrReports(c echo.Context) error {
 }
 
 func (S *HRService) GetSoonExpiringPassportsAndReports(c echo.Context) error {
-    var req database.GetVisaOrPassportExpiringSoonParams
+    var req GetExpiredVisaOrReportsReqParams
     if err := c.Bind(&req); err != nil {
         return c.JSON(http.StatusBadRequest, err.Error())
     }
+    expParams, err := req.ConvertToDbParamsForSoonExpiring()
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, err.Error())
+    }
 
-    data, err := S.q.GetVisaOrPassportExpiringSoon(c.Request().Context(), req)
+    data, err := S.q.GetVisaOrPassportExpiringSoon(c.Request().Context(), expParams)
     if err != nil {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No soon expiring passports or reports found")
@@ -90,11 +98,17 @@ func (S *HRService) GetStaffPayroll(c echo.Context) error {
 }
 
 func (S *HRService) GetemployeeInsurance(c echo.Context) error {
-    branchID, err := strconv.ParseInt(c.Param("branch_id"), 10, 64)
-    if err != nil {
-        return c.JSON(http.StatusBadRequest, "Invalid branch ID")
+    var req GetEmployeeInsuranceReqParams
+    if err := c.Bind(&req); err != nil {
+        return c.JSON(http.StatusBadRequest, err.Error())
     }
-    data , err := S.q.GetempployeeInsurance(c.Request().Context() , branchID)
+    
+    insuranceParams, err := req.ConvertToDbParams()
+    if err != nil {
+        return c.JSON(http.StatusBadRequest, err.Error())
+    }
+
+    data, err := S.q.GetempployeeInsurance(c.Request().Context(), insuranceParams)
     if err != nil {
         if err == sql.ErrNoRows {
             return c.JSON(http.StatusNotFound, "No employee insurance found")

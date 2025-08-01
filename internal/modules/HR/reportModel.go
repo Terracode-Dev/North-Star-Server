@@ -65,3 +65,73 @@ func (s *GetStaffPayrollReqParams) ConvertToDbParams() (db.GetStaffPayrollParams
         Column7: s.BranchID,   // For the OR condition
     }, nil
 }
+
+type GetExpiredVisaOrReportsReqParams struct {
+	BranchID int64       `json:"branch_id"`
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
+	Department string     `json:"department"`
+	PassportID int64     `json:"passport_id"`
+	VisaNumber string     `json:"visanumber"`
+	Limit    int64      `json:"limit"`
+	Offset   int64       `json:"offset"`
+}
+
+func (s *GetExpiredVisaOrReportsReqParams) ConvertToDbParams() (db.GetExpiredVisaOrReportsParams, error) {
+	return db.GetExpiredVisaOrReportsParams{
+		BranchID:   s.BranchID,
+		Column2:  s.FirstName,
+		CONCAT:   s.FirstName,
+		Column4: s.LastName,
+		CONCAT_2: s.LastName,
+		Column6: s.Department,
+		CONCAT_3: s.Department,
+		Column8: s.PassportID,
+		CONCAT_4: s.PassportID,
+		Column10: s.VisaNumber,
+		CONCAT_5: s.VisaNumber,
+		Limit:      int32(s.Limit),
+		Offset:     int32(s.Offset),
+	}, nil
+}
+
+func (s *GetExpiredVisaOrReportsReqParams) ConvertToDbParamsForSoonExpiring() (db.GetVisaOrPassportExpiringSoonParams, error) {
+	return db.GetVisaOrPassportExpiringSoonParams{
+		BranchID:   s.BranchID,
+		Column2:  s.FirstName,
+		CONCAT:   s.FirstName,
+		Column4: s.LastName,
+		CONCAT_2: s.LastName,
+		Column6: s.Department,
+		CONCAT_3: s.Department,
+		Column8: s.PassportID,
+		CONCAT_4: s.PassportID,
+		Column10: s.VisaNumber,
+		CONCAT_5: s.VisaNumber,
+		Limit:      int32(s.Limit),
+		Offset:     int32(s.Offset),
+	}, nil
+}
+
+type GetEmployeeInsuranceReqParams struct {
+	BranchID int64       `json:"branch_id"`
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
+	Department string     `json:"department"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+}
+
+func (s *GetEmployeeInsuranceReqParams) ConvertToDbParams() (db.GetempployeeInsuranceParams, error) {
+	return db.GetempployeeInsuranceParams{
+		BranchID:   s.BranchID,
+		Column2:  s.FirstName,
+		CONCAT:   s.FirstName,
+		Column4: s.LastName,
+		CONCAT_2: s.LastName,
+		Column6: s.Department,
+		CONCAT_3: s.Department,
+		Limit:      s.Limit,
+		Offset:     s.Offset,
+	}, nil
+}
