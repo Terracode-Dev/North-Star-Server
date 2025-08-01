@@ -129,6 +129,8 @@ func (S *HRService) registerRoutes() {
 
 	empSchedule := hrRoute.Group("/schedule")
 
+	empSchedule.GET("/employee/:id", S.GetEmpSheduleByID, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
+
 	// Employee lookup
 	empSchedule.POST("/employee/id-by-email", S.GetEmployeeIdByEmail)
 

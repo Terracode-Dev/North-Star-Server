@@ -176,6 +176,25 @@ func (q *Queries) GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]G
 	return items, nil
 }
 
+const getEmployeeApprovedLeaveCount = `-- name: GetEmployeeApprovedLeaveCount :one
+SELECT 
+    COUNT(*) AS approved_leave_count
+FROM HR_EMP_LEAVES
+WHERE emp_id = ? AND leave_type = ?
+`
+
+type GetEmployeeApprovedLeaveCountParams struct {
+	EmpID     int64  `json:"emp_id"`
+	LeaveType string `json:"leave_type"`
+}
+
+func (q *Queries) GetEmployeeApprovedLeaveCount(ctx context.Context, arg GetEmployeeApprovedLeaveCountParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getEmployeeApprovedLeaveCount, arg.EmpID, arg.LeaveType)
+	var approved_leave_count int64
+	err := row.Scan(&approved_leave_count)
+	return approved_leave_count, err
+}
+
 const getEmployeeLeaveBenefits = `-- name: GetEmployeeLeaveBenefits :one
 SELECT 
     eb.leave_type,
