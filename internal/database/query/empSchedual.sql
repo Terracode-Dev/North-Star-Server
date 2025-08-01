@@ -164,18 +164,43 @@ WHERE e.id = ?;
 
 -- name: GetEmpShedulleByID :one
 SELECT 
-    monday, monday_from, monday_to,
-    tuesday, tuesday_from, tuesday_to,
-    wednesday, wednesday_from, wednesday_to,
-    thursday, thursday_from, thursday_to,
-    friday, friday_from, friday_to,
-    saturday, saturday_from, saturday_to,
-    sunday, sunday_from, sunday_to
+    id,
+    emp_id,
+    monday,
+    COALESCE(TIME_FORMAT(monday_from, '%H:%i:%s'), '') as monday_from,
+    COALESCE(TIME_FORMAT(monday_to, '%H:%i:%s'), '') as monday_to,
+    tuesday,
+    COALESCE(TIME_FORMAT(tuesday_from, '%H:%i:%s'), '') as tuesday_from,
+    COALESCE(TIME_FORMAT(tuesday_to, '%H:%i:%s'), '') as tuesday_to,
+    wednesday,
+    COALESCE(TIME_FORMAT(wednesday_from, '%H:%i:%s'), '') as wednesday_from,
+    COALESCE(TIME_FORMAT(wednesday_to, '%H:%i:%s'), '') as wednesday_to,
+    thursday,
+    COALESCE(TIME_FORMAT(thursday_from, '%H:%i:%s'), '') as thursday_from,
+    COALESCE(TIME_FORMAT(thursday_to, '%H:%i:%s'), '') as thursday_to,
+    friday,
+    COALESCE(TIME_FORMAT(friday_from, '%H:%i:%s'), '') as friday_from,
+    COALESCE(TIME_FORMAT(friday_to, '%H:%i:%s'), '') as friday_to,
+    saturday,
+    COALESCE(TIME_FORMAT(saturday_from, '%H:%i:%s'), '') as saturday_from,
+    COALESCE(TIME_FORMAT(saturday_to, '%H:%i:%s'), '') as saturday_to,
+    sunday,
+    COALESCE(TIME_FORMAT(sunday_from, '%H:%i:%s'), '') as sunday_from,
+    COALESCE(TIME_FORMAT(sunday_to, '%H:%i:%s'), '') as sunday_to,
+    created_at,
+    updated_at
 FROM HR_EMP_SCHEDUAL
 WHERE emp_id = ?;
 
 -- name: GetEmpAdditionalSheduleByID :many
 SELECT
-    date, from_time, to_time, created_at, updated_at
+    id,
+    emp_id,
+    date, 
+    COALESCE(TIME_FORMAT(from_time, '%H:%i:%s'), '') as from_time, 
+    COALESCE(TIME_FORMAT(to_time, '%H:%i:%s'), '') as to_time, 
+    created_at, 
+    updated_at
 FROM HR_EMP_SCHEDUAL_additional 
-WHERE emp_id = ?;
+WHERE emp_id = ?
+ORDER BY date DESC;

@@ -166,15 +166,24 @@ func (q *Queries) DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 
 const getEmpAdditionalSheduleByID = `-- name: GetEmpAdditionalSheduleByID :many
 SELECT
-    date, from_time, to_time, created_at, updated_at
+    id,
+    emp_id,
+    date, 
+    COALESCE(TIME_FORMAT(from_time, '%H:%i:%s'), '') as from_time, 
+    COALESCE(TIME_FORMAT(to_time, '%H:%i:%s'), '') as to_time, 
+    created_at, 
+    updated_at
 FROM HR_EMP_SCHEDUAL_additional 
 WHERE emp_id = ?
+ORDER BY date DESC
 `
 
 type GetEmpAdditionalSheduleByIDRow struct {
+	ID        int64        `json:"id"`
+	EmpID     int64        `json:"emp_id"`
 	Date      time.Time    `json:"date"`
-	FromTime  sql.NullTime `json:"from_time"`
-	ToTime    sql.NullTime `json:"to_time"`
+	FromTime  interface{}  `json:"from_time"`
+	ToTime    interface{}  `json:"to_time"`
 	CreatedAt sql.NullTime `json:"created_at"`
 	UpdatedAt sql.NullTime `json:"updated_at"`
 }
@@ -189,6 +198,8 @@ func (q *Queries) GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) 
 	for rows.Next() {
 		var i GetEmpAdditionalSheduleByIDRow
 		if err := rows.Scan(
+			&i.ID,
+			&i.EmpID,
 			&i.Date,
 			&i.FromTime,
 			&i.ToTime,
@@ -210,45 +221,69 @@ func (q *Queries) GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) 
 
 const getEmpShedulleByID = `-- name: GetEmpShedulleByID :one
 SELECT 
-    monday, monday_from, monday_to,
-    tuesday, tuesday_from, tuesday_to,
-    wednesday, wednesday_from, wednesday_to,
-    thursday, thursday_from, thursday_to,
-    friday, friday_from, friday_to,
-    saturday, saturday_from, saturday_to,
-    sunday, sunday_from, sunday_to
+    id,
+    emp_id,
+    monday,
+    COALESCE(TIME_FORMAT(monday_from, '%H:%i:%s'), '') as monday_from,
+    COALESCE(TIME_FORMAT(monday_to, '%H:%i:%s'), '') as monday_to,
+    tuesday,
+    COALESCE(TIME_FORMAT(tuesday_from, '%H:%i:%s'), '') as tuesday_from,
+    COALESCE(TIME_FORMAT(tuesday_to, '%H:%i:%s'), '') as tuesday_to,
+    wednesday,
+    COALESCE(TIME_FORMAT(wednesday_from, '%H:%i:%s'), '') as wednesday_from,
+    COALESCE(TIME_FORMAT(wednesday_to, '%H:%i:%s'), '') as wednesday_to,
+    thursday,
+    COALESCE(TIME_FORMAT(thursday_from, '%H:%i:%s'), '') as thursday_from,
+    COALESCE(TIME_FORMAT(thursday_to, '%H:%i:%s'), '') as thursday_to,
+    friday,
+    COALESCE(TIME_FORMAT(friday_from, '%H:%i:%s'), '') as friday_from,
+    COALESCE(TIME_FORMAT(friday_to, '%H:%i:%s'), '') as friday_to,
+    saturday,
+    COALESCE(TIME_FORMAT(saturday_from, '%H:%i:%s'), '') as saturday_from,
+    COALESCE(TIME_FORMAT(saturday_to, '%H:%i:%s'), '') as saturday_to,
+    sunday,
+    COALESCE(TIME_FORMAT(sunday_from, '%H:%i:%s'), '') as sunday_from,
+    COALESCE(TIME_FORMAT(sunday_to, '%H:%i:%s'), '') as sunday_to,
+    created_at,
+    updated_at
 FROM HR_EMP_SCHEDUAL
 WHERE emp_id = ?
 `
 
 type GetEmpShedulleByIDRow struct {
+	ID            int64        `json:"id"`
+	EmpID         int64        `json:"emp_id"`
 	Monday        sql.NullBool `json:"monday"`
-	MondayFrom    sql.NullTime `json:"monday_from"`
-	MondayTo      sql.NullTime `json:"monday_to"`
+	MondayFrom    interface{}  `json:"monday_from"`
+	MondayTo      interface{}  `json:"monday_to"`
 	Tuesday       sql.NullBool `json:"tuesday"`
-	TuesdayFrom   sql.NullTime `json:"tuesday_from"`
-	TuesdayTo     sql.NullTime `json:"tuesday_to"`
+	TuesdayFrom   interface{}  `json:"tuesday_from"`
+	TuesdayTo     interface{}  `json:"tuesday_to"`
 	Wednesday     sql.NullBool `json:"wednesday"`
-	WednesdayFrom sql.NullTime `json:"wednesday_from"`
-	WednesdayTo   sql.NullTime `json:"wednesday_to"`
+	WednesdayFrom interface{}  `json:"wednesday_from"`
+	WednesdayTo   interface{}  `json:"wednesday_to"`
 	Thursday      sql.NullBool `json:"thursday"`
-	ThursdayFrom  sql.NullTime `json:"thursday_from"`
-	ThursdayTo    sql.NullTime `json:"thursday_to"`
+	ThursdayFrom  interface{}  `json:"thursday_from"`
+	ThursdayTo    interface{}  `json:"thursday_to"`
 	Friday        sql.NullBool `json:"friday"`
-	FridayFrom    sql.NullTime `json:"friday_from"`
-	FridayTo      sql.NullTime `json:"friday_to"`
+	FridayFrom    interface{}  `json:"friday_from"`
+	FridayTo      interface{}  `json:"friday_to"`
 	Saturday      sql.NullBool `json:"saturday"`
-	SaturdayFrom  sql.NullTime `json:"saturday_from"`
-	SaturdayTo    sql.NullTime `json:"saturday_to"`
+	SaturdayFrom  interface{}  `json:"saturday_from"`
+	SaturdayTo    interface{}  `json:"saturday_to"`
 	Sunday        sql.NullBool `json:"sunday"`
-	SundayFrom    sql.NullTime `json:"sunday_from"`
-	SundayTo      sql.NullTime `json:"sunday_to"`
+	SundayFrom    interface{}  `json:"sunday_from"`
+	SundayTo      interface{}  `json:"sunday_to"`
+	CreatedAt     sql.NullTime `json:"created_at"`
+	UpdatedAt     sql.NullTime `json:"updated_at"`
 }
 
 func (q *Queries) GetEmpShedulleByID(ctx context.Context, empID int64) (GetEmpShedulleByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getEmpShedulleByID, empID)
 	var i GetEmpShedulleByIDRow
 	err := row.Scan(
+		&i.ID,
+		&i.EmpID,
 		&i.Monday,
 		&i.MondayFrom,
 		&i.MondayTo,
@@ -270,6 +305,8 @@ func (q *Queries) GetEmpShedulleByID(ctx context.Context, empID int64) (GetEmpSh
 		&i.Sunday,
 		&i.SundayFrom,
 		&i.SundayTo,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
