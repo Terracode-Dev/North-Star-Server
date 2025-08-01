@@ -591,7 +591,7 @@ func (M CreateEmpUserReqModel) convertToUpdateDbStruct(admin_id int64) (db.Updat
 type CreateEmpAllowancesReqModel struct {
 	Name       string        `json:"name"`
 	Amount     string        `json:"amount"`
-	UpdatedBy  sql.NullInt64 `json:"updated_by"`
+	UpdatedBy  int64         `json:"updated_by"`
 	EmployeeID int64         `json:"employee_id"`
 }
 

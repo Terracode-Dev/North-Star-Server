@@ -3,6 +3,7 @@ package hr
 import (
 	"database/sql"
 	"strconv"
+	"log"
 	"net/http"
 	"github.com/labstack/echo/v4"
 )
@@ -30,10 +31,11 @@ func (S *HRService) createPayroll(c echo.Context) error {
 	defer tx.Rollback()
 	qtx := S.q.WithTx(tx)
 
-	updated_by, ok:= c.Get("user_id").(int)
-	if !ok {
-		return c.JSON(400, "user not found")
-	}
+	// updated_by, ok:= c.Get("user_id").(int)
+	// if !ok {
+	// 	return c.JSON(400, "user not found")
+	// }
+	updated_by := 1
 
 	er_data, err := qtx.GetExhangeRateById(c.Request().Context(), pay.Payroll.ERID)
 	if err != nil {
@@ -44,6 +46,7 @@ func (S *HRService) createPayroll(c echo.Context) error {
 
 	paytollParams, err := pay.Payroll.ToCreatePayrollParams(int64(updated_by), ex_rate)
 	if err != nil {
+		log.Printf("Error in ToCreatePayrollParams: %v", err)
 		return c.JSON(400, err.Error())
 	}
 
@@ -92,7 +95,6 @@ func (S *HRService) createPayroll(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, "Error committing transaction")
 	}
-
 	return c.JSON(200, "Payroll Created")
 
 }
