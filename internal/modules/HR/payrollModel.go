@@ -120,15 +120,34 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 
 	Total_Gross_Salary := amount_float + total_salary_allowances_float
 
-	employee_pension_float, err := strconv.ParseFloat(pension_employee.String, 64)
-	if err != nil {
-		return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employee format: %v", err)
+	var total_pension_float float64
+	var employee_pension_float float64
+	var pension_employer_float float64
+
+	if A.Pension {
+		employee_pension_float = 0.0
+		pension_employer_float = 0.0
+
+		if pension_employee.Valid && pension_employee.String != "" {
+			var err error
+			employee_pension_float, err = strconv.ParseFloat(pension_employee.String, 64)
+			if err != nil {
+				return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employee format: %v", err)
+			}
+		}
+
+		if pension_employer.Valid && pension_employer.String != "" {
+			var err error
+			pension_employer_float, err = strconv.ParseFloat(pension_employer.String, 64)
+			if err != nil {
+				return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employer format: %v", err)
+			}
+		}
+
+		total_pension_float = employee_pension_float + pension_employer_float
+	} else {
+		total_pension_float = 0.0
 	}
-	pension_employer_float, err := strconv.ParseFloat(pension_employer.String, 64)
-	if err != nil {
-		return db.CreatePayrollParams{}, fmt.Errorf("invalid pension_employer format: %v", err)
-	}
-	total_pension_float := employee_pension_float + pension_employer_float
 
 	var total_net_salary_float_req float64
 
