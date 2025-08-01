@@ -25,6 +25,11 @@ WHERE (
 AND (
     u.branch_id = ? OR u.branch_id = ''
 )
+AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR s.department LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.passport_id LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR ex.visa_number LIKE CONCAT('%', ?, '%'))
 ORDER BY e.id
 LIMIT ? OFFSET ?;
 
@@ -62,6 +67,11 @@ WHERE (
 AND (
      u.branch_id = ? OR u.branch_id = ''
 )
+AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR s.department LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.passport_id LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR ex.visa_number LIKE CONCAT('%', ?, '%'))
 ORDER BY e.id
 LIMIT ? OFFSET ?;
 
@@ -135,5 +145,9 @@ INNER JOIN HR_EMP_User u ON e.id = u.employee_id
 INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE (
     u.branch_id = ? OR u.branch_id = ''
-);
+)
+AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR s.department LIKE CONCAT('%', ?, '%'))
+LIMIT ? OFFSET ?;
 

@@ -101,14 +101,29 @@ WHERE (
 AND (
     u.branch_id = ? OR u.branch_id = ''
 )
+AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR s.department LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.passport_id LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR ex.visa_number LIKE CONCAT('%', ?, '%'))
 ORDER BY e.id
 LIMIT ? OFFSET ?
 `
 
 type GetExpiredVisaOrReportsParams struct {
-	BranchID int64 `json:"branch_id"`
-	Limit    int32 `json:"limit"`
-	Offset   int32 `json:"offset"`
+	BranchID int64       `json:"branch_id"`
+	Column2  interface{} `json:"column_2"`
+	CONCAT   interface{} `json:"CONCAT"`
+	Column4  interface{} `json:"column_4"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	Column6  interface{} `json:"column_6"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+	Column8  interface{} `json:"column_8"`
+	CONCAT_4 interface{} `json:"CONCAT_4"`
+	Column10 interface{} `json:"column_10"`
+	CONCAT_5 interface{} `json:"CONCAT_5"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
 }
 
 type GetExpiredVisaOrReportsRow struct {
@@ -128,7 +143,21 @@ type GetExpiredVisaOrReportsRow struct {
 }
 
 func (q *Queries) GetExpiredVisaOrReports(ctx context.Context, arg GetExpiredVisaOrReportsParams) ([]GetExpiredVisaOrReportsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getExpiredVisaOrReports, arg.BranchID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, getExpiredVisaOrReports,
+		arg.BranchID,
+		arg.Column2,
+		arg.CONCAT,
+		arg.Column4,
+		arg.CONCAT_2,
+		arg.Column6,
+		arg.CONCAT_3,
+		arg.Column8,
+		arg.CONCAT_4,
+		arg.Column10,
+		arg.CONCAT_5,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -307,14 +336,29 @@ WHERE (
 AND (
      u.branch_id = ? OR u.branch_id = ''
 )
+AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR s.department LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.passport_id LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR ex.visa_number LIKE CONCAT('%', ?, '%'))
 ORDER BY e.id
 LIMIT ? OFFSET ?
 `
 
 type GetVisaOrPassportExpiringSoonParams struct {
-	BranchID int64 `json:"branch_id"`
-	Limit    int32 `json:"limit"`
-	Offset   int32 `json:"offset"`
+	BranchID int64       `json:"branch_id"`
+	Column2  interface{} `json:"column_2"`
+	CONCAT   interface{} `json:"CONCAT"`
+	Column4  interface{} `json:"column_4"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	Column6  interface{} `json:"column_6"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+	Column8  interface{} `json:"column_8"`
+	CONCAT_4 interface{} `json:"CONCAT_4"`
+	Column10 interface{} `json:"column_10"`
+	CONCAT_5 interface{} `json:"CONCAT_5"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
 }
 
 type GetVisaOrPassportExpiringSoonRow struct {
@@ -334,7 +378,21 @@ type GetVisaOrPassportExpiringSoonRow struct {
 }
 
 func (q *Queries) GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error) {
-	rows, err := q.db.QueryContext(ctx, getVisaOrPassportExpiringSoon, arg.BranchID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, getVisaOrPassportExpiringSoon,
+		arg.BranchID,
+		arg.Column2,
+		arg.CONCAT,
+		arg.Column4,
+		arg.CONCAT_2,
+		arg.Column6,
+		arg.CONCAT_3,
+		arg.Column8,
+		arg.CONCAT_4,
+		arg.Column10,
+		arg.CONCAT_5,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +450,23 @@ INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE (
     u.branch_id = ? OR u.branch_id = ''
 )
+AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+AND (? = '' OR s.department LIKE CONCAT('%', ?, '%'))
+LIMIT ? OFFSET ?
 `
+
+type GetempployeeInsuranceParams struct {
+	BranchID int64       `json:"branch_id"`
+	Column2  interface{} `json:"column_2"`
+	CONCAT   interface{} `json:"CONCAT"`
+	Column4  interface{} `json:"column_4"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	Column6  interface{} `json:"column_6"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+}
 
 type GetempployeeInsuranceRow struct {
 	EmployeeID      int64  `json:"employee id"`
@@ -408,8 +482,18 @@ type GetempployeeInsuranceRow struct {
 	InsuranceFromTo string `json:"insurance_from_to"`
 }
 
-func (q *Queries) GetempployeeInsurance(ctx context.Context, branchID int64) ([]GetempployeeInsuranceRow, error) {
-	rows, err := q.db.QueryContext(ctx, getempployeeInsurance, branchID)
+func (q *Queries) GetempployeeInsurance(ctx context.Context, arg GetempployeeInsuranceParams) ([]GetempployeeInsuranceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getempployeeInsurance,
+		arg.BranchID,
+		arg.Column2,
+		arg.CONCAT,
+		arg.Column4,
+		arg.CONCAT_2,
+		arg.Column6,
+		arg.CONCAT_3,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -119,7 +119,7 @@ type Querier interface {
 	GetTrainerEmpDataFromID(ctx context.Context, employeeID int64) (GetTrainerEmpDataFromIDRow, error)
 	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
 	GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error)
-	GetempployeeInsurance(ctx context.Context, branchID int64) ([]GetempployeeInsuranceRow, error)
+	GetempployeeInsurance(ctx context.Context, arg GetempployeeInsuranceParams) ([]GetempployeeInsuranceRow, error)
 	SelectAllPresetWorkouts(ctx context.Context) ([]SelectAllPresetWorkoutsRow, error)
 	SelectAllPresets(ctx context.Context) ([]SelectAllPresetsRow, error)
 	SelectAllSessionWorkouts(ctx context.Context) ([]SelectAllSessionWorkoutsRow, error)
