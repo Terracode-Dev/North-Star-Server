@@ -738,20 +738,51 @@ func (S *HRService) updateEmpUser(c echo.Context) error {
 // @Failure 500 {string} string "Internal server error"
 // @Router /employee/allowances [put]
 func (S *HRService) updateEmpAllowances(c echo.Context) error {
-	var allowances CreateEmpAllowancesReqModel
-	if err := c.Bind(&allowances); err != nil {
-		return c.JSON(500, err)
-	}
-	updated_by := c.Get("user_id").(int)
-	allowancesParams, err := allowances.convertToUpdateDbStruct(int64(updated_by))
-	if err != nil {
-		return c.JSON(500, "Error converting employee allowances to db struct")
-	}
-	error := S.q.UpdateEmpAllowances(c.Request().Context(), allowancesParams)
-	if error != nil {
-		return c.JSON(500, "Error updating employee allowances")
-	}
-	return c.JSON(200, "Employee allowances updated successfully")
+    var allowances []CreateEmpAllowancesReqModel
+    if err := c.Bind(&allowances); err != nil {
+        return c.JSON(500, err)
+    }
+    
+    if len(allowances) == 0 {
+        return c.JSON(400, "No allowances provided")
+    }
+    
+    empID := allowances[0].EmployeeID
+    for _, allowance := range allowances {
+        if allowance.EmployeeID != empID {
+            return c.JSON(400, "All allowances must belong to the same employee")
+        }
+    }
+    
+    updated_by := c.Get("user_id").(int)
+    
+    tx, err := S.db.Begin()
+    if err != nil {
+        return c.JSON(500, "Error starting transaction")
+    }
+    defer tx.Rollback()
+    qtx := S.q.WithTx(tx)
+    
+    if err := qtx.DeleteEmpAllowances(c.Request().Context(), empID); err != nil {
+        return c.JSON(500, "Error deleting existing employee allowances")
+    }
+
+    for _, allowance := range allowances {
+        allowanceParams, err := allowance.convertToDbStruct(int64(updated_by))
+        if err != nil {
+            return c.JSON(500, "Error converting employee allowances to db struct")
+        }
+        
+        if err := qtx.CreateEmpAllowances(c.Request().Context(), allowanceParams); err != nil {
+            return c.JSON(500, "Error creating employee allowances")
+        }
+    }
+    
+    if err := tx.Commit(); err != nil {
+        return c.JSON(500, "Error committing transaction")
+    }
+    
+    return c.JSON(200, "Employee allowances updated successfully")
 }
 
 // update employee expatriate handler
