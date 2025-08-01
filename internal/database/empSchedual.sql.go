@@ -164,6 +164,116 @@ func (q *Queries) DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	return err
 }
 
+const getEmpAdditionalSheduleByID = `-- name: GetEmpAdditionalSheduleByID :many
+SELECT
+    date, from_time, to_time, created_at, updated_at
+FROM HR_EMP_SCHEDUAL_additional 
+WHERE emp_id = ?
+`
+
+type GetEmpAdditionalSheduleByIDRow struct {
+	Date      time.Time    `json:"date"`
+	FromTime  sql.NullTime `json:"from_time"`
+	ToTime    sql.NullTime `json:"to_time"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
+func (q *Queries) GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) ([]GetEmpAdditionalSheduleByIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmpAdditionalSheduleByID, empID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmpAdditionalSheduleByIDRow
+	for rows.Next() {
+		var i GetEmpAdditionalSheduleByIDRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.FromTime,
+			&i.ToTime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEmpShedulleByID = `-- name: GetEmpShedulleByID :one
+SELECT 
+    monday, monday_from, monday_to,
+    tuesday, tuesday_from, tuesday_to,
+    wednesday, wednesday_from, wednesday_to,
+    thursday, thursday_from, thursday_to,
+    friday, friday_from, friday_to,
+    saturday, saturday_from, saturday_to,
+    sunday, sunday_from, sunday_to
+FROM HR_EMP_SCHEDUAL
+WHERE emp_id = ?
+`
+
+type GetEmpShedulleByIDRow struct {
+	Monday        sql.NullBool `json:"monday"`
+	MondayFrom    sql.NullTime `json:"monday_from"`
+	MondayTo      sql.NullTime `json:"monday_to"`
+	Tuesday       sql.NullBool `json:"tuesday"`
+	TuesdayFrom   sql.NullTime `json:"tuesday_from"`
+	TuesdayTo     sql.NullTime `json:"tuesday_to"`
+	Wednesday     sql.NullBool `json:"wednesday"`
+	WednesdayFrom sql.NullTime `json:"wednesday_from"`
+	WednesdayTo   sql.NullTime `json:"wednesday_to"`
+	Thursday      sql.NullBool `json:"thursday"`
+	ThursdayFrom  sql.NullTime `json:"thursday_from"`
+	ThursdayTo    sql.NullTime `json:"thursday_to"`
+	Friday        sql.NullBool `json:"friday"`
+	FridayFrom    sql.NullTime `json:"friday_from"`
+	FridayTo      sql.NullTime `json:"friday_to"`
+	Saturday      sql.NullBool `json:"saturday"`
+	SaturdayFrom  sql.NullTime `json:"saturday_from"`
+	SaturdayTo    sql.NullTime `json:"saturday_to"`
+	Sunday        sql.NullBool `json:"sunday"`
+	SundayFrom    sql.NullTime `json:"sunday_from"`
+	SundayTo      sql.NullTime `json:"sunday_to"`
+}
+
+func (q *Queries) GetEmpShedulleByID(ctx context.Context, empID int64) (GetEmpShedulleByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getEmpShedulleByID, empID)
+	var i GetEmpShedulleByIDRow
+	err := row.Scan(
+		&i.Monday,
+		&i.MondayFrom,
+		&i.MondayTo,
+		&i.Tuesday,
+		&i.TuesdayFrom,
+		&i.TuesdayTo,
+		&i.Wednesday,
+		&i.WednesdayFrom,
+		&i.WednesdayTo,
+		&i.Thursday,
+		&i.ThursdayFrom,
+		&i.ThursdayTo,
+		&i.Friday,
+		&i.FridayFrom,
+		&i.FridayTo,
+		&i.Saturday,
+		&i.SaturdayFrom,
+		&i.SaturdayTo,
+		&i.Sunday,
+		&i.SundayFrom,
+		&i.SundayTo,
+	)
+	return i, err
+}
+
 const getEmployeeByEmail = `-- name: GetEmployeeByEmail :one
 SELECT 
     e.id AS employee_id,

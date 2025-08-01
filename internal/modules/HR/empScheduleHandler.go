@@ -618,3 +618,33 @@ func (s *HRService) GetEmployeeWorkDaysBreakdown(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, response)
 }
+
+func (s *HRService) GetEmpSheduleByID(c echo.Context) error {
+	emp_id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid employee ID",
+		})
+	}
+	schedule, err := s.q.GetEmpShedulleByID(c.Request().Context(), emp_id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, map[string]string{
+				"error": "employee schedule not found",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to get employee schedule",
+		})
+	}
+	sheduleAdditional, err := s.q.GetEmpAdditionalSheduleByID(c.Request().Context(), emp_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to get employee additional schedule",
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"schedule":          schedule,
+		"additional_schedule": sheduleAdditional,
+	})
+}

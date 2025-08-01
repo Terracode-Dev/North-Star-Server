@@ -161,3 +161,21 @@ FROM HR_Employee e
 LEFT JOIN HR_EMP_User u ON e.id = u.employee_id
 LEFT JOIN HR_EMP_SCHEDUAL s ON e.id = s.emp_id
 WHERE e.id = ?;
+
+-- name: GetEmpShedulleByID :one
+SELECT 
+    monday, monday_from, monday_to,
+    tuesday, tuesday_from, tuesday_to,
+    wednesday, wednesday_from, wednesday_to,
+    thursday, thursday_from, thursday_to,
+    friday, friday_from, friday_to,
+    saturday, saturday_from, saturday_to,
+    sunday, sunday_from, sunday_to
+FROM HR_EMP_SCHEDUAL
+WHERE emp_id = ?;
+
+-- name: GetEmpAdditionalSheduleByID :many
+SELECT
+    date, from_time, to_time, created_at, updated_at
+FROM HR_EMP_SCHEDUAL_additional 
+WHERE emp_id = ?;

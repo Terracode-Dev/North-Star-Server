@@ -16,4 +16,5 @@ type CheckValideteEmpRes struct {
 	EmpId      int64  `json:"emp_id"`
 	LeaveType  string `json:"leave_type"`
 	LeaveCount int64  `json:"leave_count"`
+	RemainingLeaves int64 `json:"remaining_leaves"` // New field for remaining leaves
 }
