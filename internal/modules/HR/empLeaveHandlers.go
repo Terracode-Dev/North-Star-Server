@@ -201,7 +201,7 @@ func (s *HRService) GetAllLeavesHandler(c echo.Context) error {
 		Column4:  searchEmail,
 		CONCAT_3: searchEmail,
 		Column6:  searchLeaveType,
-		CONCAT_4: searchLeaveType,
+		LeaveType: searchLeaveType,
 		Column8:  nil,
 		Column10: nil,
 		Column12: sortBy,
