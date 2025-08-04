@@ -84,7 +84,7 @@ INNER JOIN HR_Employee e ON el.emp_id = e.id
 WHERE 
     (? = '' OR e.first_name LIKE CONCAT('%', ?, '%') OR e.last_name LIKE CONCAT('%', ?, '%'))
     AND (? = '' OR e.email LIKE CONCAT('%', ?, '%'))
-    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? = '' OR el.leave_type = ?)
     AND (? IS NULL OR el.leave_date >= ?)
     AND (? IS NULL OR el.leave_date <= ?)
 ORDER BY 
