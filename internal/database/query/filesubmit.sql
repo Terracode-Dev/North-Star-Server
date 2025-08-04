@@ -11,4 +11,12 @@ SET file_name = ?, file_type = ?
 WHERE employee_id = ?;
 
 -- name: DeleteFileSubmit :exec
-DELETE FROM HR_FileSubmit WHERE employee_id = ?
+DELETE FROM HR_FileSubmit WHERE employee_id = ?;
+
+-- name: GetFileNames :many
+SELECT 
+    file_name,
+    file_type
+FROM HR_FileSubmit
+WHERE 
+    employee_id = ?;

@@ -929,7 +929,33 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
 	if accessiability != nil {
 		return c.JSON(500, "Error deleting employee accessiability")
 	}
+	fileData, err := qtx.GetFileNames(c.Request().Context(), empID)
+	if err != nil {
+		return c.JSON(500, "Error fetching employee files: "+err.Error())
+	}
 
+	for _, file := range fileData {
+        var bucketName string
+        switch file.FileType {
+        case "certificates":
+            bucketName = "nsappcertficates"
+        case "visa":
+            bucketName = "nsappvisa"
+        default:
+            // Skip unknown file types
+            continue
+        }
+
+        deleted, err := S.s3.DeleteS3Item(c.Request().Context(), bucketName, file.FileName)
+        if err != nil {
+            log.Printf("Error deleting file %s from S3 bucket %s: %v", file.FileName, bucketName, err)
+            // Continue with other files instead of failing the entire operation
+            continue
+        }
+        if !deleted {
+            log.Printf("Failed to delete file %s from S3 bucket %s", file.FileName, bucketName)
+        }
+    }
 
 	files := qtx.DeleteFileSubmit(c.Request().Context(),empID)
 	if files != nil {
