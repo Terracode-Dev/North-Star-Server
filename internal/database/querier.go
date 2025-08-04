@@ -105,6 +105,7 @@ type Querier interface {
 	GetExchangeRateAll(ctx context.Context) ([]GetExchangeRateAllRow, error)
 	GetExhangeRateById(ctx context.Context, id int64) (GetExhangeRateByIdRow, error)
 	GetExpiredVisaOrReports(ctx context.Context, arg GetExpiredVisaOrReportsParams) ([]GetExpiredVisaOrReportsRow, error)
+	GetFileNames(ctx context.Context, employeeID int64) ([]GetFileNamesRow, error)
 	GetLatestExchangeRate(ctx context.Context, currencyType string) ([]GetLatestExchangeRateRow, error)
 	GetLeaveById(ctx context.Context, id int64) (GetLeaveByIdRow, error)
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)

@@ -90,6 +90,8 @@ FROM HR_Employee e
 LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
 LEFT JOIN HR_Branch br ON usr.branch_id = br.id
 WHERE 
+    (e.is_ban = false OR e.is_ban IS NULL)
+    AND
   (
     CAST(e.id AS CHAR) LIKE CONCAT('%', ?, '%')
     OR e.first_name LIKE CONCAT('%', ?, '%')
@@ -199,7 +201,7 @@ LEFT JOIN HR_EMP_User usr ON e.id = usr.employee_id
 LEFT JOIN HR_EMP_Expatriate exp ON e.id = exp.employee_id
 LEFT JOIN HR_EMP_Accessiability acc ON e.id = acc.employee_id
 
-WHERE e.id = ?;
+WHERE e.id = ? AND (e.is_ban = false OR e.is_ban IS NULL);
 
 -- name: UpdateEmployee :exec
 UPDATE HR_Employee SET 
