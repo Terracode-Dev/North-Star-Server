@@ -863,30 +863,9 @@ func (M UpdateCommissionReqModel) convertToDbStruct(admin_id int64) (db.UpdateTr
 }
 
 type UpdateEmpCertificatesReqModel struct {
-	Date       string `json:"date" form:"date"`
-	Name       string `json:"name" form:"name"`
-	UpdatedBy  *int64 `json:"updated_by" form:"updated_by"`
 	EmployeeID int64  `json:"employee_id" form:"employee_id"`
 	FileName   string `json:"file_name"`
 	FileType   string `json:"file_type"`
-}
-
-func (M UpdateEmpCertificatesReqModel) convertToCertDbStruct(admin_id int64) (db.UpdateEmpCertificatesParams, error) {
-	date, err := time.Parse(time.RFC3339, M.Date)
-	if err != nil {
-		return db.UpdateEmpCertificatesParams{}, err
-	}
-
-	var updated_by sql.NullInt64
-	updated_by.Int64 = admin_id
-	updated_by.Valid = true
-
-	return db.UpdateEmpCertificatesParams{
-		Date:       date,
-		Name:       M.Name,
-		UpdatedBy:  updated_by,
-		EmployeeID: M.EmployeeID,
-	}, nil
 }
 
 func (M UpdateEmpCertificatesReqModel) convertToFileDbStruct() (db.CreateFileSubmitParams, error) {
