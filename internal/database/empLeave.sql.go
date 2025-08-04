@@ -73,7 +73,7 @@ INNER JOIN HR_Employee e ON el.emp_id = e.id
 WHERE 
     (? = '' OR e.first_name LIKE CONCAT('%', ?, '%') OR e.last_name LIKE CONCAT('%', ?, '%'))
     AND (? = '' OR e.email LIKE CONCAT('%', ?, '%'))
-    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? = '' OR el.leave_type = ?)
     AND (? IS NULL OR el.leave_date >= ?)
     AND (? IS NULL OR el.leave_date <= ?)
 ORDER BY 
@@ -96,7 +96,7 @@ type GetAllLeavesParams struct {
 	Column4     interface{} `json:"column_4"`
 	CONCAT_3    interface{} `json:"CONCAT_3"`
 	Column6     interface{} `json:"column_6"`
-	CONCAT_4    interface{} `json:"CONCAT_4"`
+	LeaveType   string      `json:"leave_type"`
 	Column8     interface{} `json:"column_8"`
 	LeaveDate   time.Time   `json:"leave_date"`
 	Column10    interface{} `json:"column_10"`
@@ -131,7 +131,7 @@ func (q *Queries) GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]G
 		arg.Column4,
 		arg.CONCAT_3,
 		arg.Column6,
-		arg.CONCAT_4,
+		arg.LeaveType,
 		arg.Column8,
 		arg.LeaveDate,
 		arg.Column10,
