@@ -615,33 +615,33 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(500, err)
 	}
-	updated_by := c.Get("user_id").(int)
-	certParams, err := req.convertToCertDbStruct(int64(updated_by))
-	if err != nil {
-		return c.JSON(500, "Error converting employee certificates to db struct")
-	}
+	// updated_by := c.Get("user_id").(int)
+	// certParams, err := req.convertToCertDbStruct(int64(updated_by))
+	// if err != nil {
+	// 	return c.JSON(500, "Error converting employee certificates to db struct")
+	// }
 	fileParams, err := req.convertToFileDbStruct()
 	if err != nil {
 		return c.JSON(500, "Error converting file submit to db struct")
 	}
 
-	tx, err := S.db.Begin()
+	// tx, err := S.db.Begin()
+	// if err != nil {
+	// 	return c.JSON(500, "Error starting transaction")
+	// }
+	// defer tx.Rollback()
+	// qtx := S.q.WithTx(tx)
+	// err := S.q.UpdateEmpCertificates(c.Request().Context(), certParams)
+	// if error != nil {
+	// 	return c.JSON(500, "Error updating employee certificates")
+	// }
+	err = S.q.CreateFileSubmit(c.Request().Context(),fileParams)
 	if err != nil {
-		return c.JSON(500, "Error starting transaction")
-	}
-	defer tx.Rollback()
-	qtx := S.q.WithTx(tx)
-	error := qtx.UpdateEmpCertificates(c.Request().Context(), certParams)
-	if error != nil {
-		return c.JSON(500, "Error updating employee certificates")
-	}
-	error = qtx.CreateFileSubmit(c.Request().Context(),fileParams)
-	if error != nil {
 		return c.JSON(500, "Error creating file submit for employee certificates")
 	}
-	if err := tx.Commit(); err != nil {
-		return c.JSON(500, "Error committing transaction")
-	}
+	// // if err := tx.Commit(); err != nil {
+	// // 	return c.JSON(500, "Error committing transaction")
+	// }
 
 	return c.JSON(200, "Employee certificates updated successfully")
 }
