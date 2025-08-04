@@ -228,6 +228,7 @@ SELECT
     el.create_date
 FROM HR_EMP_LEAVES el
 WHERE el.emp_id = ?
+    AND (el.is_ban = false OR el.is_ban IS NULL)
     AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR YEAR(el.leave_date) = ?)
 ORDER BY 
@@ -352,7 +353,7 @@ SELECT
 FROM HR_EMP_LEAVES el
 INNER JOIN HR_Employee e ON el.emp_id = e.id
 LEFT JOIN HR_Admin a ON el.added_by = a.id
-WHERE el.id = ?
+WHERE el.id = ? AND (el.is_ban = false OR el.is_ban IS NULL)
 `
 
 type GetLeaveByIdRow struct {

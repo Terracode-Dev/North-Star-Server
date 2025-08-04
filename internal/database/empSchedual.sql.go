@@ -321,6 +321,7 @@ SELECT
 FROM HR_Employee e
 INNER JOIN HR_EMP_Status s ON e.id = s.employee_id
 WHERE e.email = ?
+AND (e.is_ban = false OR e.is_ban IS NULL)
 ORDER BY s.created_at DESC
 LIMIT 1
 `
@@ -386,7 +387,8 @@ FROM HR_Employee e
 LEFT JOIN HR_EMP_User u ON e.id = u.employee_id
 LEFT JOIN HR_EMP_SCHEDUAL s ON e.id = s.emp_id
 WHERE 
-    (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+    (e.is_ban = false OR e.is_ban IS NULL)
+    AND(? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
     AND (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
     AND (? = '' OR u.email LIKE CONCAT('%', ?, '%'))
 ORDER BY 

@@ -37,6 +37,43 @@ func (q *Queries) DeleteFileSubmit(ctx context.Context, employeeID int64) error 
 	return err
 }
 
+const getFileNames = `-- name: GetFileNames :many
+SELECT 
+    file_name,
+    file_type
+FROM HR_FileSubmit
+WHERE 
+    employee_id = ?
+`
+
+type GetFileNamesRow struct {
+	FileName string `json:"file_name"`
+	FileType string `json:"file_type"`
+}
+
+func (q *Queries) GetFileNames(ctx context.Context, employeeID int64) ([]GetFileNamesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFileNames, employeeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetFileNamesRow
+	for rows.Next() {
+		var i GetFileNamesRow
+		if err := rows.Scan(&i.FileName, &i.FileType); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateFileSubmit = `-- name: UpdateFileSubmit :exec
 UPDATE HR_FileSubmit
 SET file_name = ?, file_type = ?
