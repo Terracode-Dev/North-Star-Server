@@ -322,7 +322,7 @@ SELECT file_name FROM HR_FileSubmit WHERE employee_id = ? AND file_type = 'visa'
 SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS full_name
 FROM HR_Employee e
 JOIN HR_EMP_User u ON e.id = u.employee_id
-WHERE u.branch_id = ?;
+WHERE u.branch_id = ? AND e.is_ban = false;
 
 -- name: GetEmployeeSalaryDetails :one
 SElECT salary_type, amount, Total_of_salary_allowances, pension_employer, pension_employee, total_net_salary
