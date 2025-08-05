@@ -76,6 +76,7 @@ WHERE
     AND (? = '' OR el.leave_type = ?)
     AND (? IS NULL OR el.leave_date >= ?)
     AND (? IS NULL OR el.leave_date <= ?)
+    AND (e.is_ban = false OR e.is_ban IS NULL)
 ORDER BY 
     CASE WHEN ? = 'name_asc' THEN e.first_name END ASC,
     CASE WHEN ? = 'name_desc' THEN e.first_name END DESC,

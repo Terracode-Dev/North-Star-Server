@@ -1087,7 +1087,7 @@ const getEmployeeFromBranch = `-- name: GetEmployeeFromBranch :many
 SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS full_name
 FROM HR_Employee e
 JOIN HR_EMP_User u ON e.id = u.employee_id
-WHERE u.branch_id = ?
+WHERE u.branch_id = ? AND e.is_ban = false
 `
 
 type GetEmployeeFromBranchRow struct {
