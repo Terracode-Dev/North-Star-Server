@@ -79,9 +79,13 @@ SELECT
     e.last_name,
     e.email,
     el.leave_type,
-    el.leave_date
+    el.leave_date,
+    el.create_date,
+    el.reason,
+    ha.user_name as added_by_name
 FROM HR_EMP_LEAVES el
 INNER JOIN HR_Employee e ON el.emp_id = e.id
+LEFT JOIN HR_Admin ha ON el.added_by = ha.id
 WHERE 
     (? = '' OR e.first_name LIKE CONCAT('%', ?, '%') OR e.last_name LIKE CONCAT('%', ?, '%'))
     AND (? = '' OR e.email LIKE CONCAT('%', ?, '%'))
