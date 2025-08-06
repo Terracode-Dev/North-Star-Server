@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
+	"fmt"
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/labstack/echo/v4"
 )
@@ -64,85 +64,108 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 // =====================================================
 
 func (s *HRService) CreateLeaveHandler(c echo.Context) error {
-	var req CreateLeaveRequest
+	var req []CreateLeaveRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 	}
 
-	// Parse date
-	leaveDate, err := time.Parse("2006-01-02", req.LeaveDate)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid date format. Use YYYY-MM-DD"})
+	if len(req) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "No leave requests provided"})
 	}
 
-	leaveData, err := s.q.GetEmployeeLeaveBenefits(c.Request().Context(), req.EmpID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"err": err.Error(),
-			"msg": "invalid leave Data",
-		})
-	}
-
-	if leaveData.LeaveType == req.LeaveType {
-		var maldivianTZ *time.Location
-		maldivianTZ, err = time.LoadLocation("Indian/Maldives")
+	var createdLeaves []map[string]interface{}
+	
+	// Process each leave request
+	for i, r := range req {
+		// Parse date
+		leaveDate, err := time.Parse("2006-01-02", r.LeaveDate)
 		if err != nil {
-			// Fallback to fixed offset if timezone data not available
-			maldivianTZ = time.FixedZone("MVT", 5*60*60) // UTC+5
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"error": fmt.Sprintf("Invalid date format for request %d. Use YYYY-MM-DD", i+1),
+			})
 		}
 
-		now := time.Now().In(maldivianTZ)
-		startOfYear := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, maldivianTZ)
-		endOfYear := time.Date(now.Year(), 12, 31, 23, 59, 59, 999999999, maldivianTZ)
-
-		params := database.GetEmployeeLeavesCountParams{
-			EmpID:       req.EmpID,
-			Column2:     "",                  // Empty string to ignore leave_type filter
-			CONCAT:      leaveData.LeaveType, // Same value as Column2
-			Column4:     startOfYear,         // Start date filter (not NULL)
-			LeaveDate:   startOfYear,         // Actual start date
-			Column6:     endOfYear,           // End date filter (not NULL)
-			LeaveDate_2: endOfYear,           // Actual end date
-		}
-
-		dbCount, err := s.q.GetEmployeeLeavesCount(c.Request().Context(), params)
+		leaveData, err := s.q.GetEmployeeLeaveBenefits(c.Request().Context(), r.EmpID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"err": err.Error(),
-				"msg": "invalid leave Data",
+				"msg": fmt.Sprintf("Invalid leave data for request %d", i+1),
 			})
 		}
-		if int64(leaveData.LeaveCount) <= dbCount {
-			return c.JSON(http.StatusConflict, map[string]string{
-				"err": err.Error(),
-				"msg": "leave count passed",
+
+		if leaveData.LeaveType == r.LeaveType {
+			var maldivianTZ *time.Location
+			maldivianTZ, err = time.LoadLocation("Indian/Maldives")
+			if err != nil {
+				maldivianTZ = time.FixedZone("MVT", 5*60*60) // UTC+5
+			}
+
+			now := time.Now().In(maldivianTZ)
+			startOfYear := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, maldivianTZ)
+			endOfYear := time.Date(now.Year(), 12, 31, 23, 59, 59, 999999999, maldivianTZ)
+
+			params := database.GetEmployeeLeavesCountParams{
+				EmpID:       r.EmpID,
+				Column2:     "",                  // Empty string to ignore leave_type filter
+				CONCAT:      leaveData.LeaveType, // Same value as Column2
+				Column4:     startOfYear,         // Start date filter (not NULL)
+				LeaveDate:   startOfYear,         // Actual start date
+				Column6:     endOfYear,           // End date filter (not NULL)
+				LeaveDate_2: endOfYear,           // Actual end date
+			}
+
+			dbCount, err := s.q.GetEmployeeLeavesCount(c.Request().Context(), params)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, map[string]string{
+					"err": err.Error(),
+					"msg": fmt.Sprintf("Error getting leave count for request %d", i+1),
+				})
+			}
+			
+			if int64(leaveData.LeaveCount) <= dbCount {
+				return c.JSON(http.StatusConflict, map[string]string{
+					"err": "Leave quota exceeded",
+					"msg": fmt.Sprintf("Leave count exceeded for employee %d in request %d", r.EmpID, i+1),
+				})
+			}
+		}
+
+		// Prepare parameters
+		params := database.CreateLeaveParams{
+			EmpID:     r.EmpID,
+			LeaveType: r.LeaveType,
+			LeaveDate: leaveDate,
+			Reason:    r.Reason,
+		}
+
+		if r.AddedBy != nil {
+			params.AddedBy = sql.NullInt64{Int64: *r.AddedBy, Valid: true}
+		}
+
+		result, err := s.q.CreateLeave(c.Request().Context(), params)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"error": err.Error(),
+				"msg":   fmt.Sprintf("Failed to create leave for request %d", i+1),
 			})
 		}
+
+		id, _ := result.LastInsertId()
+		createdLeaves = append(createdLeaves, map[string]interface{}{
+			"employee_id": r.EmpID,
+			"leave_id":    id,
+			"leave_date":  r.LeaveDate,
+			"leave_type":  r.LeaveType,
+		})
 	}
 
-	// Prepare parameters
-	params := database.CreateLeaveParams{
-		EmpID:     req.EmpID,
-		LeaveType: req.LeaveType,
-		LeaveDate: leaveDate,
-		Reason:    req.Reason,
-	}
-
-	if req.AddedBy != nil {
-		params.AddedBy = sql.NullInt64{Int64: *req.AddedBy, Valid: true}
-	}
-
-	result, err := s.q.CreateLeave(c.Request().Context(), params)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	id, _ := result.LastInsertId()
 	return c.JSON(http.StatusCreated, map[string]interface{}{
-		"message":  "Leave created successfully",
-		"leave_id": id,
+		"message":       "Leaves created successfully",
+		"created_count": len(createdLeaves),
+		"leaves":        createdLeaves,
 	})
 }
+
 
 // =====================================================
 // GET ALL LEAVES HANDLER
