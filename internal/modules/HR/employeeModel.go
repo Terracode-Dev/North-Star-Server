@@ -902,7 +902,6 @@ type UpdateEmpExpatriateReqModel struct {
 }
 
 
-
 func (M *UpdateEmpExpatriateReqModel) convertToExpDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
 	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
 	if err != nil {
