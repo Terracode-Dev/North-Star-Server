@@ -106,7 +106,9 @@ WHERE
     )
     AND (
         u.branch_id = ? OR ? = 0
-    );
+    )
+ORDER BY p.date DESC
+LIMIT ? OFFSET ?;
 
 -- name: GetAccountDetails :many
 SELECT 
