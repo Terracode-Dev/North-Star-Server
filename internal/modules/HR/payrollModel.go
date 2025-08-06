@@ -144,7 +144,7 @@ func (A *CreatePayrollReqModel) ToCreatePayrollParams(admin_id int64, ex_rate fl
 			}
 		}
 
-		total_pension_float = employee_pension_float + pension_employer_float
+		total_pension_float = employee_pension_float 
 	} else {
 		total_pension_float = 0.0
 	}

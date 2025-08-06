@@ -801,31 +801,23 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 	if err := c.Bind(&expatriate); err != nil {
 		return c.JSON(500, err)
 	}
-	expParams, err := expatriate.convertToExpDbStruct(int64(admin))
+	expParams, err := expatriate.Expatriate.convertToExpDbStruct(int64(admin))
 	if err != nil {
 		return c.JSON(500, "Error converting employee expatriate to db struct")
 	}
-	fileParams, err := expatriate.convertToExpFileDbStruct()
+	fileParams, err := expatriate.FileSubmit.convertToDbStruct()
 	if err != nil {
 		return c.JSON(500, "Error converting file submit to db struct")
 	}
-	tx, err := S.db.Begin()
-	if err != nil {
-		return c.JSON(500, "Error starting transaction")
-	}
-	defer tx.Rollback()
-	qtx := S.q.WithTx(tx)
-	error := qtx.UpdateEmpExpatriate(c.Request().Context(), expParams)
+	error := S.q.UpdateEmpExpatriate(c.Request().Context(), expParams)
 	if error != nil {
 		return c.JSON(500, "Error updating employee expatriate")
 	}
-	error = qtx.CreateFileSubmit(c.Request().Context(), fileParams)
+	error = S.q.CreateFileSubmit(c.Request().Context(), fileParams)
 	if error != nil {
 		return c.JSON(500, "Error creating file submit for employee expatriate")
 	}
-	if err := tx.Commit(); err != nil {
-		return c.JSON(500, "Error committing transaction")
-	}
+
 	return c.JSON(200, "Employee expatriate updated successfully")
 
 }

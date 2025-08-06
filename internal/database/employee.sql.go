@@ -639,7 +639,7 @@ SELECT
 FROM HR_Branch b
 LEFT JOIN HR_EMP_User u ON b.id = u.branch_id
 LEFT JOIN HR_Employee e ON u.employee_id = e.id
-WHERE b.id = ?
+WHERE b.id = ? AND (e.is_ban = false OR e.is_ban IS NULL)
 GROUP BY b.id, b.name
 `
 

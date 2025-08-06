@@ -47,6 +47,8 @@ type GetStaffPayrollReqParams struct {
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
 	BranchID  int64     `json:"branch_id"`
+	Limit     int64     `json:"limit"`
+	Offset    int64     `json:"offset"`
 }
 
 func (s *GetStaffPayrollReqParams) ConvertToDbParams() (db.GetStaffPayrollParams, error) {
@@ -58,11 +60,13 @@ func (s *GetStaffPayrollReqParams) ConvertToDbParams() (db.GetStaffPayrollParams
     return db.GetStaffPayrollParams{
         DATEFORMAT:     month,
         Column2: s.FirstName,
-        CONCAT:  s.FirstName, // For the LIKE comparison
+        CONCAT:  s.FirstName, 
         Column4: s.LastName,
-        CONCAT_2: s.LastName,   // For the LIKE comparison
+        CONCAT_2: s.LastName,  
         BranchID:  s.BranchID,
-        Column7: s.BranchID,   // For the OR condition
+        Column7: s.BranchID, 
+		Limit: int32(s.Limit), 
+		Offset: int32(s.Offset),
     }, nil
 }
 

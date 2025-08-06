@@ -225,6 +225,8 @@ WHERE
     AND (
         u.branch_id = ? OR ? = 0
     )
+ORDER BY p.date DESC
+LIMIT ? OFFSET ?
 `
 
 type GetStaffPayrollParams struct {
@@ -235,6 +237,8 @@ type GetStaffPayrollParams struct {
 	CONCAT_2   interface{} `json:"CONCAT_2"`
 	BranchID   int64       `json:"branch_id"`
 	Column7    interface{} `json:"column_7"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
 }
 
 type GetStaffPayrollRow struct {
@@ -265,6 +269,8 @@ func (q *Queries) GetStaffPayroll(ctx context.Context, arg GetStaffPayrollParams
 		arg.CONCAT_2,
 		arg.BranchID,
 		arg.Column7,
+		arg.Limit,
+		arg.Offset,
 	)
 	if err != nil {
 		return nil, err
