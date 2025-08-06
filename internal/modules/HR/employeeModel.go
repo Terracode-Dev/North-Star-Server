@@ -783,6 +783,14 @@ type CreateFileSubmitReqModel struct {
 	FileType   string `json:"file_type"`
 }
 
+func (M CreateFileSubmitReqModel) convertToDbStruct() (db.CreateFileSubmitParams, error) {
+	return db.CreateFileSubmitParams{
+		EmployeeID: M.EmployeeID,
+		FileName:   M.FileName,
+		FileType:   M.FileType,
+	}, nil
+}
+
 type EmpReqModel struct {
 	Employee       CreateEmployeeReqModel            `json:"employee"`
 	Emergency      CreateEmpEmergencyDetailsReqModel `json:"emergency"`
@@ -878,6 +886,10 @@ func (M UpdateEmpCertificatesReqModel) convertToFileDbStruct() (db.CreateFileSub
 }
 
 type UpdateEmpExpatriateAndFilesReqModel struct {
+	Expatriate    UpdateEmpExpatriateReqModel   `json:"expatriate"`
+	FileSubmit    CreateFileSubmitReqModel     `json:"file_submit"`
+}
+type UpdateEmpExpatriateReqModel struct {
 	Expatriate    bool   `json:"expatriate"`
 	Nationality   string `json:"nationality"`
 	VisaType      string `json:"visa_type"`
@@ -887,12 +899,11 @@ type UpdateEmpExpatriateAndFilesReqModel struct {
 	VisaFee       string `json:"visa_fee"`
 	UpdatedBy     *int64 `json:"updated_by"`
 	EmployeeID    int64  `json:"employee_id"`
-	FileName   string           `json:"file_name"`
-	FileType   string           `json:"file_type"`
 }
 
 
-func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
+
+func (M *UpdateEmpExpatriateReqModel) convertToExpDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
 	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
 	if err != nil {
 		return db.UpdateEmpExpatriateParams{}, err
@@ -924,14 +935,14 @@ func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpDbStruct(admin_id int64
 	}, nil
 }
 
-func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpFileDbStruct() (db.CreateFileSubmitParams, error) {
+// func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpFileDbStruct() (db.CreateFileSubmitParams, error) {
 
-	return db.CreateFileSubmitParams{
-		EmployeeID: M.EmployeeID,
-		FileName:   M.FileName,
-		FileType:   M.FileType,
-	}, nil
-}
+// 	return db.CreateFileSubmitParams{
+// 		EmployeeID: M.EmployeeID,
+// 		FileName:   M.FileName,
+// 		FileType:   M.FileType,
+// 	}, nil
+// }
 	
 // request body for trainer client session check
 type CheckTrainerAssignmentAtTimereq struct {
