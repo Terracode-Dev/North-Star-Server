@@ -218,8 +218,10 @@ INNER JOIN HR_EMP_User u ON e.id = u.employee_id
 INNER JOIN HR_Branch b ON u.branch_id = b.id
 WHERE 
     DATE_FORMAT(CONVERT_TZ(p.date, '+00:00', '+05:00'), '%Y-%m') = DATE_FORMAT(?, '%Y-%m')
-    AND (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
-    OR (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+    AND (
+        (? = '' OR e.first_name LIKE CONCAT('%', ?, '%'))
+        OR (? = '' OR e.last_name LIKE CONCAT('%', ?, '%'))
+    )
     AND (
         u.branch_id = ? OR ? = 0
     )
