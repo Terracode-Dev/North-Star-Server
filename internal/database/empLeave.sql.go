@@ -207,9 +207,9 @@ ORDER BY eb.leave_type
 `
 
 type GetEmployeeLeaveBenefitsRow struct {
-	LeaveType   string `json:"leave_type"`
-	LeaveCount  int32  `json:"leave_count"`
-	LeaveStatus bool   `json:"leave_status"`
+	LeaveType   sql.NullString `json:"leave_type"`
+	LeaveCount  sql.NullInt32  `json:"leave_count"`
+	LeaveStatus bool           `json:"leave_status"`
 }
 
 func (q *Queries) GetEmployeeLeaveBenefits(ctx context.Context, employeeID int64) (GetEmployeeLeaveBenefitsRow, error) {

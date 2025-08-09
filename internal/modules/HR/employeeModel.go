@@ -473,10 +473,18 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateE
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
 
+	var leaveType sql.NullString
+	leaveType.String = M.LeaveType
+	leaveType.Valid = true
+
+	var leaveCount sql.NullInt32
+	leaveCount.Int32 = M.LeaveCount
+	leaveCount.Valid = true
+
 	return db.CreateEmpBenifitsParams{
 		LeaveStatus:        M.LeaveStatus,
-		LeaveType:          M.LeaveType,
-		LeaveCount:         M.LeaveCount,
+		LeaveType:          leaveType,
+		LeaveCount:         leaveCount,
 		HealthInsurance:    M.HealthInsurance,
 		InsuranceFrom:      insuranceFrom,
 		InsuranceTill:      insuranceTill,
@@ -526,10 +534,19 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.U
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
 
+	var leaveType sql.NullString
+	leaveType.String = M.LeaveType
+	leaveType.Valid = true
+
+	var leaveCount sql.NullInt32
+	leaveCount.Int32 = M.LeaveCount
+	leaveCount.Valid = true
+
+
 	return db.UpdateEmpBenifitsParams{
 		LeaveStatus:        M.LeaveStatus,
-		LeaveType:          M.LeaveType,
-		LeaveCount:         M.LeaveCount,
+		LeaveType:          leaveType,
+		LeaveCount:         leaveCount,
 		HealthInsurance:    M.HealthInsurance,
 		InsuranceFrom:      insuranceFrom,
 		InsuranceTill:      insuranceTill,
