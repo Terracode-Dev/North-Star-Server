@@ -127,19 +127,19 @@ type GetExpiredVisaOrReportsParams struct {
 }
 
 type GetExpiredVisaOrReportsRow struct {
-	EmployeeID     int64  `json:"employee id"`
-	Name           string `json:"name"`
-	Department     string `json:"department"`
-	Designation    string `json:"designation"`
-	EmployeeStatus string `json:"employee_status"`
-	StatusFromTo   string `json:"status_from_to"`
-	BranchID       int64  `json:"branch_id"`
-	BranchName     string `json:"branch_name"`
-	Nationality    string `json:"nationality"`
-	VisaType       string `json:"visa_type"`
-	PassportNo     string `json:"passport_no"`
-	VisaNumber     string `json:"visa_number"`
-	VisaFromTo     string `json:"visa_from_to"`
+	EmployeeID     int64          `json:"employee id"`
+	Name           string         `json:"name"`
+	Department     string         `json:"department"`
+	Designation    string         `json:"designation"`
+	EmployeeStatus string         `json:"employee_status"`
+	StatusFromTo   string         `json:"status_from_to"`
+	BranchID       int64          `json:"branch_id"`
+	BranchName     string         `json:"branch_name"`
+	Nationality    sql.NullString `json:"nationality"`
+	VisaType       sql.NullString `json:"visa_type"`
+	PassportNo     string         `json:"passport_no"`
+	VisaNumber     sql.NullString `json:"visa_number"`
+	VisaFromTo     string         `json:"visa_from_to"`
 }
 
 func (q *Queries) GetExpiredVisaOrReports(ctx context.Context, arg GetExpiredVisaOrReportsParams) ([]GetExpiredVisaOrReportsRow, error) {
@@ -370,19 +370,19 @@ type GetVisaOrPassportExpiringSoonParams struct {
 }
 
 type GetVisaOrPassportExpiringSoonRow struct {
-	EmployeeID     int64  `json:"employee id"`
-	Name           string `json:"name"`
-	Department     string `json:"department"`
-	Designation    string `json:"designation"`
-	EmployeeStatus string `json:"employee_status"`
-	StatusFromTo   string `json:"status_from_to"`
-	BranchID       int64  `json:"branch_id"`
-	BranchName     string `json:"branch_name"`
-	Nationality    string `json:"nationality"`
-	VisaType       string `json:"visa_type"`
-	PassportNo     string `json:"passport_no"`
-	VisaNumber     string `json:"visa_number"`
-	VisaFromTo     string `json:"visa_from_to"`
+	EmployeeID     int64          `json:"employee id"`
+	Name           string         `json:"name"`
+	Department     string         `json:"department"`
+	Designation    string         `json:"designation"`
+	EmployeeStatus string         `json:"employee_status"`
+	StatusFromTo   string         `json:"status_from_to"`
+	BranchID       int64          `json:"branch_id"`
+	BranchName     string         `json:"branch_name"`
+	Nationality    sql.NullString `json:"nationality"`
+	VisaType       sql.NullString `json:"visa_type"`
+	PassportNo     string         `json:"passport_no"`
+	VisaNumber     sql.NullString `json:"visa_number"`
+	VisaFromTo     string         `json:"visa_from_to"`
 }
 
 func (q *Queries) GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error) {
@@ -477,17 +477,17 @@ type GetempployeeInsuranceParams struct {
 }
 
 type GetempployeeInsuranceRow struct {
-	EmployeeID      int64  `json:"employee id"`
-	Name            string `json:"name"`
-	Department      string `json:"department"`
-	Designation     string `json:"designation"`
-	EmployeeStatus  string `json:"employee_status"`
-	StatusFromTo    string `json:"status_from_to"`
-	BranchID        int64  `json:"branch_id"`
-	BranchName      string `json:"branch_name"`
-	Nationality     string `json:"nationality"`
-	HealthInsurance string `json:"health_insurance"`
-	InsuranceFromTo string `json:"insurance_from_to"`
+	EmployeeID      int64          `json:"employee id"`
+	Name            string         `json:"name"`
+	Department      string         `json:"department"`
+	Designation     string         `json:"designation"`
+	EmployeeStatus  string         `json:"employee_status"`
+	StatusFromTo    string         `json:"status_from_to"`
+	BranchID        int64          `json:"branch_id"`
+	BranchName      string         `json:"branch_name"`
+	Nationality     sql.NullString `json:"nationality"`
+	HealthInsurance string         `json:"health_insurance"`
+	InsuranceFromTo string         `json:"insurance_from_to"`
 }
 
 func (q *Queries) GetempployeeInsurance(ctx context.Context, arg GetempployeeInsuranceParams) ([]GetempployeeInsuranceRow, error) {
