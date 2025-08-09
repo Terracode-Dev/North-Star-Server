@@ -204,6 +204,7 @@ SELECT
     b.name as branch_name,
     DATE_FORMAT(p.date, '%Y-%m') as month,
     p.amount as gross_salary,
+    p.salary_amount_type as gross_salary_type,
     p.total_of_salary_allowances as allowance,
     p.pension_employee as pension_employee,
     p.pension_employer as pension_employer,
@@ -251,6 +252,7 @@ type GetStaffPayrollRow struct {
 	BranchName        string          `json:"branch_name"`
 	Month             string          `json:"month"`
 	GrossSalary       decimal.Decimal `json:"gross_salary"`
+	GrossSalaryType   string          `json:"gross_salary_type"`
 	Allowance         decimal.Decimal `json:"allowance"`
 	PensionEmployee   sql.NullString  `json:"pension_employee"`
 	PensionEmployer   sql.NullString  `json:"pension_employer"`
@@ -289,6 +291,7 @@ func (q *Queries) GetStaffPayroll(ctx context.Context, arg GetStaffPayrollParams
 			&i.BranchName,
 			&i.Month,
 			&i.GrossSalary,
+			&i.GrossSalaryType,
 			&i.Allowance,
 			&i.PensionEmployee,
 			&i.PensionEmployer,
