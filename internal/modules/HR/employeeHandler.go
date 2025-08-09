@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
@@ -40,7 +41,7 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	if err := c.Bind(&emp); err != nil {
 		return err
 	}
-	
+
 	fmt.Println(emp)
 	tx, err := S.db.Begin()
 	if err != nil {
@@ -185,17 +186,17 @@ func (S *HRService) createEmployee(c echo.Context) error {
 		if err != nil {
 			return c.JSON(500, "Error converting commission value: "+err.Error())
 		}
-		istrainerrow := qtx.CreateTrainerEmp(c.Request().Context(),database.CreateTrainerEmpParams{
-			TrainerID: emp.IsTrainer.TrainerID,
+		istrainerrow := qtx.CreateTrainerEmp(c.Request().Context(), database.CreateTrainerEmpParams{
+			TrainerID:  emp.IsTrainer.TrainerID,
 			EmployeeID: employeeID,
 			AttendeeID: emp.IsTrainer.AttendeeId,
 			Commission: comValue,
-			},
+		},
 		)
 		if istrainerrow != nil {
 			return c.JSON(500, "Error creating employee trainer details: "+istrainerrow.Error())
 		}
-	} 
+	}
 
 	if err := tx.Commit(); err != nil {
 		return c.JSON(500, map[string]string{"error": "Error committing transaction"})
@@ -224,28 +225,35 @@ func (S *HRService) getEmployee(c echo.Context) error {
 	if !ok {
 		return c.JSON(400, "Invalid branch ID")
 	}
+	searchTerm := strings.TrimSpace(empReqModel.Search)
+	var firstName, lastName string
+
+	if searchTerm != "" {
+		nameParts := strings.SplitN(searchTerm, " ", 2)
+		firstName = strings.TrimSpace(nameParts[0])
+		if len(nameParts) > 1 {
+			lastName = nameParts[1]
+		}
+	}
+
 	var params database.GetEmployeeParams
 	if branch_id == int(S.cfg.MainBranchId) {
 		log.Println(empReqModel)
 		params = database.GetEmployeeParams{
-			CONCAT:   empReqModel.Search,
-			CONCAT_2: empReqModel.Search,
-			CONCAT_3: empReqModel.Search,
-			CONCAT_4: empReqModel.Search,
-			CONCAT_5: empReqModel.Search,
-			Column6:  "",
+			CONCAT:   firstName,
+			CONCAT_2: lastName,
+			CONCAT_3: searchTerm,
+			Column4:  "",
 			ID:       0,
 			Limit:    empReqModel.Limit,
 			Offset:   (empReqModel.PageNumber - 1) * empReqModel.Limit,
 		}
 	} else {
 		params = database.GetEmployeeParams{
-			CONCAT:   empReqModel.Search,
-			CONCAT_2: empReqModel.Search,
-			CONCAT_3: empReqModel.Search,
-			CONCAT_4: empReqModel.Search,
-			CONCAT_5: empReqModel.Search,
-			Column6:  "1",
+			CONCAT:   firstName,
+			CONCAT_2: lastName,
+			CONCAT_3: searchTerm,
+			Column4:  "",
 			ID:       int64(branch_id),
 			Limit:    empReqModel.Limit,
 			Offset:   (empReqModel.PageNumber - 1) * empReqModel.Limit,
@@ -288,7 +296,7 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
 	}
 
-	emp_files , err := S.q.GetEmpFiles(c.Request().Context(), empID)
+	emp_files, err := S.q.GetEmpFiles(c.Request().Context(), empID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
 	}
@@ -330,23 +338,24 @@ func (S *HRService) getEmployeeOne(c echo.Context) error {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return c.JSON(http.StatusOK, EmpResponse{
-				Employee:   emp,
+				Employee:      emp,
 				EmpAllowances: emp_allow,
 				EmpFiles:      emp_files,
 				TrainerCom: TrainerCom{
-					IsTrainer: false,
+					IsTrainer:  false,
 					Commission: "0",
-			}})
+				},
+			})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": fmt.Sprintf("Database error: %v", err)})
 	}
 
 	return c.JSON(http.StatusOK, EmpResponse{
-		Employee:   emp,
+		Employee:      emp,
 		EmpAllowances: emp_allow,
 		EmpFiles:      emp_files,
 		TrainerCom: TrainerCom{
-			IsTrainer: true,
+			IsTrainer:  true,
 			Commission: TrainerData.Commission.String(),
 		},
 	})
@@ -635,7 +644,7 @@ func (S *HRService) updateEmpCertificates(c echo.Context) error {
 	// if error != nil {
 	// 	return c.JSON(500, "Error updating employee certificates")
 	// }
-	err = S.q.CreateFileSubmit(c.Request().Context(),fileParams)
+	err = S.q.CreateFileSubmit(c.Request().Context(), fileParams)
 	if err != nil {
 		return c.JSON(500, "Error creating file submit for employee certificates")
 	}
@@ -738,51 +747,51 @@ func (S *HRService) updateEmpUser(c echo.Context) error {
 // @Failure 500 {string} string "Internal server error"
 // @Router /employee/allowances [put]
 func (S *HRService) updateEmpAllowances(c echo.Context) error {
-    var allowances []CreateEmpAllowancesReqModel
-    if err := c.Bind(&allowances); err != nil {
-        return c.JSON(500, err)
-    }
-    
-    if len(allowances) == 0 {
-        return c.JSON(400, "No allowances provided")
-    }
-    
-    empID := allowances[0].EmployeeID
-    for _, allowance := range allowances {
-        if allowance.EmployeeID != empID {
-            return c.JSON(400, "All allowances must belong to the same employee")
-        }
-    }
-    
-    updated_by := c.Get("user_id").(int)
-    
-    tx, err := S.db.Begin()
-    if err != nil {
-        return c.JSON(500, "Error starting transaction")
-    }
-    defer tx.Rollback()
-    qtx := S.q.WithTx(tx)
-    
-    if err := qtx.DeleteEmpAllowances(c.Request().Context(), empID); err != nil {
-        return c.JSON(500, "Error deleting existing employee allowances")
-    }
+	var allowances []CreateEmpAllowancesReqModel
+	if err := c.Bind(&allowances); err != nil {
+		return c.JSON(500, err)
+	}
 
-    for _, allowance := range allowances {
-        allowanceParams, err := allowance.convertToDbStruct(int64(updated_by))
-        if err != nil {
-            return c.JSON(500, "Error converting employee allowances to db struct")
-        }
-        
-        if err := qtx.CreateEmpAllowances(c.Request().Context(), allowanceParams); err != nil {
-            return c.JSON(500, "Error creating employee allowances")
-        }
-    }
-    
-    if err := tx.Commit(); err != nil {
-        return c.JSON(500, "Error committing transaction")
-    }
-    
-    return c.JSON(200, "Employee allowances updated successfully")
+	if len(allowances) == 0 {
+		return c.JSON(400, "No allowances provided")
+	}
+
+	empID := allowances[0].EmployeeID
+	for _, allowance := range allowances {
+		if allowance.EmployeeID != empID {
+			return c.JSON(400, "All allowances must belong to the same employee")
+		}
+	}
+
+	updated_by := c.Get("user_id").(int)
+
+	tx, err := S.db.Begin()
+	if err != nil {
+		return c.JSON(500, "Error starting transaction")
+	}
+	defer tx.Rollback()
+	qtx := S.q.WithTx(tx)
+
+	if err := qtx.DeleteEmpAllowances(c.Request().Context(), empID); err != nil {
+		return c.JSON(500, "Error deleting existing employee allowances")
+	}
+
+	for _, allowance := range allowances {
+		allowanceParams, err := allowance.convertToDbStruct(int64(updated_by))
+		if err != nil {
+			return c.JSON(500, "Error converting employee allowances to db struct")
+		}
+
+		if err := qtx.CreateEmpAllowances(c.Request().Context(), allowanceParams); err != nil {
+			return c.JSON(500, "Error creating employee allowances")
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return c.JSON(500, "Error committing transaction")
+	}
+
+	return c.JSON(200, "Employee allowances updated successfully")
 }
 
 // update employee expatriate handler
@@ -819,7 +828,6 @@ func (S *HRService) updateEmpExpatriate(c echo.Context) error {
 	}
 
 	return c.JSON(200, "Employee expatriate updated successfully")
-
 }
 
 // update employee accessiability handler
@@ -927,51 +935,50 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
 	}
 
 	for _, file := range fileData {
-        var bucketName string
-        switch file.FileType {
-        case "certificates":
-            bucketName = "nsappcertficates"
-        case "visa":
-            bucketName = "nsappvisa"
-        default:
-            // Skip unknown file types
-            continue
-        }
+		var bucketName string
+		switch file.FileType {
+		case "certificates":
+			bucketName = "nsappcertficates"
+		case "visa":
+			bucketName = "nsappvisa"
+		default:
+			// Skip unknown file types
+			continue
+		}
 
-        deleted, err := S.s3.DeleteS3Item(c.Request().Context(), bucketName, file.FileName)
-        if err != nil {
-            log.Printf("Error deleting file %s from S3 bucket %s: %v", file.FileName, bucketName, err)
-            // Continue with other files instead of failing the entire operation
-            continue
-        }
-        if !deleted {
-            log.Printf("Failed to delete file %s from S3 bucket %s", file.FileName, bucketName)
-        }
-    }
+		deleted, err := S.s3.DeleteS3Item(c.Request().Context(), bucketName, file.FileName)
+		if err != nil {
+			log.Printf("Error deleting file %s from S3 bucket %s: %v", file.FileName, bucketName, err)
+			// Continue with other files instead of failing the entire operation
+			continue
+		}
+		if !deleted {
+			log.Printf("Failed to delete file %s from S3 bucket %s", file.FileName, bucketName)
+		}
+	}
 
-	files := qtx.DeleteFileSubmit(c.Request().Context(),empID)
+	files := qtx.DeleteFileSubmit(c.Request().Context(), empID)
 	if files != nil {
 		return c.JSON(500, "Error deleting employee files: "+files.Error())
 	}
 
-    _, err = qtx.GetTrainerEmp(c.Request().Context(), empID)
-    if err != nil && err != sql.ErrNoRows {
-        return c.JSON(http.StatusInternalServerError, map[string]string{
-            "error": "Failed to check trainer status: " + err.Error(),
-        })
-    } else if err == nil {
-        // Employee is a trainer, delete the trainer data
-        if err := qtx.DeleteTrainerEmp(c.Request().Context(), empID); err != nil {
-            return c.JSON(http.StatusInternalServerError, map[string]string{
-                "error": "Failed to delete trainer data: " + err.Error(),
-            })
-        }
-    }
+	_, err = qtx.GetTrainerEmp(c.Request().Context(), empID)
+	if err != nil && err != sql.ErrNoRows {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to check trainer status: " + err.Error(),
+		})
+	} else if err == nil {
+		// Employee is a trainer, delete the trainer data
+		if err := qtx.DeleteTrainerEmp(c.Request().Context(), empID); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"error": "Failed to delete trainer data: " + err.Error(),
+			})
+		}
+	}
 	employee := qtx.DeleteEmployee(c.Request().Context(), empID)
 	if employee != nil {
 		return c.JSON(500, employee.Error())
 	}
-
 
 	if err := tx.Commit(); err != nil {
 		return c.JSON(500, map[string]string{"error": "Error committing transaction"})
@@ -1002,74 +1009,74 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /employee/login [post]
 func (S *HRService) employeeLogin(c echo.Context) error {
-    // Parse request body
-    var login EmpLoginReqModel
-    if err := c.Bind(&login); err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{
-            "error": "Invalid request format",
-        })
-    }
-    
-    // Validate input
-    if login.Email == "" || login.Password == "" {
-        return c.JSON(http.StatusBadRequest, map[string]string{
-            "error": "Email and password are required",
-        })
-    }
-    
-    // Get employee from database
-    emp, err := S.q.EmployeeLogin(c.Request().Context(), login.Email)
-    if err != nil {
-        if err == sql.ErrNoRows {
-            return c.JSON(http.StatusUnauthorized, map[string]string{
-                "error": "Invalid email or password",
-            })
-        }
-        log.Printf("Database error in employee login: %v", err)
-        return c.JSON(http.StatusInternalServerError, map[string]string{
-            "error": "Internal server error",
-        })
-    }
-    
-    // Verify password
-    err = bcrypt.CompareHashAndPassword([]byte(emp.Password), []byte(login.Password))
-    if err != nil {
-        return c.JSON(http.StatusUnauthorized, err.Error())
-    }
-    
-    // Create JWT payload
-    payload := rba.RBAauth{
-        Id:     int(emp.EmployeeID),
-        Role:   "emp",
-        Email:  emp.Email,
-        Branch: int(emp.BranchID),
-    }
-    
-    // Generate JWT token
-    token, err := rba.GenarateJWTkey(time.Hour*time.Duration(S.cfg.JwtExpHour), payload, []byte(S.cfg.JWTSecret))
-    if err != nil {
-        log.Printf("JWT generation error: %v", err)
-        return c.JSON(http.StatusInternalServerError, map[string]string{
-            "error": "Failed to generate authentication token",
-        })
-    }
-    
-    // Set cookie
-    cookie := new(http.Cookie)
-    cookie.Name = "auth_token"
-    cookie.Value = token
-    cookie.Path = "/"
-    cookie.HttpOnly = false  // Prevent JavaScript access to the cookie
-    cookie.SameSite = http.SameSiteStrictMode  // Prevent CSRF attacks
-    cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
-    c.SetCookie(cookie)
-    
-    // Return response
-    res := LoginEmpResponse{
-        Token: token,
-        Data:  payload,
-    }
-    return c.JSON(http.StatusOK, res)
+	// Parse request body
+	var login EmpLoginReqModel
+	if err := c.Bind(&login); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid request format",
+		})
+	}
+
+	// Validate input
+	if login.Email == "" || login.Password == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Email and password are required",
+		})
+	}
+
+	// Get employee from database
+	emp, err := S.q.EmployeeLogin(c.Request().Context(), login.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "Invalid email or password",
+			})
+		}
+		log.Printf("Database error in employee login: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Internal server error",
+		})
+	}
+
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(emp.Password), []byte(login.Password))
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, err.Error())
+	}
+
+	// Create JWT payload
+	payload := rba.RBAauth{
+		Id:     int(emp.EmployeeID),
+		Role:   "emp",
+		Email:  emp.Email,
+		Branch: int(emp.BranchID),
+	}
+
+	// Generate JWT token
+	token, err := rba.GenarateJWTkey(time.Hour*time.Duration(S.cfg.JwtExpHour), payload, []byte(S.cfg.JWTSecret))
+	if err != nil {
+		log.Printf("JWT generation error: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to generate authentication token",
+		})
+	}
+
+	// Set cookie
+	cookie := new(http.Cookie)
+	cookie.Name = "auth_token"
+	cookie.Value = token
+	cookie.Path = "/"
+	cookie.HttpOnly = false                   // Prevent JavaScript access to the cookie
+	cookie.SameSite = http.SameSiteStrictMode // Prevent CSRF attacks
+	cookie.Expires = time.Now().Add(time.Hour * time.Duration(S.cfg.JwtExpHour))
+	c.SetCookie(cookie)
+
+	// Return response
+	res := LoginEmpResponse{
+		Token: token,
+		Data:  payload,
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 // @Summary user loginout
@@ -1136,7 +1143,7 @@ func (S *HRService) empOnlyBankDetailsUpdate(c echo.Context) error {
 	return c.JSON(200, "Employee bank details updated successfully")
 }
 
-func(S *HRService) getEmployeeByBranch(c echo.Context) error {
+func (S *HRService) getEmployeeByBranch(c echo.Context) error {
 	branch_id, ok := c.Get("branch").(int)
 	if !ok {
 		return c.JSON(400, "Invalid branch ID")
@@ -1149,7 +1156,7 @@ func(S *HRService) getEmployeeByBranch(c echo.Context) error {
 }
 
 func (S *HRService) getEmployeeSalary(c echo.Context) error {
-	empID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+	empID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(500, "Error parsing employee id")
 	}
@@ -1191,7 +1198,6 @@ func (S *HRService) CheckIfEMPIsTrainer(c echo.Context) error {
 	return c.JSON(200, TrainerData)
 }
 
-
 func (S *HRService) DeleteEmployeeFiles(c echo.Context) error {
 	var req database.DeleteEmpFilesParams
 	if err := c.Bind(&req); err != nil {
@@ -1220,7 +1226,6 @@ func (S *HRService) DeleteEmployeeFiles(c echo.Context) error {
 		}
 	}
 	return c.JSON(http.StatusOK, "Employee files deleted successfully")
-
 }
 
 func (S *HRService) UpdateEmpCommission(c echo.Context) error {
@@ -1229,7 +1234,7 @@ func (S *HRService) UpdateEmpCommission(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, "Error binding request")
 	}
-	updateParams , err := req.convertToDbStruct(int64(updated_by))
+	updateParams, err := req.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Error converting request to database struct")
 	}
@@ -1240,8 +1245,6 @@ func (S *HRService) UpdateEmpCommission(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "Commission updated successfully"})
 }
 
-
-
 func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
 	var req CheckTrainerAssignmentAtTimereq
 	if err := c.Bind(&req); err != nil {
@@ -1251,7 +1254,7 @@ func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, "Error converting request to database struct")
 	}
-	value , err := S.q.CheckTrainerAssignmentAtTime(c.Request().Context(), params)
+	value, err := S.q.CheckTrainerAssignmentAtTime(c.Request().Context(), params)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
 	}
@@ -1267,7 +1270,7 @@ func (S *HRService) BanUser(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Database error: %v", err))
 	}
-	return c.JSON(http.StatusOK, map[string]string{"message": "User banned successfully"})	
+	return c.JSON(http.StatusOK, map[string]string{"message": "User banned successfully"})
 }
 
 func (S *HRService) GetEmpCountByBranch(c echo.Context) error {
