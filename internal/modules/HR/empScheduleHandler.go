@@ -66,6 +66,18 @@ func (s *HRService) CreateEmployeeSchedule(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
+	// Begin transaction
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to begin transaction",
+		})
+	}
+	defer tx.Rollback() // This will be a no-op if tx.Commit() is called
+
+	// Create queries with transaction
+	qtx := s.q.WithTx(tx)
+
 	// Create weekly schedule
 	weeklyParams := database.CreateEmployeeScheduleParams{
 		EmpID: req.EmpID,
@@ -232,12 +244,14 @@ func (s *HRService) CreateEmployeeSchedule(c echo.Context) error {
 		}
 	}
 
-	// Create weekly schedule
-	if err := s.q.CreateEmployeeSchedule(ctx, weeklyParams); err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+	// Create weekly schedule within transaction
+	if err := qtx.CreateEmployeeSchedule(ctx, weeklyParams); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to create weekly schedule",
+		})
 	}
 
-	// Create additional schedules
+	// Create additional schedules within transaction
 	for _, additional := range req.Additional {
 		date, err := parseDate(additional.Date)
 		if err != nil {
@@ -267,11 +281,18 @@ func (s *HRService) CreateEmployeeSchedule(c echo.Context) error {
 			ToTime:   toTime,
 		}
 
-		if err := s.q.CreateAdditionalSchedule(ctx, additionalParams); err != nil {
+		if err := qtx.CreateAdditionalSchedule(ctx, additionalParams); err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"error": "failed to create additional schedule",
 			})
 		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "failed to commit transaction",
+		})
 	}
 
 	return c.JSON(http.StatusCreated, map[string]string{
@@ -620,104 +641,105 @@ func (s *HRService) GetEmployeeWorkDaysBreakdown(c echo.Context) error {
 }
 
 func (s *HRService) GetEmpSheduleByID(c echo.Context) error {
-    emp_id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-    if err != nil {
-        return c.JSON(http.StatusBadRequest, map[string]string{
-            "error": "invalid employee ID",
-        })
-    }
-    
-    schedule, err := s.q.GetEmpShedulleByID(c.Request().Context(), emp_id)
-    if err != nil {
-        if err == sql.ErrNoRows {
-            return c.JSON(http.StatusNotFound, map[string]string{
-                "error": "employee schedule not found",
-            })
-        }
-        return c.JSON(http.StatusInternalServerError, err.Error())
-    }
-    
-    scheduleAdditional, err := s.q.GetEmpAdditionalSheduleByID(c.Request().Context(), emp_id)
-    if err != nil {
-        return c.JSON(http.StatusInternalServerError, err.Error())
-    }
+	emp_id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid employee ID",
+		})
+	}
 
-    // Transform the response to proper format
-    transformedSchedule := transformScheduleResponse(schedule)
-    transformedAdditional := transformAdditionalScheduleResponse(scheduleAdditional)
+	schedule, err := s.q.GetEmpShedulleByID(c.Request().Context(), emp_id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, map[string]string{
+				"error": "employee schedule not found",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
-    return c.JSON(http.StatusOK, map[string]interface{}{
-        "schedule":            transformedSchedule,
-        "additional_schedule": transformedAdditional,
-    })
+	scheduleAdditional, err := s.q.GetEmpAdditionalSheduleByID(c.Request().Context(), emp_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	// Transform the response to proper format
+	transformedSchedule := transformScheduleResponse(schedule)
+	transformedAdditional := transformAdditionalScheduleResponse(scheduleAdditional)
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"schedule":            transformedSchedule,
+		"additional_schedule": transformedAdditional,
+	})
 }
 
 // Helper function to convert interface{} to string (handles byte arrays)
 func interfaceToTimeString(val interface{}) string {
-    if val == nil {
-        return ""
-    }
-    
-    // Handle byte slice (which gets Base64 encoded)
-    if bytes, ok := val.([]byte); ok {
-        return string(bytes)
-    }
-    
-    // Handle string
-    if str, ok := val.(string); ok {
-        return str
-    }
-    
-    return ""
+	if val == nil {
+		return ""
+	}
+
+	// Handle byte slice (which gets Base64 encoded)
+	if bytes, ok := val.([]byte); ok {
+		return string(bytes)
+	}
+
+	// Handle string
+	if str, ok := val.(string); ok {
+		return str
+	}
+
+	return ""
 }
 
 // Transform schedule response
 func transformScheduleResponse(schedule database.GetEmpShedulleByIDRow) map[string]interface{} {
-    return map[string]interface{}{
-        "id":              schedule.ID,
-        "emp_id":          schedule.EmpID,
-        "monday":          schedule.Monday.Bool,
-        "monday_from":     interfaceToTimeString(schedule.MondayFrom),
-        "monday_to":       interfaceToTimeString(schedule.MondayTo),
-        "tuesday":         schedule.Tuesday.Bool,
-        "tuesday_from":    interfaceToTimeString(schedule.TuesdayFrom),
-        "tuesday_to":      interfaceToTimeString(schedule.TuesdayTo),
-        "wednesday":       schedule.Wednesday.Bool,
-        "wednesday_from":  interfaceToTimeString(schedule.WednesdayFrom),
-        "wednesday_to":    interfaceToTimeString(schedule.WednesdayTo),
-        "thursday":        schedule.Thursday.Bool,
-        "thursday_from":   interfaceToTimeString(schedule.ThursdayFrom),
-        "thursday_to":     interfaceToTimeString(schedule.ThursdayTo),
-        "friday":          schedule.Friday.Bool,
-        "friday_from":     interfaceToTimeString(schedule.FridayFrom),
-        "friday_to":       interfaceToTimeString(schedule.FridayTo),
-        "saturday":        schedule.Saturday.Bool,
-        "saturday_from":   interfaceToTimeString(schedule.SaturdayFrom),
-        "saturday_to":     interfaceToTimeString(schedule.SaturdayTo),
-        "sunday":          schedule.Sunday.Bool,
-        "sunday_from":     interfaceToTimeString(schedule.SundayFrom),
-        "sunday_to":       interfaceToTimeString(schedule.SundayTo),
-        "created_at":      schedule.CreatedAt.Time,
-        "updated_at":      schedule.UpdatedAt.Time,
-    }
+	return map[string]interface{}{
+		"id":             schedule.ID,
+		"emp_id":         schedule.EmpID,
+		"monday":         schedule.Monday.Bool,
+		"monday_from":    interfaceToTimeString(schedule.MondayFrom),
+		"monday_to":      interfaceToTimeString(schedule.MondayTo),
+		"tuesday":        schedule.Tuesday.Bool,
+		"tuesday_from":   interfaceToTimeString(schedule.TuesdayFrom),
+		"tuesday_to":     interfaceToTimeString(schedule.TuesdayTo),
+		"wednesday":      schedule.Wednesday.Bool,
+		"wednesday_from": interfaceToTimeString(schedule.WednesdayFrom),
+		"wednesday_to":   interfaceToTimeString(schedule.WednesdayTo),
+		"thursday":       schedule.Thursday.Bool,
+		"thursday_from":  interfaceToTimeString(schedule.ThursdayFrom),
+		"thursday_to":    interfaceToTimeString(schedule.ThursdayTo),
+		"friday":         schedule.Friday.Bool,
+		"friday_from":    interfaceToTimeString(schedule.FridayFrom),
+		"friday_to":      interfaceToTimeString(schedule.FridayTo),
+		"saturday":       schedule.Saturday.Bool,
+		"saturday_from":  interfaceToTimeString(schedule.SaturdayFrom),
+		"saturday_to":    interfaceToTimeString(schedule.SaturdayTo),
+		"sunday":         schedule.Sunday.Bool,
+		"sunday_from":    interfaceToTimeString(schedule.SundayFrom),
+		"sunday_to":      interfaceToTimeString(schedule.SundayTo),
+		"created_at":     schedule.CreatedAt.Time,
+		"updated_at":     schedule.UpdatedAt.Time,
+	}
 }
 
 // Transform additional schedule response
 func transformAdditionalScheduleResponse(schedules []database.GetEmpAdditionalSheduleByIDRow) []map[string]interface{} {
-    var result []map[string]interface{}
-    
-    for _, schedule := range schedules {
-        transformed := map[string]interface{}{
-            "id":         schedule.ID,
-            "emp_id":     schedule.EmpID,
-            "date":       schedule.Date,
-            "from_time":  interfaceToTimeString(schedule.FromTime),
-            "to_time":    interfaceToTimeString(schedule.ToTime),
-            "created_at": schedule.CreatedAt.Time,
-            "updated_at": schedule.UpdatedAt.Time,
-        }
-        result = append(result, transformed)
-    }
-    
-    return result
+	var result []map[string]interface{}
+
+	for _, schedule := range schedules {
+		transformed := map[string]interface{}{
+			"id":         schedule.ID,
+			"emp_id":     schedule.EmpID,
+			"date":       schedule.Date,
+			"from_time":  interfaceToTimeString(schedule.FromTime),
+			"to_time":    interfaceToTimeString(schedule.ToTime),
+			"created_at": schedule.CreatedAt.Time,
+			"updated_at": schedule.UpdatedAt.Time,
+		}
+		result = append(result, transformed)
+	}
+
+	return result
 }
+
