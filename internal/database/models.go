@@ -133,23 +133,23 @@ type HrEmpBankDetail struct {
 }
 
 type HrEmpBenifit struct {
-	ID                 int64         `json:"id"`
-	LeaveStatus        bool          `json:"leave_status"`
-	LeaveType          string        `json:"leave_type"`
-	LeaveCount         int32         `json:"leave_count"`
-	HealthInsurance    string        `json:"health_insurance"`
-	InsuranceFrom      time.Time     `json:"insurance_from"`
-	InsuranceTill      time.Time     `json:"insurance_till"`
-	RetainmentPlan     string        `json:"retainment_plan"`
-	RetainmentPlanFrom time.Time     `json:"retainment_plan_from"`
-	RetainmentPlanTill time.Time     `json:"retainment_plan_till"`
-	Benifits           string        `json:"benifits"`
-	BenifitsFrom       time.Time     `json:"benifits_from"`
-	BenifitsTill       time.Time     `json:"benifits_till"`
-	UpdatedBy          sql.NullInt64 `json:"updated_by"`
-	EmployeeID         int64         `json:"employee_id"`
-	CreatedAt          sql.NullTime  `json:"created_at"`
-	UpdatedAt          sql.NullTime  `json:"updated_at"`
+	ID                 int64          `json:"id"`
+	LeaveStatus        bool           `json:"leave_status"`
+	HealthInsurance    string         `json:"health_insurance"`
+	InsuranceFrom      time.Time      `json:"insurance_from"`
+	InsuranceTill      time.Time      `json:"insurance_till"`
+	RetainmentPlan     string         `json:"retainment_plan"`
+	RetainmentPlanFrom time.Time      `json:"retainment_plan_from"`
+	RetainmentPlanTill time.Time      `json:"retainment_plan_till"`
+	Benifits           string         `json:"benifits"`
+	BenifitsFrom       time.Time      `json:"benifits_from"`
+	BenifitsTill       time.Time      `json:"benifits_till"`
+	UpdatedBy          sql.NullInt64  `json:"updated_by"`
+	EmployeeID         int64          `json:"employee_id"`
+	CreatedAt          sql.NullTime   `json:"created_at"`
+	UpdatedAt          sql.NullTime   `json:"updated_at"`
+	LeaveType          sql.NullString `json:"leave_type"`
+	LeaveCount         sql.NullInt32  `json:"leave_count"`
 }
 
 type HrEmpCertificate struct {
