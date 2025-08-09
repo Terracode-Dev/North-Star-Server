@@ -675,6 +675,26 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.Creat
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
 
+	var nationality sql.NullString
+	nationality.String = M.Nationality
+	nationality.Valid = true
+
+	var visa_type sql.NullString
+	visa_type.String = M.VisaType
+	visa_type.Valid = true
+
+	var visa_from sql.NullTime
+	visa_from.Time = visaFrom
+	visa_from.Valid = true
+
+	var visa_till sql.NullTime
+	visa_till.Time = visaTill
+	visa_till.Valid = true
+
+	var visa_number sql.NullString
+	visa_number.String = M.VisaNumber
+	visa_number.Valid = true
+
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
 		return db.CreateEmpExpatriateParams{}, err
@@ -682,11 +702,11 @@ func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.Creat
 
 	return db.CreateEmpExpatriateParams{
 		Expatriate:    M.Expatriate,
-		Nationality:   M.Nationality,
-		VisaType:      M.VisaType,
-		VisaFrom:      visaFrom,
-		VisaTill:      visaTill,
-		VisaNumber:    M.VisaNumber,
+		Nationality:   nationality,
+		VisaType:      visa_type,
+		VisaFrom:      visa_from,
+		VisaTill:      visa_till,
+		VisaNumber:    visa_number,
 		VisaFee:       visa_amount,
 		UpdatedBy:     updated_by,
 		EmployeeID:    M.EmployeeID,
@@ -934,17 +954,40 @@ func (M *UpdateEmpExpatriateReqModel) convertToExpDbStruct(admin_id int64) (db.U
 	updated_by.Int64 = admin_id
 	updated_by.Valid = true
 
+	updated_by.Int64 = admin_id
+	updated_by.Valid = true
+
+	var nationality sql.NullString
+	nationality.String = M.Nationality
+	nationality.Valid = true
+
+	var visa_type sql.NullString
+	visa_type.String = M.VisaType
+	visa_type.Valid = true
+
+	var visa_from sql.NullTime
+	visa_from.Time = visaFrom
+	visa_from.Valid = true
+
+	var visa_till sql.NullTime
+	visa_till.Time = visaTill
+	visa_till.Valid = true
+
+	var visa_number sql.NullString
+	visa_number.String = M.VisaNumber
+	visa_number.Valid = true
+
 	visa_amount, err := decimal.NewFromString(M.VisaFee)
 	if err != nil {
 		return db.UpdateEmpExpatriateParams{}, err
 	}
 	return db.UpdateEmpExpatriateParams{
 		Expatriate:    M.Expatriate,
-		Nationality:  M.Nationality,
-		VisaType:      M.VisaType,
-		VisaFrom:      visaFrom,
-		VisaTill:      visaTill,
-		VisaNumber:    M.VisaNumber,
+		Nationality:  nationality,
+		VisaType:      visa_type,
+		VisaFrom:      visa_from,
+		VisaTill:      visa_till,
+		VisaNumber:    visa_number,
 		VisaFee:       visa_amount,
 		UpdatedBy:     updated_by,
 		EmployeeID:    M.EmployeeID,
