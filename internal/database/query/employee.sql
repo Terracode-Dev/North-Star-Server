@@ -93,11 +93,9 @@ WHERE
     (e.is_ban = false OR e.is_ban IS NULL)
     AND
   (
-    CAST(e.id AS CHAR) LIKE CONCAT('%', ?, '%')
-    OR e.first_name LIKE CONCAT('%', ?, '%')
+    e.first_name LIKE CONCAT('%', ?, '%')
     OR e.last_name  LIKE CONCAT('%', ?, '%')
     OR usr.email    LIKE CONCAT('%', ?, '%')
-    OR br.name      LIKE CONCAT('%', ?, '%')
   )
   AND (? = '' OR br.id = ?)
 ORDER BY e.id DESC

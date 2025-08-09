@@ -715,11 +715,9 @@ WHERE
     (e.is_ban = false OR e.is_ban IS NULL)
     AND
   (
-    CAST(e.id AS CHAR) LIKE CONCAT('%', ?, '%')
-    OR e.first_name LIKE CONCAT('%', ?, '%')
+    e.first_name LIKE CONCAT('%', ?, '%')
     OR e.last_name  LIKE CONCAT('%', ?, '%')
     OR usr.email    LIKE CONCAT('%', ?, '%')
-    OR br.name      LIKE CONCAT('%', ?, '%')
   )
   AND (? = '' OR br.id = ?)
 ORDER BY e.id DESC
@@ -730,9 +728,7 @@ type GetEmployeeParams struct {
 	CONCAT   interface{} `json:"CONCAT"`
 	CONCAT_2 interface{} `json:"CONCAT_2"`
 	CONCAT_3 interface{} `json:"CONCAT_3"`
-	CONCAT_4 interface{} `json:"CONCAT_4"`
-	CONCAT_5 interface{} `json:"CONCAT_5"`
-	Column6  interface{} `json:"column_6"`
+	Column4  interface{} `json:"column_4"`
 	ID       int64       `json:"id"`
 	Limit    int32       `json:"limit"`
 	Offset   int32       `json:"offset"`
@@ -751,9 +747,7 @@ func (q *Queries) GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]Get
 		arg.CONCAT,
 		arg.CONCAT_2,
 		arg.CONCAT_3,
-		arg.CONCAT_4,
-		arg.CONCAT_5,
-		arg.Column6,
+		arg.Column4,
 		arg.ID,
 		arg.Limit,
 		arg.Offset,
