@@ -661,56 +661,62 @@ type CreateEmpExpatriateReqModel struct {
 }
 
 func (M CreateEmpExpatriateReqModel) convertToDbStruct(admin_id int64) (db.CreateEmpExpatriateParams, error) {
-	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
-	if err != nil {
-		return db.CreateEmpExpatriateParams{}, err
-	}
+    var updated_by sql.NullInt64
+    updated_by.Int64 = admin_id
+    updated_by.Valid = true
 
-	visaTill, err := time.Parse(time.RFC3339, M.VisaTill)
-	if err != nil {
-		return db.CreateEmpExpatriateParams{}, err
-	}
+    var nationality sql.NullString
+    nationality.String = M.Nationality
+    nationality.Valid = true
 
-	var updated_by sql.NullInt64
-	updated_by.Int64 = admin_id
-	updated_by.Valid = true
+    var visa_type sql.NullString
+    visa_type.String = M.VisaType
+    visa_type.Valid = M.VisaType != ""
 
-	var nationality sql.NullString
-	nationality.String = M.Nationality
-	nationality.Valid = true
+    var visa_from sql.NullTime
+    if M.VisaFrom != "" {
+        t, err := time.Parse(time.RFC3339, M.VisaFrom)
+        if err != nil {
+            return db.CreateEmpExpatriateParams{}, err
+        }
+        visa_from.Time = t
+        visa_from.Valid = true
+    }
 
-	var visa_type sql.NullString
-	visa_type.String = M.VisaType
-	visa_type.Valid = true
+    var visa_till sql.NullTime
+    if M.VisaTill != "" {
+        t, err := time.Parse(time.RFC3339, M.VisaTill)
+        if err != nil {
+            return db.CreateEmpExpatriateParams{}, err
+        }
+        visa_till.Time = t
+        visa_till.Valid = true
+    }
 
-	var visa_from sql.NullTime
-	visa_from.Time = visaFrom
-	visa_from.Valid = true
+    var visa_number sql.NullString
+    visa_number.String = M.VisaNumber
+    visa_number.Valid = M.VisaNumber != ""
 
-	var visa_till sql.NullTime
-	visa_till.Time = visaTill
-	visa_till.Valid = true
+    var visa_fee decimal.Decimal
+    var err error
+    if M.VisaFee != "" {
+        visa_fee, err = decimal.NewFromString(M.VisaFee)
+        if err != nil {
+            return db.CreateEmpExpatriateParams{}, err
+        }
+    }
 
-	var visa_number sql.NullString
-	visa_number.String = M.VisaNumber
-	visa_number.Valid = true
-
-	visa_amount, err := decimal.NewFromString(M.VisaFee)
-	if err != nil {
-		return db.CreateEmpExpatriateParams{}, err
-	}
-
-	return db.CreateEmpExpatriateParams{
-		Expatriate:    M.Expatriate,
-		Nationality:   nationality,
-		VisaType:      visa_type,
-		VisaFrom:      visa_from,
-		VisaTill:      visa_till,
-		VisaNumber:    visa_number,
-		VisaFee:       visa_amount,
-		UpdatedBy:     updated_by,
-		EmployeeID:    M.EmployeeID,
-	}, nil
+    return db.CreateEmpExpatriateParams{
+        Expatriate:  M.Expatriate,
+        Nationality: nationality,
+        VisaType:    visa_type,
+        VisaFrom:    visa_from,
+        VisaTill:    visa_till,
+        VisaNumber:  visa_number,
+        VisaFee:     visa_fee,
+        UpdatedBy:   updated_by,
+        EmployeeID:  M.EmployeeID,
+    }, nil
 }
 
 // func (M CreateEmpExpatriateReqModel) convertToUpdateDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
@@ -940,58 +946,62 @@ type UpdateEmpExpatriateReqModel struct {
 
 
 func (M *UpdateEmpExpatriateReqModel) convertToExpDbStruct(admin_id int64) (db.UpdateEmpExpatriateParams, error) {
-	visaFrom, err := time.Parse(time.RFC3339, M.VisaFrom)
-	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, err
-	}
+    var updated_by sql.NullInt64
+    updated_by.Int64 = admin_id
+    updated_by.Valid = true
 
-	visaTill, err := time.Parse(time.RFC3339, M.VisaTill)
-	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, err
-	}
+    var nationality sql.NullString
+    nationality.String = M.Nationality
+    nationality.Valid = true
 
-	var updated_by sql.NullInt64
-	updated_by.Int64 = admin_id
-	updated_by.Valid = true
+    var visa_type sql.NullString
+    visa_type.String = M.VisaType
+    visa_type.Valid = M.VisaType != ""
 
-	updated_by.Int64 = admin_id
-	updated_by.Valid = true
+    var visa_from sql.NullTime
+    if M.VisaFrom != "" {
+        t, err := time.Parse(time.RFC3339, M.VisaFrom)
+        if err != nil {
+            return db.UpdateEmpExpatriateParams{}, err
+        }
+        visa_from.Time = t
+        visa_from.Valid = true
+    }
 
-	var nationality sql.NullString
-	nationality.String = M.Nationality
-	nationality.Valid = true
+    var visa_till sql.NullTime
+    if M.VisaTill != "" {
+        t, err := time.Parse(time.RFC3339, M.VisaTill)
+        if err != nil {
+            return db.UpdateEmpExpatriateParams{}, err
+        }
+        visa_till.Time = t
+        visa_till.Valid = true
+    }
 
-	var visa_type sql.NullString
-	visa_type.String = M.VisaType
-	visa_type.Valid = true
+    var visa_number sql.NullString
+    visa_number.String = M.VisaNumber
+    visa_number.Valid = M.VisaNumber != ""
 
-	var visa_from sql.NullTime
-	visa_from.Time = visaFrom
-	visa_from.Valid = true
+    var visa_fee decimal.Decimal
+    var err error
+    if M.VisaFee != "" {
+        visa_fee, err = decimal.NewFromString(M.VisaFee)
+        if err != nil {
+            return db.UpdateEmpExpatriateParams{}, err
+        }
+    }
 
-	var visa_till sql.NullTime
-	visa_till.Time = visaTill
-	visa_till.Valid = true
-
-	var visa_number sql.NullString
-	visa_number.String = M.VisaNumber
-	visa_number.Valid = true
-
-	visa_amount, err := decimal.NewFromString(M.VisaFee)
-	if err != nil {
-		return db.UpdateEmpExpatriateParams{}, err
-	}
-	return db.UpdateEmpExpatriateParams{
-		Expatriate:    M.Expatriate,
-		Nationality:  nationality,
-		VisaType:      visa_type,
-		VisaFrom:      visa_from,
-		VisaTill:      visa_till,
-		VisaNumber:    visa_number,
-		VisaFee:       visa_amount,
-		UpdatedBy:     updated_by,
-		EmployeeID:    M.EmployeeID,
-	}, nil
+    return db.UpdateEmpExpatriateParams{
+        Expatriate:  M.Expatriate,
+        Nationality: nationality,
+        VisaType:    visa_type,
+        VisaFrom:    visa_from,
+        VisaTill:    visa_till,
+        VisaNumber:  visa_number,
+        VisaFee:     visa_fee,
+        UpdatedBy:   updated_by,
+        EmployeeID:  M.EmployeeID,
+    }, nil
 }
 
 // func (M UpdateEmpExpatriateAndFilesReqModel) convertToExpFileDbStruct() (db.CreateFileSubmitParams, error) {
