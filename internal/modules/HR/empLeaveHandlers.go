@@ -39,7 +39,7 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 
 	approvedLeaveCount, err := s.q.GetEmployeeApprovedLeaveCount(c.Request().Context(),database.GetEmployeeApprovedLeaveCountParams{
 		EmpID:     empId,
-		LeaveType: leaveData.LeaveType,
+		LeaveType: leaveData.LeaveType.String,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -48,12 +48,12 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 		})
 	}
 
-	remainingLeaves := int64(leaveData.LeaveCount) - approvedLeaveCount
+	remainingLeaves := int64(leaveData.LeaveCount.Int32) - approvedLeaveCount
 
 	res := CheckValideteEmpRes{
 		EmpId:      empId,
-		LeaveType:  leaveData.LeaveType,
-		LeaveCount: int64(leaveData.LeaveCount),
+		LeaveType:  leaveData.LeaveType.String,
+		LeaveCount: int64(leaveData.LeaveCount.Int32),
 		RemainingLeaves: remainingLeaves,
 	}
 	return c.JSON(http.StatusOK, res)
@@ -93,7 +93,7 @@ func (s *HRService) CreateLeaveHandler(c echo.Context) error {
 			})
 		}
 
-		if leaveData.LeaveType == r.LeaveType {
+		if leaveData.LeaveType.String == r.LeaveType {
 			var maldivianTZ *time.Location
 			maldivianTZ, err = time.LoadLocation("Indian/Maldives")
 			if err != nil {
@@ -122,7 +122,7 @@ func (s *HRService) CreateLeaveHandler(c echo.Context) error {
 				})
 			}
 			
-			if int64(leaveData.LeaveCount) <= dbCount {
+			if int64(leaveData.LeaveCount.Int32) <= dbCount {
 				return c.JSON(http.StatusConflict, map[string]string{
 					"err": "Leave quota exceeded",
 					"msg": fmt.Sprintf("Leave count exceeded for employee %d in request %d", r.EmpID, i+1),
