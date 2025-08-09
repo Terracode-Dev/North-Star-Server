@@ -177,16 +177,16 @@ type HrEmpEmergencyDetail struct {
 type HrEmpExpatriate struct {
 	ID          int64           `json:"id"`
 	Expatriate  bool            `json:"expatriate"`
-	Nationality string          `json:"nationality"`
-	VisaType    string          `json:"visa_type"`
-	VisaFrom    time.Time       `json:"visa_from"`
-	VisaTill    time.Time       `json:"visa_till"`
-	VisaNumber  string          `json:"visa_number"`
-	VisaFee     decimal.Decimal `json:"visa_fee"`
 	UpdatedBy   sql.NullInt64   `json:"updated_by"`
 	EmployeeID  int64           `json:"employee_id"`
 	CreatedAt   sql.NullTime    `json:"created_at"`
 	UpdatedAt   sql.NullTime    `json:"updated_at"`
+	Nationality sql.NullString  `json:"nationality"`
+	VisaType    sql.NullString  `json:"visa_type"`
+	VisaFrom    sql.NullTime    `json:"visa_from"`
+	VisaTill    sql.NullTime    `json:"visa_till"`
+	VisaNumber  sql.NullString  `json:"visa_number"`
+	VisaFee     decimal.Decimal `json:"visa_fee"`
 }
 
 type HrEmpLeafe struct {
