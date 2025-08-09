@@ -86,6 +86,7 @@ SELECT
     b.name as branch_name,
     DATE_FORMAT(p.date, '%Y-%m') as month,
     p.amount as gross_salary,
+    p.salary_amount_type as gross_salary_type,
     p.total_of_salary_allowances as allowance,
     p.pension_employee as pension_employee,
     p.pension_employer as pension_employer,
