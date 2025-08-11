@@ -93,10 +93,12 @@ WHERE
     (e.is_ban = false OR e.is_ban IS NULL)
     AND
   (
-    e.first_name LIKE CONCAT('%', ?, '%')
-    OR e.last_name  LIKE CONCAT('%', ?, '%')
+    ? = '' OR 
+    e.first_name LIKE CONCAT('%', ?, '%') OR 
+    e.last_name LIKE CONCAT('%', ?, '%') OR
+    CONCAT(e.first_name, ' ', e.last_name) LIKE CONCAT('%', ?, '%')
   )
-  AND (? = '' OR br.id = ?)
+  AND (? = 0 OR br.id = ?)
 ORDER BY e.id DESC
 LIMIT ? OFFSET ?;
 

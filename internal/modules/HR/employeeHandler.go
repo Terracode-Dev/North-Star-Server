@@ -226,32 +226,36 @@ func (S *HRService) getEmployee(c echo.Context) error {
 		return c.JSON(400, "Invalid branch ID")
 	}
 	searchTerm := strings.TrimSpace(empReqModel.Search)
-	var firstName, lastName string
-
-	if searchTerm != "" {
-		nameParts := strings.SplitN(searchTerm, " ", 2)
-		firstName = strings.TrimSpace(nameParts[0])
-		if len(nameParts) > 1 {
-			lastName = nameParts[1]
-		}
-	}
+	// var firstName, lastName string
+	//
+	// if searchTerm != "" {
+	// 	nameParts := strings.SplitN(searchTerm, " ", 2)
+	// 	firstName = strings.TrimSpace(nameParts[0])
+	// 	if len(nameParts) > 1 {
+	// 		lastName = nameParts[1]
+	// 	}
+	// }
 
 	var params database.GetEmployeeParams
 	if branch_id == int(S.cfg.MainBranchId) {
 		log.Println(empReqModel)
 		params = database.GetEmployeeParams{
-			CONCAT:   firstName,
-			CONCAT_2: lastName,
-			Column3:  "",
+			Column1:  searchTerm,
+			CONCAT:   searchTerm,
+			CONCAT_2: searchTerm,
+			CONCAT_3: searchTerm,
+			Column5:  0,
 			ID:       0,
 			Limit:    empReqModel.Limit,
 			Offset:   (empReqModel.PageNumber - 1) * empReqModel.Limit,
 		}
 	} else {
 		params = database.GetEmployeeParams{
-			CONCAT:   firstName,
-			CONCAT_2: lastName,
-			Column3:  "filter",
+			Column1:  searchTerm,
+			CONCAT:   searchTerm,
+			CONCAT_2: searchTerm,
+			CONCAT_3: searchTerm,
+			Column5:  1,
 			ID:       int64(branch_id),
 			Limit:    empReqModel.Limit,
 			Offset:   (empReqModel.PageNumber - 1) * empReqModel.Limit,

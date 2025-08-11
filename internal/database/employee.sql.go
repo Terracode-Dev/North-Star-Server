@@ -715,18 +715,22 @@ WHERE
     (e.is_ban = false OR e.is_ban IS NULL)
     AND
   (
-    e.first_name LIKE CONCAT('%', ?, '%')
-    OR e.last_name  LIKE CONCAT('%', ?, '%')
+    ? = '' OR 
+    e.first_name LIKE CONCAT('%', ?, '%') OR 
+    e.last_name LIKE CONCAT('%', ?, '%') OR
+    CONCAT(e.first_name, ' ', e.last_name) LIKE CONCAT('%', ?, '%')
   )
-  AND (? = '' OR br.id = ?)
+  AND (? = 0 OR br.id = ?)
 ORDER BY e.id DESC
 LIMIT ? OFFSET ?
 `
 
 type GetEmployeeParams struct {
+	Column1  interface{} `json:"column_1"`
 	CONCAT   interface{} `json:"CONCAT"`
 	CONCAT_2 interface{} `json:"CONCAT_2"`
-	Column3  interface{} `json:"column_3"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+	Column5  interface{} `json:"column_5"`
 	ID       int64       `json:"id"`
 	Limit    int32       `json:"limit"`
 	Offset   int32       `json:"offset"`
@@ -742,9 +746,11 @@ type GetEmployeeRow struct {
 
 func (q *Queries) GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error) {
 	rows, err := q.db.QueryContext(ctx, getEmployee,
+		arg.Column1,
 		arg.CONCAT,
 		arg.CONCAT_2,
-		arg.Column3,
+		arg.CONCAT_3,
+		arg.Column5,
 		arg.ID,
 		arg.Limit,
 		arg.Offset,
