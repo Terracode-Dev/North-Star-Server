@@ -95,7 +95,6 @@ WHERE
   (
     e.first_name LIKE CONCAT('%', ?, '%')
     OR e.last_name  LIKE CONCAT('%', ?, '%')
-    OR usr.email    LIKE CONCAT('%', ?, '%')
   )
   AND (? = '' OR br.id = ?)
 ORDER BY e.id DESC

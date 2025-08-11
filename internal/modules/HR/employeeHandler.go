@@ -242,7 +242,6 @@ func (S *HRService) getEmployee(c echo.Context) error {
 		params = database.GetEmployeeParams{
 			CONCAT:   firstName,
 			CONCAT_2: lastName,
-			CONCAT_3: searchTerm,
 			Column4:  "",
 			ID:       0,
 			Limit:    empReqModel.Limit,
@@ -252,7 +251,6 @@ func (S *HRService) getEmployee(c echo.Context) error {
 		params = database.GetEmployeeParams{
 			CONCAT:   firstName,
 			CONCAT_2: lastName,
-			CONCAT_3: searchTerm,
 			Column4:  "",
 			ID:       int64(branch_id),
 			Limit:    empReqModel.Limit,
