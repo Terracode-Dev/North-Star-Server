@@ -721,3 +721,39 @@ func transformAdditionalScheduleResponse(schedules []database.GetEmpAdditionalSh
     
     return result
 }
+
+func (s *HRService) GetEmployeeAttendance(c echo.Context) error {
+	var req GetEmployeeAttendanceReportReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	params ,err := req.ToDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	attendance, err := s.q.GetEmployeeAttendanceReport(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, attendance)
+}
+
+func (s *HRService) GetEmployeeAttendanceForAll(c echo.Context) error {
+	var req GetEmployeeAttendanceReportForAllReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	params, err := req.ToDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	attendance, err := s.q.GetEmployeeAttendanceReportForAll(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, attendance)
+}

@@ -934,14 +934,12 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
         case "visa":
             bucketName = "nsappvisa"
         default:
-            // Skip unknown file types
             continue
         }
 
         deleted, err := S.s3.DeleteS3Item(c.Request().Context(), bucketName, file.FileName)
         if err != nil {
             log.Printf("Error deleting file %s from S3 bucket %s: %v", file.FileName, bucketName, err)
-            // Continue with other files instead of failing the entire operation
             continue
         }
         if !deleted {
@@ -960,7 +958,6 @@ func (S *HRService) deleteEmployee(c echo.Context) error {
             "error": "Failed to check trainer status: " + err.Error(),
         })
     } else if err == nil {
-        // Employee is a trainer, delete the trainer data
         if err := qtx.DeleteTrainerEmp(c.Request().Context(), empID); err != nil {
             return c.JSON(http.StatusInternalServerError, map[string]string{
                 "error": "Failed to delete trainer data: " + err.Error(),

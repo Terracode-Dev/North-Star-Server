@@ -311,6 +311,329 @@ func (q *Queries) GetEmpShedulleByID(ctx context.Context, empID int64) (GetEmpSh
 	return i, err
 }
 
+const getEmployeeAttendanceReport = `-- name: GetEmployeeAttendanceReport :many
+SELECT 
+  DATE(a.create_date) as date,
+  a.emp_id,
+  TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+  TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+         AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(TIMEDIFF(
+      MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+      MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+    ), '%H:%i:%s')
+    ELSE NULL 
+  END as total_time,
+  CASE 
+    WHEN COALESCE(sa.from_time, 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday_from
+        WHEN 2 THEN s.monday_from  
+        WHEN 3 THEN s.tuesday_from
+        WHEN 4 THEN s.wednesday_from
+        WHEN 5 THEN s.thursday_from
+        WHEN 6 THEN s.friday_from
+        WHEN 7 THEN s.saturday_from
+      END) IS NULL 
+      OR COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END) IS NULL 
+    THEN 'no_schedule'
+    WHEN sa.from_time IS NULL AND sa.to_time IS NULL AND 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday
+        WHEN 2 THEN s.monday
+        WHEN 3 THEN s.tuesday
+        WHEN 4 THEN s.wednesday
+        WHEN 5 THEN s.thursday
+        WHEN 6 THEN s.friday
+        WHEN 7 THEN s.saturday
+      END = FALSE 
+    THEN 'off_day'
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NULL 
+         AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NULL 
+    THEN 'absent'
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NULL 
+         OR MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NULL 
+    THEN 'incomplete'
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) > 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END) 
+    THEN 'late'
+    WHEN CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      )
+      ELSE NULL 
+    END < TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ) 
+    THEN 'insufficient'
+    ELSE 'normal'
+  END as status
+FROM HR_EMP_ATTENDANCE a
+LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+LEFT JOIN HR_EMP_SCHEDUAL_additional sa ON a.emp_id = sa.emp_id 
+  AND DATE(a.create_date) = sa.date
+WHERE a.emp_id = ? 
+  AND (? IS NULL OR DATE(a.create_date) = ?)
+GROUP BY DATE(a.create_date), a.emp_id
+ORDER BY DATE(a.create_date) DESC
+LIMIT ? OFFSET ?
+`
+
+type GetEmployeeAttendanceReportParams struct {
+	EmpID      int64       `json:"emp_id"`
+	Column2    interface{} `json:"column_2"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetEmployeeAttendanceReportRow struct {
+	Date      time.Time `json:"date"`
+	EmpID     int64     `json:"emp_id"`
+	InTime    string    `json:"in_time"`
+	OutTime   string    `json:"out_time"`
+	TotalTime string    `json:"total_time"`
+	Status    string    `json:"status"`
+}
+
+func (q *Queries) GetEmployeeAttendanceReport(ctx context.Context, arg GetEmployeeAttendanceReportParams) ([]GetEmployeeAttendanceReportRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployeeAttendanceReport,
+		arg.EmpID,
+		arg.Column2,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmployeeAttendanceReportRow
+	for rows.Next() {
+		var i GetEmployeeAttendanceReportRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEmployeeAttendanceReportForAll = `-- name: GetEmployeeAttendanceReportForAll :many
+SELECT 
+  DATE(a.create_date) as date,
+  a.emp_id,
+  TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+  TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+         AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(TIMEDIFF(
+      MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+      MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+    ), '%H:%i:%s')
+    ELSE NULL 
+  END as total_time,
+  CASE 
+    WHEN COALESCE(sa.from_time, 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday_from
+        WHEN 2 THEN s.monday_from  
+        WHEN 3 THEN s.tuesday_from
+        WHEN 4 THEN s.wednesday_from
+        WHEN 5 THEN s.thursday_from
+        WHEN 6 THEN s.friday_from
+        WHEN 7 THEN s.saturday_from
+      END) IS NULL 
+      OR COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END) IS NULL 
+    THEN 'no_schedule'
+    WHEN sa.from_time IS NULL AND sa.to_time IS NULL AND 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday
+        WHEN 2 THEN s.monday
+        WHEN 3 THEN s.tuesday
+        WHEN 4 THEN s.wednesday
+        WHEN 5 THEN s.thursday
+        WHEN 6 THEN s.friday
+        WHEN 7 THEN s.saturday
+      END = FALSE 
+    THEN 'off_day'
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NULL 
+         AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NULL 
+    THEN 'absent'
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NULL 
+         OR MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NULL 
+    THEN 'incomplete'
+    WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) > 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END) 
+    THEN 'late'
+    WHEN CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      )
+      ELSE NULL 
+    END < TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ) 
+    THEN 'insufficient'
+    ELSE 'normal'
+  END as status
+FROM HR_EMP_ATTENDANCE a
+LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+LEFT JOIN HR_EMP_SCHEDUAL_additional sa ON a.emp_id = sa.emp_id 
+  AND DATE(a.create_date) = sa.date
+WHERE (? IS NULL OR DATE(a.create_date) = ?)
+GROUP BY DATE(a.create_date), a.emp_id
+ORDER BY DATE(a.create_date) DESC
+LIMIT ? OFFSET ?
+`
+
+type GetEmployeeAttendanceReportForAllParams struct {
+	Column1    interface{} `json:"column_1"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetEmployeeAttendanceReportForAllRow struct {
+	Date      time.Time `json:"date"`
+	EmpID     int64     `json:"emp_id"`
+	InTime    string    `json:"in_time"`
+	OutTime   string    `json:"out_time"`
+	TotalTime string    `json:"total_time"`
+	Status    string    `json:"status"`
+}
+
+func (q *Queries) GetEmployeeAttendanceReportForAll(ctx context.Context, arg GetEmployeeAttendanceReportForAllParams) ([]GetEmployeeAttendanceReportForAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployeeAttendanceReportForAll,
+		arg.Column1,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmployeeAttendanceReportForAllRow
+	for rows.Next() {
+		var i GetEmployeeAttendanceReportForAllRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEmployeeByEmail = `-- name: GetEmployeeByEmail :one
 SELECT 
     e.id AS employee_id,

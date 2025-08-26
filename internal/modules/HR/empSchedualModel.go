@@ -3,6 +3,7 @@ package hr
 import (
 	"database/sql"
 	"time"
+	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 )
 
 // Request/Response Structs
@@ -161,4 +162,54 @@ func interfaceToInt64(val interface{}) int64 {
 		return int64(i)
 	}
 	return 0
+}
+
+type GetEmployeeAttendanceReportReqParams struct {
+	EmpID      int64       `json:"emp_id"`
+	CreateDate string   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+func (r *GetEmployeeAttendanceReportReqParams) ToDBStruct() (database.GetEmployeeAttendanceReportParams, error) {
+	if r.CreateDate == "" {
+		return database.GetEmployeeAttendanceReportParams{
+			EmpID:      r.EmpID,
+			Column2:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetEmployeeAttendanceReportParams{}, err
+	}
+
+	return database.GetEmployeeAttendanceReportParams{
+		EmpID:      r.EmpID,
+		Column2:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+type GetEmployeeAttendanceReportForAllReqParams struct {
+	CreateDate string   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+func (r *GetEmployeeAttendanceReportForAllReqParams) ToDBStruct() (database.GetEmployeeAttendanceReportForAllParams, error) {
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetEmployeeAttendanceReportForAllParams{}, err
+	}
+
+	return database.GetEmployeeAttendanceReportForAllParams{
+		Column1:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
 }

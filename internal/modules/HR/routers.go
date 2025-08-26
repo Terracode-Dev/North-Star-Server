@@ -143,6 +143,8 @@ func (S *HRService) registerRoutes() {
 	// Employee list with work days
 	empSchedule.GET("/employees", S.GetEmployeeList)
 	empSchedule.GET("/employee/:id/workdays-breakdown", S.GetEmployeeWorkDaysBreakdown)
+	empSchedule.POST("/employee/attendancereport", S.GetEmployeeAttendance)
+	empSchedule.POST("/employee/attendancereportall", S.GetEmployeeAttendanceForAll)
 
 	//reports 
 	hrReports := hrRoute.Group("/reports")

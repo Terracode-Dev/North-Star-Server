@@ -91,6 +91,8 @@ type Querier interface {
 	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error)
 	GetEmployeeAllowances(ctx context.Context, employeeID int64) ([]GetEmployeeAllowancesRow, error)
 	GetEmployeeApprovedLeaveCount(ctx context.Context, arg GetEmployeeApprovedLeaveCountParams) (int64, error)
+	GetEmployeeAttendanceReport(ctx context.Context, arg GetEmployeeAttendanceReportParams) ([]GetEmployeeAttendanceReportRow, error)
+	GetEmployeeAttendanceReportForAll(ctx context.Context, arg GetEmployeeAttendanceReportForAllParams) ([]GetEmployeeAttendanceReportForAllRow, error)
 	GetEmployeeByEmail(ctx context.Context, email string) (GetEmployeeByEmailRow, error)
 	GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByIDRow, error)
 	GetEmployeeDOB(ctx context.Context, id int64) (time.Time, error)
