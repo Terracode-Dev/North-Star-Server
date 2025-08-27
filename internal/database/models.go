@@ -6,10 +6,54 @@ package database
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/shopspring/decimal"
 )
+
+type HrEmpAttendanceAttendanceType string
+
+const (
+	HrEmpAttendanceAttendanceTypeIn  HrEmpAttendanceAttendanceType = "in"
+	HrEmpAttendanceAttendanceTypeOut HrEmpAttendanceAttendanceType = "out"
+)
+
+func (e *HrEmpAttendanceAttendanceType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = HrEmpAttendanceAttendanceType(s)
+	case string:
+		*e = HrEmpAttendanceAttendanceType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for HrEmpAttendanceAttendanceType: %T", src)
+	}
+	return nil
+}
+
+type NullHrEmpAttendanceAttendanceType struct {
+	HrEmpAttendanceAttendanceType HrEmpAttendanceAttendanceType `json:"hr_emp_attendance_attendance_type"`
+	Valid                         bool                          `json:"valid"` // Valid is true if HrEmpAttendanceAttendanceType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullHrEmpAttendanceAttendanceType) Scan(value interface{}) error {
+	if value == nil {
+		ns.HrEmpAttendanceAttendanceType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.HrEmpAttendanceAttendanceType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullHrEmpAttendanceAttendanceType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.HrEmpAttendanceAttendanceType), nil
+}
 
 type DoorLockUser struct {
 	AttendeeID     int64          `json:"attendee_id"`
@@ -118,6 +162,13 @@ type HrEmpAllowance struct {
 	EmployeeID int64           `json:"employee_id"`
 	CreatedAt  sql.NullTime    `json:"created_at"`
 	UpdatedAt  sql.NullTime    `json:"updated_at"`
+}
+
+type HrEmpAttendance struct {
+	ID             int64                         `json:"id"`
+	EmpID          int64                         `json:"emp_id"`
+	AttendanceType HrEmpAttendanceAttendanceType `json:"attendance_type"`
+	CreateDate     time.Time                     `json:"create_date"`
 }
 
 type HrEmpBankDetail struct {

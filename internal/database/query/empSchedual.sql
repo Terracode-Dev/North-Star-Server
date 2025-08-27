@@ -206,3 +206,331 @@ SELECT
 FROM HR_EMP_SCHEDUAL_additional 
 WHERE emp_id = ?
 ORDER BY date DESC;
+
+-- name: GetInsufficientAttendance :many
+SELECT *
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE 
+    a.emp_id = ?
+    AND (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time < t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?;
+
+-- name: GetLateAttendance :many
+SELECT *
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    TIMEDIFF(
+      MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+      MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+    ) as total_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) as first_in_time,
+    COALESCE(sa.from_time, 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday_from
+        WHEN 2 THEN s.monday_from  
+        WHEN 3 THEN s.tuesday_from
+        WHEN 4 THEN s.wednesday_from
+        WHEN 5 THEN s.thursday_from
+        WHEN 6 THEN s.friday_from
+        WHEN 7 THEN s.saturday_from
+      END
+    ) as scheduled_in_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE a.emp_id = ?  -- specific employee
+    AND (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.first_in_time > t.scheduled_in_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?;
+
+-- name: GetNormalAttendance :many
+SELECT *
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE 
+    a.emp_id = ?
+    AND (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time = t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?;
+
+
+-- name: GetAllAttendance :many
+SELECT
+  DATE(create_date) as date,
+  emp_id,
+  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
+  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+         AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(TIMEDIFF(
+      MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
+      MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
+    ), '%H:%i:%s')
+    ELSE NULL 
+  END as total_time
+FROM HR_EMP_ATTENDANCE
+WHERE emp_id = ?
+  AND (? IS NULL OR DATE(create_date) = ?)
+GROUP BY DATE(create_date), emp_id
+ORDER BY DATE(create_date) DESC
+LIMIT ? OFFSET ?;
+
+-- name: GetAllAttendanceForAll :many
+SELECT
+  DATE(create_date) as date,
+  emp_id,
+  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
+  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+         AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(TIMEDIFF(
+      MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
+      MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
+    ), '%H:%i:%s')
+    ELSE NULL 
+  END as total_time
+FROM HR_EMP_ATTENDANCE
+WHERE (? IS NULL OR DATE(create_date) = ?)
+GROUP BY DATE(create_date), emp_id
+ORDER BY DATE(create_date) DESC
+LIMIT ? OFFSET ?;
+
+-- name: GetNormalAttendanceForAll :many
+SELECT *
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE  (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time = t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?;
+
+
+-- name: GetLateAttendanceForAll :many
+SELECT *
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    TIMEDIFF(
+      MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+      MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+    ) as total_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) as first_in_time,
+    COALESCE(sa.from_time, 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday_from
+        WHEN 2 THEN s.monday_from  
+        WHEN 3 THEN s.tuesday_from
+        WHEN 4 THEN s.wednesday_from
+        WHEN 5 THEN s.thursday_from
+        WHEN 6 THEN s.friday_from
+        WHEN 7 THEN s.saturday_from
+      END
+    ) as scheduled_in_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.first_in_time > t.scheduled_in_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?;
+
+
+-- name: GetInsufficientAttendanceForAll :many
+SELECT *
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time < t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?;
+

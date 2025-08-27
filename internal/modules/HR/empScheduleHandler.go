@@ -743,3 +743,188 @@ func transformAdditionalScheduleResponse(schedules []database.GetEmpAdditionalSh
 	return result
 }
 
+func (s *HRService) GetInsufficientAttendance(c echo.Context) error {
+	var req GetEmployeeAttendanceReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToInsufficientDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetInsufficientAttendance(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetLateAttendance(c echo.Context) error {
+	var req GetEmployeeAttendanceReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToLateDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetLateAttendance(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetNormalAttendance(c echo.Context) error {
+	var req GetEmployeeAttendanceReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToNormalDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetNormalAttendance(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetAllAttendance(c echo.Context) error {
+	var req GetEmployeeAttendanceReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToAllDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetAllAttendance(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetInsufficientAttendanceForAll(c echo.Context) error {
+	var req GetAttendanceForAllReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToInsufficientDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetInsufficientAttendanceForAll(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetLateAttendanceForAll(c echo.Context) error {
+	var req GetAttendanceForAllReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToLateDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetLateAttendanceForAll(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetNormalAttendanceForAll(c echo.Context) error {
+	var req GetAttendanceForAllReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToNormalDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetNormalAttendanceForAll(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+func (s *HRService) GetAllAttendanceForAll(c echo.Context) error {
+	var req GetAttendanceForAllReqParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	params, err := req.ToAllDBStruct()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "invalid request",
+		})
+	}
+
+	records, err := s.q.GetAllAttendanceForAll(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, records)
+}
+
+

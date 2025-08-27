@@ -164,6 +164,151 @@ func (q *Queries) DeleteEmployeeSchedule(ctx context.Context, empID int64) error
 	return err
 }
 
+const getAllAttendance = `-- name: GetAllAttendance :many
+SELECT
+  DATE(create_date) as date,
+  emp_id,
+  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
+  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+         AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(TIMEDIFF(
+      MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
+      MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
+    ), '%H:%i:%s')
+    ELSE NULL 
+  END as total_time
+FROM HR_EMP_ATTENDANCE
+WHERE emp_id = ?
+  AND (? IS NULL OR DATE(create_date) = ?)
+GROUP BY DATE(create_date), emp_id
+ORDER BY DATE(create_date) DESC
+LIMIT ? OFFSET ?
+`
+
+type GetAllAttendanceParams struct {
+	EmpID      int64       `json:"emp_id"`
+	Column2    interface{} `json:"column_2"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetAllAttendanceRow struct {
+	Date      time.Time `json:"date"`
+	EmpID     int64     `json:"emp_id"`
+	InTime    string    `json:"in_time"`
+	OutTime   string    `json:"out_time"`
+	TotalTime string    `json:"total_time"`
+}
+
+func (q *Queries) GetAllAttendance(ctx context.Context, arg GetAllAttendanceParams) ([]GetAllAttendanceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllAttendance,
+		arg.EmpID,
+		arg.Column2,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllAttendanceRow
+	for rows.Next() {
+		var i GetAllAttendanceRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllAttendanceForAll = `-- name: GetAllAttendanceForAll :many
+SELECT
+  DATE(create_date) as date,
+  emp_id,
+  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
+  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+         AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(TIMEDIFF(
+      MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
+      MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
+    ), '%H:%i:%s')
+    ELSE NULL 
+  END as total_time
+FROM HR_EMP_ATTENDANCE
+WHERE (? IS NULL OR DATE(create_date) = ?)
+GROUP BY DATE(create_date), emp_id
+ORDER BY DATE(create_date) DESC
+LIMIT ? OFFSET ?
+`
+
+type GetAllAttendanceForAllParams struct {
+	Column1    interface{} `json:"column_1"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetAllAttendanceForAllRow struct {
+	Date      time.Time `json:"date"`
+	EmpID     int64     `json:"emp_id"`
+	InTime    string    `json:"in_time"`
+	OutTime   string    `json:"out_time"`
+	TotalTime string    `json:"total_time"`
+}
+
+func (q *Queries) GetAllAttendanceForAll(ctx context.Context, arg GetAllAttendanceForAllParams) ([]GetAllAttendanceForAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllAttendanceForAll,
+		arg.Column1,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllAttendanceForAllRow
+	for rows.Next() {
+		var i GetAllAttendanceForAllRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEmpAdditionalSheduleByID = `-- name: GetEmpAdditionalSheduleByID :many
 SELECT
     id,
@@ -557,6 +702,609 @@ func (q *Queries) GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmplo
 		&i.TotalWorkDaysForYear,
 	)
 	return i, err
+}
+
+const getInsufficientAttendance = `-- name: GetInsufficientAttendance :many
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE 
+    a.emp_id = ?
+    AND (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time < t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetInsufficientAttendanceParams struct {
+	EmpID      int64       `json:"emp_id"`
+	Column2    interface{} `json:"column_2"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetInsufficientAttendanceRow struct {
+	Date          time.Time `json:"date"`
+	EmpID         int64     `json:"emp_id"`
+	InTime        string    `json:"in_time"`
+	OutTime       string    `json:"out_time"`
+	TotalTime     string    `json:"total_time"`
+	ScheduledTime string    `json:"scheduled_time"`
+}
+
+func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsufficientAttendanceParams) ([]GetInsufficientAttendanceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getInsufficientAttendance,
+		arg.EmpID,
+		arg.Column2,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInsufficientAttendanceRow
+	for rows.Next() {
+		var i GetInsufficientAttendanceRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.ScheduledTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInsufficientAttendanceForAll = `-- name: GetInsufficientAttendanceForAll :many
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time < t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetInsufficientAttendanceForAllParams struct {
+	Column1    interface{} `json:"column_1"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetInsufficientAttendanceForAllRow struct {
+	Date          time.Time `json:"date"`
+	EmpID         int64     `json:"emp_id"`
+	InTime        string    `json:"in_time"`
+	OutTime       string    `json:"out_time"`
+	TotalTime     string    `json:"total_time"`
+	ScheduledTime string    `json:"scheduled_time"`
+}
+
+func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetInsufficientAttendanceForAllParams) ([]GetInsufficientAttendanceForAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, getInsufficientAttendanceForAll,
+		arg.Column1,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetInsufficientAttendanceForAllRow
+	for rows.Next() {
+		var i GetInsufficientAttendanceForAllRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.ScheduledTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLateAttendance = `-- name: GetLateAttendance :many
+SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    TIMEDIFF(
+      MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+      MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+    ) as total_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) as first_in_time,
+    COALESCE(sa.from_time, 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday_from
+        WHEN 2 THEN s.monday_from  
+        WHEN 3 THEN s.tuesday_from
+        WHEN 4 THEN s.wednesday_from
+        WHEN 5 THEN s.thursday_from
+        WHEN 6 THEN s.friday_from
+        WHEN 7 THEN s.saturday_from
+      END
+    ) as scheduled_in_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE a.emp_id = ?  -- specific employee
+    AND (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.first_in_time > t.scheduled_in_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetLateAttendanceParams struct {
+	EmpID      int64       `json:"emp_id"`
+	Column2    interface{} `json:"column_2"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetLateAttendanceRow struct {
+	Date            time.Time    `json:"date"`
+	EmpID           int64        `json:"emp_id"`
+	InTime          string       `json:"in_time"`
+	OutTime         string       `json:"out_time"`
+	TotalTime       time.Time    `json:"total_time"`
+	FirstInTime     interface{}  `json:"first_in_time"`
+	ScheduledInTime sql.NullTime `json:"scheduled_in_time"`
+}
+
+func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendanceParams) ([]GetLateAttendanceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getLateAttendance,
+		arg.EmpID,
+		arg.Column2,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLateAttendanceRow
+	for rows.Next() {
+		var i GetLateAttendanceRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.FirstInTime,
+			&i.ScheduledInTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLateAttendanceForAll = `-- name: GetLateAttendanceForAll :many
+SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    TIMEDIFF(
+      MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+      MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+    ) as total_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) as first_in_time,
+    COALESCE(sa.from_time, 
+      CASE DAYOFWEEK(DATE(a.create_date))
+        WHEN 1 THEN s.sunday_from
+        WHEN 2 THEN s.monday_from  
+        WHEN 3 THEN s.tuesday_from
+        WHEN 4 THEN s.wednesday_from
+        WHEN 5 THEN s.thursday_from
+        WHEN 6 THEN s.friday_from
+        WHEN 7 THEN s.saturday_from
+      END
+    ) as scheduled_in_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.first_in_time > t.scheduled_in_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetLateAttendanceForAllParams struct {
+	Column1    interface{} `json:"column_1"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetLateAttendanceForAllRow struct {
+	Date            time.Time    `json:"date"`
+	EmpID           int64        `json:"emp_id"`
+	InTime          string       `json:"in_time"`
+	OutTime         string       `json:"out_time"`
+	TotalTime       time.Time    `json:"total_time"`
+	FirstInTime     interface{}  `json:"first_in_time"`
+	ScheduledInTime sql.NullTime `json:"scheduled_in_time"`
+}
+
+func (q *Queries) GetLateAttendanceForAll(ctx context.Context, arg GetLateAttendanceForAllParams) ([]GetLateAttendanceForAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, getLateAttendanceForAll,
+		arg.Column1,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLateAttendanceForAllRow
+	for rows.Next() {
+		var i GetLateAttendanceForAllRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.FirstInTime,
+			&i.ScheduledInTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNormalAttendance = `-- name: GetNormalAttendance :many
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE 
+    a.emp_id = ?
+    AND (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time = t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetNormalAttendanceParams struct {
+	EmpID      int64       `json:"emp_id"`
+	Column2    interface{} `json:"column_2"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetNormalAttendanceRow struct {
+	Date          time.Time `json:"date"`
+	EmpID         int64     `json:"emp_id"`
+	InTime        string    `json:"in_time"`
+	OutTime       string    `json:"out_time"`
+	TotalTime     string    `json:"total_time"`
+	ScheduledTime string    `json:"scheduled_time"`
+}
+
+func (q *Queries) GetNormalAttendance(ctx context.Context, arg GetNormalAttendanceParams) ([]GetNormalAttendanceRow, error) {
+	rows, err := q.db.QueryContext(ctx, getNormalAttendance,
+		arg.EmpID,
+		arg.Column2,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNormalAttendanceRow
+	for rows.Next() {
+		var i GetNormalAttendanceRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.ScheduledTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNormalAttendanceForAll = `-- name: GetNormalAttendanceForAll :many
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+FROM (
+  SELECT
+    DATE(a.create_date) as date,
+    a.emp_id,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
+    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    CASE 
+      WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
+           AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
+      THEN TIME_FORMAT(TIMEDIFF(
+        MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
+        MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
+      ), '%H:%i:%s')
+      ELSE NULL 
+    END as total_time,
+    TIME_FORMAT(TIMEDIFF(
+      COALESCE(sa.to_time,
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_to
+          WHEN 2 THEN s.monday_to
+          WHEN 3 THEN s.tuesday_to
+          WHEN 4 THEN s.wednesday_to
+          WHEN 5 THEN s.thursday_to
+          WHEN 6 THEN s.friday_to
+          WHEN 7 THEN s.saturday_to
+        END), 
+      COALESCE(sa.from_time, 
+        CASE DAYOFWEEK(DATE(a.create_date))
+          WHEN 1 THEN s.sunday_from
+          WHEN 2 THEN s.monday_from  
+          WHEN 3 THEN s.tuesday_from
+          WHEN 4 THEN s.wednesday_from
+          WHEN 5 THEN s.thursday_from
+          WHEN 6 THEN s.friday_from
+          WHEN 7 THEN s.saturday_from
+        END)
+    ), '%H:%i:%s') as scheduled_time
+  FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
+    ON a.emp_id = sa.emp_id 
+    AND DATE(a.create_date) = sa.date
+  WHERE  (? IS NULL OR DATE(a.create_date) = ?)
+  GROUP BY DATE(a.create_date), a.emp_id
+) t
+WHERE t.total_time = t.scheduled_time
+ORDER BY t.date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetNormalAttendanceForAllParams struct {
+	Column1    interface{} `json:"column_1"`
+	CreateDate time.Time   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+type GetNormalAttendanceForAllRow struct {
+	Date          time.Time `json:"date"`
+	EmpID         int64     `json:"emp_id"`
+	InTime        string    `json:"in_time"`
+	OutTime       string    `json:"out_time"`
+	TotalTime     string    `json:"total_time"`
+	ScheduledTime string    `json:"scheduled_time"`
+}
+
+func (q *Queries) GetNormalAttendanceForAll(ctx context.Context, arg GetNormalAttendanceForAllParams) ([]GetNormalAttendanceForAllRow, error) {
+	rows, err := q.db.QueryContext(ctx, getNormalAttendanceForAll,
+		arg.Column1,
+		arg.CreateDate,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNormalAttendanceForAllRow
+	for rows.Next() {
+		var i GetNormalAttendanceForAllRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.EmpID,
+			&i.InTime,
+			&i.OutTime,
+			&i.TotalTime,
+			&i.ScheduledTime,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateAdditionalSchedule = `-- name: UpdateAdditionalSchedule :exec

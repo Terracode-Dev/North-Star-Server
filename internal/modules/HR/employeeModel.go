@@ -1033,3 +1033,4 @@ func (c *CheckTrainerAssignmentAtTimereq) ConvertToDbStruct() (db.CheckTrainerAs
 		CONVERTTZ:  dateTime,
 	}, nil
 }
+

@@ -144,6 +144,17 @@ func (S *HRService) registerRoutes() {
 	empSchedule.GET("/employees", S.GetEmployeeList)
 	empSchedule.GET("/employee/:id/workdays-breakdown", S.GetEmployeeWorkDaysBreakdown)
 
+	hrAttendance := hrRoute.Group("/attendance")
+	hrAttendance.POST("/normalforemp", S.GetNormalAttendance)
+	hrAttendance.POST("/lateforemp", S.GetLateAttendance)
+	hrAttendance.POST("/allforemp", S.GetAllAttendance)
+	hrAttendance.POST("/insufficientforemp", S.GetInsufficientAttendance)
+
+	hrAttendance.POST("/normal", S.GetNormalAttendanceForAll)
+	hrAttendance.POST("/late", S.GetLateAttendanceForAll)
+	hrAttendance.POST("/all", S.GetAllAttendanceForAll)
+	hrAttendance.POST("/insufficient", S.GetInsufficientAttendance)
+
 	//reports 
 	hrReports := hrRoute.Group("/reports")
 	hrReports.POST("/salary-transfer", S.SalaryTransfer, rba.AuthMiddelware([]string{"admin", "mod"}))
