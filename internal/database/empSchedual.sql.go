@@ -242,6 +242,7 @@ const getAllAttendanceForAll = `-- name: GetAllAttendanceForAll :many
 SELECT
   DATE(create_date) as date,
   emp_id,
+  CONCAT(e.first_name, ' ', e.last_name) as name,
   TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
   TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
   CASE 
@@ -254,6 +255,7 @@ SELECT
     ELSE NULL 
   END as total_time
 FROM HR_EMP_ATTENDANCE
+LEFT JOIN HR_Employee e ON emp_id = e.id
 WHERE (? IS NULL OR DATE(create_date) = ?)
 GROUP BY DATE(create_date), emp_id
 ORDER BY DATE(create_date) DESC
@@ -270,6 +272,7 @@ type GetAllAttendanceForAllParams struct {
 type GetAllAttendanceForAllRow struct {
 	Date      time.Time `json:"date"`
 	EmpID     int64     `json:"emp_id"`
+	Name      string    `json:"name"`
 	InTime    string    `json:"in_time"`
 	OutTime   string    `json:"out_time"`
 	TotalTime string    `json:"total_time"`
@@ -292,6 +295,7 @@ func (q *Queries) GetAllAttendanceForAll(ctx context.Context, arg GetAllAttendan
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -812,11 +816,12 @@ func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsuffic
 }
 
 const getInsufficientAttendanceForAll = `-- name: GetInsufficientAttendanceForAll :many
-SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     CASE 
@@ -852,6 +857,7 @@ FROM (
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
     AND DATE(a.create_date) = sa.date
@@ -873,6 +879,7 @@ type GetInsufficientAttendanceForAllParams struct {
 type GetInsufficientAttendanceForAllRow struct {
 	Date          time.Time `json:"date"`
 	EmpID         int64     `json:"emp_id"`
+	Name          string    `json:"name"`
 	InTime        string    `json:"in_time"`
 	OutTime       string    `json:"out_time"`
 	TotalTime     string    `json:"total_time"`
@@ -896,6 +903,7 @@ func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetIn
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -1008,11 +1016,12 @@ func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendancePa
 }
 
 const getLateAttendanceForAll = `-- name: GetLateAttendanceForAll :many
-SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time
+SELECT date, emp_id, name, in_time, out_time, total_time, first_in_time, scheduled_in_time
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     TIMEDIFF(
@@ -1033,6 +1042,7 @@ FROM (
     ) as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
     AND DATE(a.create_date) = sa.date
@@ -1054,6 +1064,7 @@ type GetLateAttendanceForAllParams struct {
 type GetLateAttendanceForAllRow struct {
 	Date            time.Time    `json:"date"`
 	EmpID           int64        `json:"emp_id"`
+	Name            string       `json:"name"`
 	InTime          string       `json:"in_time"`
 	OutTime         string       `json:"out_time"`
 	TotalTime       time.Time    `json:"total_time"`
@@ -1078,6 +1089,7 @@ func (q *Queries) GetLateAttendanceForAll(ctx context.Context, arg GetLateAttend
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -1205,11 +1217,12 @@ func (q *Queries) GetNormalAttendance(ctx context.Context, arg GetNormalAttendan
 }
 
 const getNormalAttendanceForAll = `-- name: GetNormalAttendanceForAll :many
-SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     CASE 
@@ -1245,6 +1258,7 @@ FROM (
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
     AND DATE(a.create_date) = sa.date
@@ -1266,6 +1280,7 @@ type GetNormalAttendanceForAllParams struct {
 type GetNormalAttendanceForAllRow struct {
 	Date          time.Time `json:"date"`
 	EmpID         int64     `json:"emp_id"`
+	Name          string    `json:"name"`
 	InTime        string    `json:"in_time"`
 	OutTime       string    `json:"out_time"`
 	TotalTime     string    `json:"total_time"`
@@ -1289,6 +1304,7 @@ func (q *Queries) GetNormalAttendanceForAll(ctx context.Context, arg GetNormalAt
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
