@@ -3,6 +3,7 @@ package hr
 import (
 	"database/sql"
 	"time"
+	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 )
 
 // Request/Response Structs
@@ -161,4 +162,194 @@ func interfaceToInt64(val interface{}) int64 {
 		return int64(i)
 	}
 	return 0
+}
+
+type GetEmployeeAttendanceReqParams struct {
+	EmpID      int64       `json:"emp_id"`
+	CreateDate string   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+func (r *GetEmployeeAttendanceReqParams) ToInsufficientDBStruct() (database.GetInsufficientAttendanceParams, error) {
+	if r.CreateDate == "" {
+		return database.GetInsufficientAttendanceParams{
+			EmpID:      r.EmpID,
+			Column2:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetInsufficientAttendanceParams{}, err
+	}
+
+	return database.GetInsufficientAttendanceParams{
+		EmpID:      r.EmpID,
+		Column2:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+func (r *GetEmployeeAttendanceReqParams) ToLateDBStruct() (database.GetLateAttendanceParams, error) {
+	if r.CreateDate == "" {
+		return database.GetLateAttendanceParams{
+			EmpID:      r.EmpID,
+			Column2:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetLateAttendanceParams{}, err
+	}
+
+	return database.GetLateAttendanceParams{
+		EmpID:      r.EmpID,
+		Column2:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+func (r *GetEmployeeAttendanceReqParams) ToNormalDBStruct() (database.GetNormalAttendanceParams, error) {
+	if r.CreateDate == "" {
+		return database.GetNormalAttendanceParams{
+			EmpID:      r.EmpID,
+			Column2:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetNormalAttendanceParams{}, err
+	}
+
+	return database.GetNormalAttendanceParams{
+		EmpID:      r.EmpID,
+		Column2:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+func (r *GetEmployeeAttendanceReqParams) ToAllDBStruct() (database.GetAllAttendanceParams, error) {
+	if r.CreateDate == "" {
+		return database.GetAllAttendanceParams{
+			EmpID:      r.EmpID,
+			Column2:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetAllAttendanceParams{}, err
+	}
+
+	return database.GetAllAttendanceParams{
+		EmpID:      r.EmpID,
+		Column2:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+
+type GetAttendanceForAllReqParams struct {
+	CreateDate string   `json:"create_date"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+func (r *GetAttendanceForAllReqParams) ToAllDBStruct() (database.GetAllAttendanceForAllParams, error) {
+	if r.CreateDate == "" {
+		return database.GetAllAttendanceForAllParams{
+			Column1:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetAllAttendanceForAllParams{}, err
+	}
+
+	return database.GetAllAttendanceForAllParams{
+		Column1:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+func (r *GetAttendanceForAllReqParams) ToInsufficientDBStruct() (database.GetInsufficientAttendanceForAllParams, error) {
+	if r.CreateDate == "" {
+		return database.GetInsufficientAttendanceForAllParams{
+			Column1:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetInsufficientAttendanceForAllParams{}, err
+	}
+
+	return database.GetInsufficientAttendanceForAllParams{
+		Column1:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+func (r *GetAttendanceForAllReqParams) ToLateDBStruct() (database.GetLateAttendanceForAllParams, error) {
+	if r.CreateDate == "" {
+		return database.GetLateAttendanceForAllParams{
+			Column1:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetLateAttendanceForAllParams{}, err
+	}
+
+	return database.GetLateAttendanceForAllParams{
+		Column1:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
+}
+
+func (r *GetAttendanceForAllReqParams) ToNormalDBStruct() (database.GetNormalAttendanceForAllParams, error) {
+	if r.CreateDate == "" {
+		return database.GetNormalAttendanceForAllParams{
+			Column1:    sql.NullTime{},
+			Limit:      r.Limit,
+			Offset:     r.Offset,
+		}, nil
+	}
+	createDate, err := parseDate(r.CreateDate)
+	if err != nil {
+		return database.GetNormalAttendanceForAllParams{}, err
+	}
+
+	return database.GetNormalAttendanceForAllParams{
+		Column1:    createDate,
+		CreateDate: createDate,
+		Limit:      r.Limit,
+		Offset:     r.Offset,
+	}, nil
 }
