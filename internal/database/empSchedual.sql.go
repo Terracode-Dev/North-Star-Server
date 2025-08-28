@@ -168,8 +168,17 @@ const getAllAttendance = `-- name: GetAllAttendance :many
 SELECT
   DATE(create_date) as date,
   emp_id,
-  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
-  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+   COUNT(*) OVER() AS total_count,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as in_time,
+  CASE 
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as out_time,
   CASE 
     WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
          AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
@@ -177,11 +186,12 @@ SELECT
       MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
       MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
     ), '%H:%i:%s')
-    ELSE NULL 
+    ELSE ''
   END as total_time
 FROM HR_EMP_ATTENDANCE
 WHERE emp_id = ?
-  AND (? IS NULL OR DATE(create_date) = ?)
+AND
+(? IS NULL OR DATE(create_date) = ?)
 GROUP BY DATE(create_date), emp_id
 ORDER BY DATE(create_date) DESC
 LIMIT ? OFFSET ?
@@ -196,11 +206,12 @@ type GetAllAttendanceParams struct {
 }
 
 type GetAllAttendanceRow struct {
-	Date      time.Time `json:"date"`
-	EmpID     int64     `json:"emp_id"`
-	InTime    string    `json:"in_time"`
-	OutTime   string    `json:"out_time"`
-	TotalTime string    `json:"total_time"`
+	Date       time.Time   `json:"date"`
+	EmpID      int64       `json:"emp_id"`
+	TotalCount interface{} `json:"total_count"`
+	InTime     string      `json:"in_time"`
+	OutTime    string      `json:"out_time"`
+	TotalTime  string      `json:"total_time"`
 }
 
 func (q *Queries) GetAllAttendance(ctx context.Context, arg GetAllAttendanceParams) ([]GetAllAttendanceRow, error) {
@@ -221,6 +232,7 @@ func (q *Queries) GetAllAttendance(ctx context.Context, arg GetAllAttendancePara
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.TotalCount,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -242,9 +254,18 @@ const getAllAttendanceForAll = `-- name: GetAllAttendanceForAll :many
 SELECT
   DATE(create_date) as date,
   emp_id,
+  COUNT(*) OVER() AS total_count,
   CONCAT(e.first_name, ' ', e.last_name) as name,
-  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
-  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as in_time,
+  CASE 
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as out_time,
   CASE 
     WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
          AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
@@ -252,7 +273,7 @@ SELECT
       MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
       MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
     ), '%H:%i:%s')
-    ELSE NULL 
+    ELSE ''
   END as total_time
 FROM HR_EMP_ATTENDANCE
 LEFT JOIN HR_Employee e ON emp_id = e.id
@@ -270,12 +291,13 @@ type GetAllAttendanceForAllParams struct {
 }
 
 type GetAllAttendanceForAllRow struct {
-	Date      time.Time `json:"date"`
-	EmpID     int64     `json:"emp_id"`
-	Name      string    `json:"name"`
-	InTime    string    `json:"in_time"`
-	OutTime   string    `json:"out_time"`
-	TotalTime string    `json:"total_time"`
+	Date       time.Time   `json:"date"`
+	EmpID      int64       `json:"emp_id"`
+	TotalCount interface{} `json:"total_count"`
+	Name       string      `json:"name"`
+	InTime     string      `json:"in_time"`
+	OutTime    string      `json:"out_time"`
+	TotalTime  string      `json:"total_time"`
 }
 
 func (q *Queries) GetAllAttendanceForAll(ctx context.Context, arg GetAllAttendanceForAllParams) ([]GetAllAttendanceForAllRow, error) {
@@ -295,6 +317,7 @@ func (q *Queries) GetAllAttendanceForAll(ctx context.Context, arg GetAllAttendan
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.TotalCount,
 			&i.Name,
 			&i.InTime,
 			&i.OutTime,
@@ -709,7 +732,8 @@ func (q *Queries) GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmplo
 }
 
 const getInsufficientAttendance = `-- name: GetInsufficientAttendance :many
-SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -757,7 +781,7 @@ FROM (
     AND (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time < t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time < t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?
 `
@@ -771,12 +795,13 @@ type GetInsufficientAttendanceParams struct {
 }
 
 type GetInsufficientAttendanceRow struct {
-	Date          time.Time `json:"date"`
-	EmpID         int64     `json:"emp_id"`
-	InTime        string    `json:"in_time"`
-	OutTime       string    `json:"out_time"`
-	TotalTime     string    `json:"total_time"`
-	ScheduledTime string    `json:"scheduled_time"`
+	Date          time.Time   `json:"date"`
+	EmpID         int64       `json:"emp_id"`
+	InTime        string      `json:"in_time"`
+	OutTime       string      `json:"out_time"`
+	TotalTime     string      `json:"total_time"`
+	ScheduledTime string      `json:"scheduled_time"`
+	TotalCount    interface{} `json:"total_count"`
 }
 
 func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsufficientAttendanceParams) ([]GetInsufficientAttendanceRow, error) {
@@ -801,6 +826,7 @@ func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsuffic
 			&i.OutTime,
 			&i.TotalTime,
 			&i.ScheduledTime,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}
@@ -816,7 +842,8 @@ func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsuffic
 }
 
 const getInsufficientAttendanceForAll = `-- name: GetInsufficientAttendanceForAll :many
-SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time
+SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -864,7 +891,7 @@ FROM (
   WHERE (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time < t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time < t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?
 `
@@ -877,13 +904,14 @@ type GetInsufficientAttendanceForAllParams struct {
 }
 
 type GetInsufficientAttendanceForAllRow struct {
-	Date          time.Time `json:"date"`
-	EmpID         int64     `json:"emp_id"`
-	Name          string    `json:"name"`
-	InTime        string    `json:"in_time"`
-	OutTime       string    `json:"out_time"`
-	TotalTime     string    `json:"total_time"`
-	ScheduledTime string    `json:"scheduled_time"`
+	Date          time.Time   `json:"date"`
+	EmpID         int64       `json:"emp_id"`
+	Name          string      `json:"name"`
+	InTime        string      `json:"in_time"`
+	OutTime       string      `json:"out_time"`
+	TotalTime     string      `json:"total_time"`
+	ScheduledTime string      `json:"scheduled_time"`
+	TotalCount    interface{} `json:"total_count"`
 }
 
 func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetInsufficientAttendanceForAllParams) ([]GetInsufficientAttendanceForAllRow, error) {
@@ -908,6 +936,7 @@ func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetIn
 			&i.OutTime,
 			&i.TotalTime,
 			&i.ScheduledTime,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}
@@ -923,7 +952,8 @@ func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetIn
 }
 
 const getLateAttendance = `-- name: GetLateAttendance :many
-SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time
+SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time,
+  COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -955,7 +985,7 @@ FROM (
     AND (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.first_in_time > t.scheduled_in_time
+WHERE (t.total_time IS NOT NULL AND t.first_in_time > t.scheduled_in_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?
 `
@@ -969,13 +999,14 @@ type GetLateAttendanceParams struct {
 }
 
 type GetLateAttendanceRow struct {
-	Date            time.Time `json:"date"`
-	EmpID           int64     `json:"emp_id"`
-	InTime          string    `json:"in_time"`
-	OutTime         string    `json:"out_time"`
-	TotalTime       string    `json:"total_time"`
-	FirstInTime     string    `json:"first_in_time"`
-	ScheduledInTime string    `json:"scheduled_in_time"`
+	Date            time.Time   `json:"date"`
+	EmpID           int64       `json:"emp_id"`
+	InTime          string      `json:"in_time"`
+	OutTime         string      `json:"out_time"`
+	TotalTime       string      `json:"total_time"`
+	FirstInTime     string      `json:"first_in_time"`
+	ScheduledInTime string      `json:"scheduled_in_time"`
+	TotalCount      interface{} `json:"total_count"`
 }
 
 func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendanceParams) ([]GetLateAttendanceRow, error) {
@@ -1001,6 +1032,7 @@ func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendancePa
 			&i.TotalTime,
 			&i.FirstInTime,
 			&i.ScheduledInTime,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1016,7 +1048,8 @@ func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendancePa
 }
 
 const getLateAttendanceForAll = `-- name: GetLateAttendanceForAll :many
-SELECT date, emp_id, name, in_time, out_time, total_time, first_in_time, scheduled_in_time
+SELECT date, emp_id, name, in_time, out_time, total_time, first_in_time, scheduled_in_time,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -1049,7 +1082,7 @@ FROM (
   WHERE (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.first_in_time > t.scheduled_in_time
+WHERE (t.total_time IS NOT NULL AND t.first_in_time > t.scheduled_in_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?
 `
@@ -1062,14 +1095,15 @@ type GetLateAttendanceForAllParams struct {
 }
 
 type GetLateAttendanceForAllRow struct {
-	Date            time.Time `json:"date"`
-	EmpID           int64     `json:"emp_id"`
-	Name            string    `json:"name"`
-	InTime          string    `json:"in_time"`
-	OutTime         string    `json:"out_time"`
-	TotalTime       string    `json:"total_time"`
-	FirstInTime     string    `json:"first_in_time"`
-	ScheduledInTime string    `json:"scheduled_in_time"`
+	Date            time.Time   `json:"date"`
+	EmpID           int64       `json:"emp_id"`
+	Name            string      `json:"name"`
+	InTime          string      `json:"in_time"`
+	OutTime         string      `json:"out_time"`
+	TotalTime       string      `json:"total_time"`
+	FirstInTime     string      `json:"first_in_time"`
+	ScheduledInTime string      `json:"scheduled_in_time"`
+	TotalCount      interface{} `json:"total_count"`
 }
 
 func (q *Queries) GetLateAttendanceForAll(ctx context.Context, arg GetLateAttendanceForAllParams) ([]GetLateAttendanceForAllRow, error) {
@@ -1095,6 +1129,7 @@ func (q *Queries) GetLateAttendanceForAll(ctx context.Context, arg GetLateAttend
 			&i.TotalTime,
 			&i.FirstInTime,
 			&i.ScheduledInTime,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1110,7 +1145,8 @@ func (q *Queries) GetLateAttendanceForAll(ctx context.Context, arg GetLateAttend
 }
 
 const getNormalAttendance = `-- name: GetNormalAttendance :many
-SELECT date, emp_id, in_time, out_time, total_time, scheduled_time
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time,
+   COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -1158,7 +1194,7 @@ FROM (
     AND (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time = t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time = t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?
 `
@@ -1172,12 +1208,13 @@ type GetNormalAttendanceParams struct {
 }
 
 type GetNormalAttendanceRow struct {
-	Date          time.Time `json:"date"`
-	EmpID         int64     `json:"emp_id"`
-	InTime        string    `json:"in_time"`
-	OutTime       string    `json:"out_time"`
-	TotalTime     string    `json:"total_time"`
-	ScheduledTime string    `json:"scheduled_time"`
+	Date          time.Time   `json:"date"`
+	EmpID         int64       `json:"emp_id"`
+	InTime        string      `json:"in_time"`
+	OutTime       string      `json:"out_time"`
+	TotalTime     string      `json:"total_time"`
+	ScheduledTime string      `json:"scheduled_time"`
+	TotalCount    interface{} `json:"total_count"`
 }
 
 func (q *Queries) GetNormalAttendance(ctx context.Context, arg GetNormalAttendanceParams) ([]GetNormalAttendanceRow, error) {
@@ -1202,6 +1239,7 @@ func (q *Queries) GetNormalAttendance(ctx context.Context, arg GetNormalAttendan
 			&i.OutTime,
 			&i.TotalTime,
 			&i.ScheduledTime,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1217,7 +1255,8 @@ func (q *Queries) GetNormalAttendance(ctx context.Context, arg GetNormalAttendan
 }
 
 const getNormalAttendanceForAll = `-- name: GetNormalAttendanceForAll :many
-SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time
+SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -1265,7 +1304,7 @@ FROM (
   WHERE  (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time = t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time = t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?
 `
@@ -1278,13 +1317,14 @@ type GetNormalAttendanceForAllParams struct {
 }
 
 type GetNormalAttendanceForAllRow struct {
-	Date          time.Time `json:"date"`
-	EmpID         int64     `json:"emp_id"`
-	Name          string    `json:"name"`
-	InTime        string    `json:"in_time"`
-	OutTime       string    `json:"out_time"`
-	TotalTime     string    `json:"total_time"`
-	ScheduledTime string    `json:"scheduled_time"`
+	Date          time.Time   `json:"date"`
+	EmpID         int64       `json:"emp_id"`
+	Name          string      `json:"name"`
+	InTime        string      `json:"in_time"`
+	OutTime       string      `json:"out_time"`
+	TotalTime     string      `json:"total_time"`
+	ScheduledTime string      `json:"scheduled_time"`
+	TotalCount    interface{} `json:"total_count"`
 }
 
 func (q *Queries) GetNormalAttendanceForAll(ctx context.Context, arg GetNormalAttendanceForAllParams) ([]GetNormalAttendanceForAllRow, error) {
@@ -1309,6 +1349,7 @@ func (q *Queries) GetNormalAttendanceForAll(ctx context.Context, arg GetNormalAt
 			&i.OutTime,
 			&i.TotalTime,
 			&i.ScheduledTime,
+			&i.TotalCount,
 		); err != nil {
 			return nil, err
 		}
