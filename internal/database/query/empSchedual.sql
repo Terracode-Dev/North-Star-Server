@@ -268,12 +268,12 @@ FROM (
     a.emp_id,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
-    TIMEDIFF(
+    TIME_FORMAT(TIMEDIFF(
       MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
       MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
-    ) as total_time,
-    MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) as first_in_time,
-    COALESCE(sa.from_time, 
+    ), '%H:%i:%s') as total_time,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as first_in_time,
+    TIME_FORMAT(COALESCE(sa.from_time, 
       CASE DAYOFWEEK(DATE(a.create_date))
         WHEN 1 THEN s.sunday_from
         WHEN 2 THEN s.monday_from  
@@ -283,7 +283,7 @@ FROM (
         WHEN 6 THEN s.friday_from
         WHEN 7 THEN s.saturday_from
       END
-    ) as scheduled_in_time
+    ), '%H:%i:%s') as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
@@ -459,12 +459,12 @@ FROM (
     CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
-    TIMEDIFF(
+    TIME_FORMAT(TIMEDIFF(
       MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
       MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
-    ) as total_time,
-    MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) as first_in_time,
-    COALESCE(sa.from_time, 
+    ), '%H:%i:%s') as total_time,
+    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as first_in_time,
+    TIME_FORMAT(COALESCE(sa.from_time, 
       CASE DAYOFWEEK(DATE(a.create_date))
         WHEN 1 THEN s.sunday_from
         WHEN 2 THEN s.monday_from  
@@ -474,7 +474,7 @@ FROM (
         WHEN 6 THEN s.friday_from
         WHEN 7 THEN s.saturday_from
       END
-    ) as scheduled_in_time
+    ), '%H:%i:%s') as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_Employee e ON a.emp_id = e.id
