@@ -208,7 +208,8 @@ WHERE emp_id = ?
 ORDER BY date DESC;
 
 -- name: GetInsufficientAttendance :many
-SELECT *
+SELECT *,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -256,12 +257,13 @@ FROM (
     AND (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time < t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time < t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
 -- name: GetLateAttendance :many
-SELECT *
+SELECT *,
+  COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -293,12 +295,13 @@ FROM (
     AND (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.first_in_time > t.scheduled_in_time
+WHERE (t.total_time IS NOT NULL AND t.first_in_time > t.scheduled_in_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
 -- name: GetNormalAttendance :many
-SELECT *
+SELECT *,
+   COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -346,7 +349,7 @@ FROM (
     AND (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time = t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time = t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
@@ -355,8 +358,17 @@ LIMIT ? OFFSET ?;
 SELECT
   DATE(create_date) as date,
   emp_id,
-  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
-  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+   COUNT(*) OVER() AS total_count,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as in_time,
+  CASE 
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as out_time,
   CASE 
     WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
          AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
@@ -364,11 +376,12 @@ SELECT
       MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
       MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
     ), '%H:%i:%s')
-    ELSE NULL 
+    ELSE ''
   END as total_time
 FROM HR_EMP_ATTENDANCE
 WHERE emp_id = ?
-  AND (? IS NULL OR DATE(create_date) = ?)
+AND
+(? IS NULL OR DATE(create_date) = ?)
 GROUP BY DATE(create_date), emp_id
 ORDER BY DATE(create_date) DESC
 LIMIT ? OFFSET ?;
@@ -377,9 +390,18 @@ LIMIT ? OFFSET ?;
 SELECT
   DATE(create_date) as date,
   emp_id,
+  COUNT(*) OVER() AS total_count,
   CONCAT(e.first_name, ' ', e.last_name) as name,
-  TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s') as in_time,
-  TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s') as out_time,
+  CASE 
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as in_time,
+  CASE 
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
+    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    ELSE ''
+  END as out_time,
   CASE 
     WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
          AND MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
@@ -387,7 +409,7 @@ SELECT
       MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END),
       MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END)
     ), '%H:%i:%s')
-    ELSE NULL 
+    ELSE ''
   END as total_time
 FROM HR_EMP_ATTENDANCE
 LEFT JOIN HR_Employee e ON emp_id = e.id
@@ -397,7 +419,8 @@ ORDER BY DATE(create_date) DESC
 LIMIT ? OFFSET ?;
 
 -- name: GetNormalAttendanceForAll :many
-SELECT *
+SELECT *,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -445,13 +468,14 @@ FROM (
   WHERE  (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time = t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time = t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
 
 -- name: GetLateAttendanceForAll :many
-SELECT *
+SELECT *,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -484,13 +508,14 @@ FROM (
   WHERE (? IS NULL OR DATE(a.create_date) = ?) -- optional date filter
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.first_in_time > t.scheduled_in_time
+WHERE (t.total_time IS NOT NULL AND t.first_in_time > t.scheduled_in_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
 
 -- name: GetInsufficientAttendanceForAll :many
-SELECT *
+SELECT *,
+ COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
@@ -538,7 +563,7 @@ FROM (
   WHERE (? IS NULL OR DATE(a.create_date) = ?)
   GROUP BY DATE(a.create_date), a.emp_id
 ) t
-WHERE t.total_time < t.scheduled_time
+WHERE (t.total_time IS NOT NULL AND t.total_time < t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
