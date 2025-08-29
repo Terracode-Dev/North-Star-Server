@@ -567,3 +567,8 @@ WHERE (t.total_time IS NOT NULL AND t.total_time < t.scheduled_time)
 ORDER BY t.date DESC
 LIMIT ? OFFSET ?;
 
+-- name: GetAttendanceCountForThisYear :one
+SELECT 
+    COUNT(CASE WHEN attendance_type = 'in' THEN 1 END) AS total_count
+FROM HR_EMP_ATTENDANCE a
+WHERE YEAR(a.create_date) = YEAR(CURDATE());

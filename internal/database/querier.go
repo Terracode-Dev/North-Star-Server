@@ -85,6 +85,7 @@ type Querier interface {
 	GetAllLeaves(ctx context.Context, arg GetAllLeavesParams) ([]GetAllLeavesRow, error)
 	GetAllowance(ctx context.Context, id int64) (HrCreateAllowance, error)
 	GetAllowances(ctx context.Context) ([]GetAllowancesRow, error)
+	GetAttendanceCountForThisYear(ctx context.Context) (int64, error)
 	GetBranchwiseEmpCount(ctx context.Context, id int64) (GetBranchwiseEmpCountRow, error)
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
 	GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) ([]GetEmpAdditionalSheduleByIDRow, error)
