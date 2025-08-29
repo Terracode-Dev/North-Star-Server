@@ -171,13 +171,13 @@ SELECT
   CONCAT(e.first_name, ' ', e.last_name) as name,
   COUNT(*) OVER() AS total_count,
   CASE 
-    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MIN(CASE WHEN attendance_type = 'in' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as in_time,
   CASE 
-    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MAX(CASE WHEN attendance_type = 'out' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as out_time,
   CASE 
@@ -261,13 +261,13 @@ SELECT
   COUNT(*) OVER() AS total_count,
   CONCAT(e.first_name, ' ', e.last_name) as name,
   CASE 
-    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MIN(CASE WHEN attendance_type = 'in' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as in_time,
   CASE 
-    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MAX(CASE WHEN attendance_type = 'out' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as out_time,
   CASE 
@@ -750,15 +750,14 @@ func (q *Queries) GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmplo
 }
 
 const getInsufficientAttendance = `-- name: GetInsufficientAttendance :many
-SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time,
+SELECT date, emp_id, in_time, out_time, total_time, scheduled_time,
  COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
-    CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -791,7 +790,6 @@ FROM (
         END)
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
-  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -817,9 +815,8 @@ type GetInsufficientAttendanceParams struct {
 type GetInsufficientAttendanceRow struct {
 	Date          time.Time   `json:"date"`
 	EmpID         int64       `json:"emp_id"`
-	Name          string      `json:"name"`
-	InTime        string      `json:"in_time"`
-	OutTime       string      `json:"out_time"`
+	InTime        interface{} `json:"in_time"`
+	OutTime       interface{} `json:"out_time"`
 	TotalTime     string      `json:"total_time"`
 	ScheduledTime string      `json:"scheduled_time"`
 	TotalCount    interface{} `json:"total_count"`
@@ -843,7 +840,6 @@ func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsuffic
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
-			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -871,8 +867,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -929,8 +925,8 @@ type GetInsufficientAttendanceForAllRow struct {
 	Date          time.Time   `json:"date"`
 	EmpID         int64       `json:"emp_id"`
 	Name          string      `json:"name"`
-	InTime        string      `json:"in_time"`
-	OutTime       string      `json:"out_time"`
+	InTime        interface{} `json:"in_time"`
+	OutTime       interface{} `json:"out_time"`
 	TotalTime     string      `json:"total_time"`
 	ScheduledTime string      `json:"scheduled_time"`
 	TotalCount    interface{} `json:"total_count"`
@@ -974,15 +970,14 @@ func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetIn
 }
 
 const getLateAttendance = `-- name: GetLateAttendance :many
-SELECT date, emp_id, name, in_time, out_time, total_time, first_in_time, scheduled_in_time,
+SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time,
   COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
-    CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     TIME_FORMAT(TIMEDIFF(
       MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
       MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
@@ -1000,7 +995,6 @@ FROM (
       END
     ), '%H:%i:%s') as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
-  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -1025,9 +1019,8 @@ type GetLateAttendanceParams struct {
 type GetLateAttendanceRow struct {
 	Date            time.Time   `json:"date"`
 	EmpID           int64       `json:"emp_id"`
-	Name            string      `json:"name"`
-	InTime          string      `json:"in_time"`
-	OutTime         string      `json:"out_time"`
+	InTime          interface{} `json:"in_time"`
+	OutTime         interface{} `json:"out_time"`
 	TotalTime       string      `json:"total_time"`
 	FirstInTime     string      `json:"first_in_time"`
 	ScheduledInTime string      `json:"scheduled_in_time"`
@@ -1052,7 +1045,6 @@ func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendancePa
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
-			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -1081,8 +1073,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     TIME_FORMAT(TIMEDIFF(
       MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
       MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
@@ -1124,8 +1116,8 @@ type GetLateAttendanceForAllRow struct {
 	Date            time.Time   `json:"date"`
 	EmpID           int64       `json:"emp_id"`
 	Name            string      `json:"name"`
-	InTime          string      `json:"in_time"`
-	OutTime         string      `json:"out_time"`
+	InTime          interface{} `json:"in_time"`
+	OutTime         interface{} `json:"out_time"`
 	TotalTime       string      `json:"total_time"`
 	FirstInTime     string      `json:"first_in_time"`
 	ScheduledInTime string      `json:"scheduled_in_time"`
@@ -1178,8 +1170,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -1239,8 +1231,8 @@ type GetNormalAttendanceRow struct {
 	Date          time.Time   `json:"date"`
 	EmpID         int64       `json:"emp_id"`
 	Name          string      `json:"name"`
-	InTime        string      `json:"in_time"`
-	OutTime       string      `json:"out_time"`
+	InTime        interface{} `json:"in_time"`
+	OutTime       interface{} `json:"out_time"`
 	TotalTime     string      `json:"total_time"`
 	ScheduledTime string      `json:"scheduled_time"`
 	TotalCount    interface{} `json:"total_count"`
@@ -1292,8 +1284,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -1350,8 +1342,8 @@ type GetNormalAttendanceForAllRow struct {
 	Date          time.Time   `json:"date"`
 	EmpID         int64       `json:"emp_id"`
 	Name          string      `json:"name"`
-	InTime        string      `json:"in_time"`
-	OutTime       string      `json:"out_time"`
+	InTime        interface{} `json:"in_time"`
+	OutTime       interface{} `json:"out_time"`
 	TotalTime     string      `json:"total_time"`
 	ScheduledTime string      `json:"scheduled_time"`
 	TotalCount    interface{} `json:"total_count"`

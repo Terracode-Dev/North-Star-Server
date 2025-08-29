@@ -214,9 +214,8 @@ FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
-    CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -249,7 +248,6 @@ FROM (
         END)
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
-  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -270,9 +268,8 @@ FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
-    CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     TIME_FORMAT(TIMEDIFF(
       MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
       MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
@@ -290,7 +287,6 @@ FROM (
       END
     ), '%H:%i:%s') as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
-  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -311,8 +307,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -367,13 +363,13 @@ SELECT
   CONCAT(e.first_name, ' ', e.last_name) as name,
   COUNT(*) OVER() AS total_count,
   CASE 
-    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MIN(CASE WHEN attendance_type = 'in' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as in_time,
   CASE 
-    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MAX(CASE WHEN attendance_type = 'out' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as out_time,
   CASE 
@@ -401,13 +397,13 @@ SELECT
   COUNT(*) OVER() AS total_count,
   CONCAT(e.first_name, ' ', e.last_name) as name,
   CASE 
-    WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MIN(CASE WHEN attendance_type = 'in' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MIN(CASE WHEN attendance_type = 'in' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as in_time,
   CASE 
-    WHEN MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END) IS NOT NULL 
-    THEN TIME_FORMAT(MAX(CASE WHEN attendance_type = 'out' THEN TIME(create_date) END), '%H:%i:%s')
+    WHEN MAX(CASE WHEN attendance_type = 'out' THEN create_date END) IS NOT NULL 
+    THEN DATE_FORMAT(CONVERT_TZ(MAX(CASE WHEN attendance_type = 'out' THEN create_date END), @@session.time_zone, '+00:00'), '%Y-%m-%dT%H:%i:%sZ')
     ELSE ''
   END as out_time,
   CASE 
@@ -434,8 +430,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
@@ -489,8 +485,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     TIME_FORMAT(TIMEDIFF(
       MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END),
       MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END)
@@ -529,8 +525,8 @@ FROM (
     DATE(a.create_date) as date,
     a.emp_id,
     CONCAT(e.first_name, ' ', e.last_name) as name,
-    TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
-    TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
+    MIN(CASE WHEN a.attendance_type = 'in' THEN a.create_date END) as in_time,
+    MAX(CASE WHEN a.attendance_type = 'out' THEN a.create_date END) as out_time,
     CASE 
       WHEN MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END) IS NOT NULL 
            AND MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END) IS NOT NULL 
