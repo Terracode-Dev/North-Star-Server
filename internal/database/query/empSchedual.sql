@@ -358,7 +358,8 @@ LIMIT ? OFFSET ?;
 SELECT
   DATE(create_date) as date,
   emp_id,
-   COUNT(*) OVER() AS total_count,
+  CONCAT(e.first_name, ' ', e.last_name) as name,
+  COUNT(*) OVER() AS total_count,
   CASE 
     WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
     THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
@@ -379,6 +380,7 @@ SELECT
     ELSE ''
   END as total_time
 FROM HR_EMP_ATTENDANCE
+LEFT JOIN HR_Employee e ON emp_id = e.id
 WHERE emp_id = ?
 AND
 (? IS NULL OR DATE(create_date) = ?)

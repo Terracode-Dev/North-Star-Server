@@ -168,7 +168,8 @@ const getAllAttendance = `-- name: GetAllAttendance :many
 SELECT
   DATE(create_date) as date,
   emp_id,
-   COUNT(*) OVER() AS total_count,
+  CONCAT(e.first_name, ' ', e.last_name) as name,
+  COUNT(*) OVER() AS total_count,
   CASE 
     WHEN MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END) IS NOT NULL 
     THEN TIME_FORMAT(MIN(CASE WHEN attendance_type = 'in' THEN TIME(create_date) END), '%H:%i:%s')
@@ -189,6 +190,7 @@ SELECT
     ELSE ''
   END as total_time
 FROM HR_EMP_ATTENDANCE
+LEFT JOIN HR_Employee e ON emp_id = e.id
 WHERE emp_id = ?
 AND
 (? IS NULL OR DATE(create_date) = ?)
@@ -208,6 +210,7 @@ type GetAllAttendanceParams struct {
 type GetAllAttendanceRow struct {
 	Date       time.Time   `json:"date"`
 	EmpID      int64       `json:"emp_id"`
+	Name       string      `json:"name"`
 	TotalCount interface{} `json:"total_count"`
 	InTime     string      `json:"in_time"`
 	OutTime    string      `json:"out_time"`
@@ -232,6 +235,7 @@ func (q *Queries) GetAllAttendance(ctx context.Context, arg GetAllAttendancePara
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.TotalCount,
 			&i.InTime,
 			&i.OutTime,
