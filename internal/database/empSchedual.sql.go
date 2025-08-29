@@ -750,12 +750,13 @@ func (q *Queries) GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmplo
 }
 
 const getInsufficientAttendance = `-- name: GetInsufficientAttendance :many
-SELECT date, emp_id, in_time, out_time, total_time, scheduled_time,
+SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time,
  COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     CASE 
@@ -790,6 +791,7 @@ FROM (
         END)
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -815,6 +817,7 @@ type GetInsufficientAttendanceParams struct {
 type GetInsufficientAttendanceRow struct {
 	Date          time.Time   `json:"date"`
 	EmpID         int64       `json:"emp_id"`
+	Name          string      `json:"name"`
 	InTime        string      `json:"in_time"`
 	OutTime       string      `json:"out_time"`
 	TotalTime     string      `json:"total_time"`
@@ -840,6 +843,7 @@ func (q *Queries) GetInsufficientAttendance(ctx context.Context, arg GetInsuffic
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -970,12 +974,13 @@ func (q *Queries) GetInsufficientAttendanceForAll(ctx context.Context, arg GetIn
 }
 
 const getLateAttendance = `-- name: GetLateAttendance :many
-SELECT date, emp_id, in_time, out_time, total_time, first_in_time, scheduled_in_time,
+SELECT date, emp_id, name, in_time, out_time, total_time, first_in_time, scheduled_in_time,
   COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     TIME_FORMAT(TIMEDIFF(
@@ -995,6 +1000,7 @@ FROM (
       END
     ), '%H:%i:%s') as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -1019,6 +1025,7 @@ type GetLateAttendanceParams struct {
 type GetLateAttendanceRow struct {
 	Date            time.Time   `json:"date"`
 	EmpID           int64       `json:"emp_id"`
+	Name            string      `json:"name"`
 	InTime          string      `json:"in_time"`
 	OutTime         string      `json:"out_time"`
 	TotalTime       string      `json:"total_time"`
@@ -1045,6 +1052,7 @@ func (q *Queries) GetLateAttendance(ctx context.Context, arg GetLateAttendancePa
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,
@@ -1163,12 +1171,13 @@ func (q *Queries) GetLateAttendanceForAll(ctx context.Context, arg GetLateAttend
 }
 
 const getNormalAttendance = `-- name: GetNormalAttendance :many
-SELECT date, emp_id, in_time, out_time, total_time, scheduled_time,
+SELECT date, emp_id, name, in_time, out_time, total_time, scheduled_time,
    COUNT(*) OVER() as total_count
 FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     CASE 
@@ -1203,6 +1212,7 @@ FROM (
         END)
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -1228,6 +1238,7 @@ type GetNormalAttendanceParams struct {
 type GetNormalAttendanceRow struct {
 	Date          time.Time   `json:"date"`
 	EmpID         int64       `json:"emp_id"`
+	Name          string      `json:"name"`
 	InTime        string      `json:"in_time"`
 	OutTime       string      `json:"out_time"`
 	TotalTime     string      `json:"total_time"`
@@ -1253,6 +1264,7 @@ func (q *Queries) GetNormalAttendance(ctx context.Context, arg GetNormalAttendan
 		if err := rows.Scan(
 			&i.Date,
 			&i.EmpID,
+			&i.Name,
 			&i.InTime,
 			&i.OutTime,
 			&i.TotalTime,

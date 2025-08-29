@@ -214,6 +214,7 @@ FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     CASE 
@@ -248,6 +249,7 @@ FROM (
         END)
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -268,6 +270,7 @@ FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     TIME_FORMAT(TIMEDIFF(
@@ -287,6 +290,7 @@ FROM (
       END
     ), '%H:%i:%s') as scheduled_in_time
   FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
@@ -306,6 +310,7 @@ FROM (
   SELECT
     DATE(a.create_date) as date,
     a.emp_id,
+    CONCAT(e.first_name, ' ', e.last_name) as name,
     TIME_FORMAT(MIN(CASE WHEN a.attendance_type = 'in' THEN TIME(a.create_date) END), '%H:%i:%s') as in_time,
     TIME_FORMAT(MAX(CASE WHEN a.attendance_type = 'out' THEN TIME(a.create_date) END), '%H:%i:%s') as out_time,
     CASE 
@@ -340,6 +345,7 @@ FROM (
         END)
     ), '%H:%i:%s') as scheduled_time
   FROM HR_EMP_ATTENDANCE a
+  LEFT JOIN HR_Employee e ON a.emp_id = e.id
   LEFT JOIN HR_EMP_SCHEDUAL s ON a.emp_id = s.emp_id
   LEFT JOIN HR_EMP_SCHEDUAL_additional sa 
     ON a.emp_id = sa.emp_id 
