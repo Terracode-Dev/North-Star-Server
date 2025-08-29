@@ -336,6 +336,20 @@ func (q *Queries) GetAllAttendanceForAll(ctx context.Context, arg GetAllAttendan
 	return items, nil
 }
 
+const getAttendanceCountForThisYear = `-- name: GetAttendanceCountForThisYear :one
+SELECT 
+    COUNT(CASE WHEN attendance_type = 'in' THEN 1 END) AS total_count
+FROM HR_EMP_ATTENDANCE a
+WHERE YEAR(a.create_date) = YEAR(CURDATE())
+`
+
+func (q *Queries) GetAttendanceCountForThisYear(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getAttendanceCountForThisYear)
+	var total_count int64
+	err := row.Scan(&total_count)
+	return total_count, err
+}
+
 const getEmpAdditionalSheduleByID = `-- name: GetEmpAdditionalSheduleByID :many
 SELECT
     id,

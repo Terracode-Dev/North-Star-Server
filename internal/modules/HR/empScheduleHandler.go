@@ -927,4 +927,13 @@ func (s *HRService) GetAllAttendanceForAll(c echo.Context) error {
 	return c.JSON(http.StatusOK, records)
 }
 
+func (s *HRService) GetAttendanceCountForThisYear(c echo.Context) error {
+	count, err := s.q.GetAttendanceCountForThisYear(c.Request().Context())
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, count)
+}
+
 

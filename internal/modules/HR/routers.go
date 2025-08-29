@@ -154,6 +154,7 @@ func (S *HRService) registerRoutes() {
 	hrAttendance.POST("/late", S.GetLateAttendanceForAll)
 	hrAttendance.POST("/all", S.GetAllAttendanceForAll)
 	hrAttendance.POST("/insufficient", S.GetInsufficientAttendanceForAll)
+	hrAttendance.GET("/getAttendanceCountForThisYear",S.GetAttendanceCountForThisYear)
 
 	//reports 
 	hrReports := hrRoute.Group("/reports")
