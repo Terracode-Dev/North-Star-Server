@@ -10,7 +10,7 @@ import (
 type CreateTaxReqModel struct {
 	TaxFrom       int `json:"tax_from"`
 	TaxTo         int `json:"tax_to"`
-	TaxPercentage int `json:"tax_percentage"`
+	TaxPercentage float64 `json:"tax_percentage"`
 }
 
 func (T *CreateTaxReqModel) ToCreateTaxParams(admin_id int64) (db.CreateTaxParams, error) {
@@ -21,7 +21,7 @@ func (T *CreateTaxReqModel) ToCreateTaxParams(admin_id int64) (db.CreateTaxParam
 
 	tax_to := decimal.NewFromInt(int64(T.TaxTo))
 
-	tax_percentage := decimal.NewFromInt(int64(T.TaxPercentage))
+	tax_percentage := decimal.NewFromFloat(T.TaxPercentage)
 
 	return db.CreateTaxParams{
 		TaxFrom:       tax_from,
