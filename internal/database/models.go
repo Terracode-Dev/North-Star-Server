@@ -7,6 +7,7 @@ package database
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -55,6 +56,13 @@ func (ns NullHrEmpAttendanceAttendanceType) Value() (driver.Value, error) {
 	return string(ns.HrEmpAttendanceAttendanceType), nil
 }
 
+type AdminPreset struct {
+	ID          int64           `json:"id"`
+	PresetName  string          `json:"preset_name"`
+	PresetValue json.RawMessage `json:"preset_value"`
+	Slug        string          `json:"slug"`
+}
+
 type DoorLockUser struct {
 	AttendeeID     int64          `json:"attendee_id"`
 	UserID         int64          `json:"user_id"`
@@ -71,6 +79,16 @@ type DoorLockUser struct {
 	Phone          sql.NullString `json:"phone"`
 	Nic            sql.NullString `json:"nic"`
 	AvatarUrl      sql.NullString `json:"avatar_url"`
+}
+
+type EmpLink struct {
+	ID         int64           `json:"id"`
+	EmpData    json.RawMessage `json:"emp_data"`
+	PresetID   int64           `json:"preset_id"`
+	IsApproved bool            `json:"is_approved"`
+	CreateDate time.Time       `json:"create_date"`
+	Email      string          `json:"email"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 }
 
 type ExchangeRate struct {
