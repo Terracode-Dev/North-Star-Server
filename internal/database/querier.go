@@ -19,6 +19,7 @@ type Querier interface {
 	// Count total employees for pagination (with same filters)
 	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
 	CreateAdditionalSchedule(ctx context.Context, arg CreateAdditionalScheduleParams) error
+	CreateAdminPreset(ctx context.Context, arg CreateAdminPresetParams) error
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
@@ -27,6 +28,7 @@ type Querier interface {
 	CreateEmpCertificates(ctx context.Context, arg CreateEmpCertificatesParams) error
 	CreateEmpEmergencyDetails(ctx context.Context, arg CreateEmpEmergencyDetailsParams) error
 	CreateEmpExpatriate(ctx context.Context, arg CreateEmpExpatriateParams) error
+	CreateEmpLink(ctx context.Context, arg CreateEmpLinkParams) error
 	CreateEmpSalary(ctx context.Context, arg CreateEmpSalaryParams) error
 	CreateEmpStatus(ctx context.Context, arg CreateEmpStatusParams) error
 	CreateEmpUser(ctx context.Context, arg CreateEmpUserParams) error
@@ -79,6 +81,7 @@ type Querier interface {
 	DeleteTrainerEmp(ctx context.Context, employeeID int64) error
 	EmployeeLogin(ctx context.Context, email string) (EmployeeLoginRow, error)
 	GetAccountDetails(ctx context.Context, arg GetAccountDetailsParams) ([]GetAccountDetailsRow, error)
+	GetAdminPresetBySlug(ctx context.Context, slug string) (AdminPreset, error)
 	GetAllAttendance(ctx context.Context, arg GetAllAttendanceParams) ([]GetAllAttendanceRow, error)
 	GetAllAttendanceForAll(ctx context.Context, arg GetAllAttendanceForAllParams) ([]GetAllAttendanceForAllRow, error)
 	GetAllHRBranch(ctx context.Context) ([]HrBranch, error)
@@ -90,6 +93,8 @@ type Querier interface {
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
 	GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) ([]GetEmpAdditionalSheduleByIDRow, error)
 	GetEmpFiles(ctx context.Context, employeeID int64) ([]GetEmpFilesRow, error)
+	GetEmpLinkByID(ctx context.Context, id int64) (EmpLink, error)
+	GetEmpLinkData(ctx context.Context, id int64) (GetEmpLinkDataRow, error)
 	GetEmpShedulleByID(ctx context.Context, empID int64) (GetEmpShedulleByIDRow, error)
 	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error)
 	GetEmployeeAllowances(ctx context.Context, employeeID int64) ([]GetEmployeeAllowancesRow, error)
@@ -130,6 +135,8 @@ type Querier interface {
 	GetVisaFile(ctx context.Context, employeeID int64) (string, error)
 	GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error)
 	GetempployeeInsurance(ctx context.Context, arg GetempployeeInsuranceParams) ([]GetempployeeInsuranceRow, error)
+	ListAdminPresets(ctx context.Context) ([]AdminPreset, error)
+	ListEmpLinks(ctx context.Context) ([]EmpLink, error)
 	SelectAllPresetWorkouts(ctx context.Context) ([]SelectAllPresetWorkoutsRow, error)
 	SelectAllPresets(ctx context.Context) ([]SelectAllPresetsRow, error)
 	SelectAllSessionWorkouts(ctx context.Context) ([]SelectAllSessionWorkoutsRow, error)
@@ -151,6 +158,7 @@ type Querier interface {
 	UpdateEmpCertificates(ctx context.Context, arg UpdateEmpCertificatesParams) error
 	UpdateEmpEmergencyDetails(ctx context.Context, arg UpdateEmpEmergencyDetailsParams) error
 	UpdateEmpExpatriate(ctx context.Context, arg UpdateEmpExpatriateParams) error
+	UpdateEmpLinkApproval(ctx context.Context, arg UpdateEmpLinkApprovalParams) error
 	UpdateEmpSalary(ctx context.Context, arg UpdateEmpSalaryParams) error
 	UpdateEmpStatus(ctx context.Context, arg UpdateEmpStatusParams) error
 	UpdateEmpUser(ctx context.Context, arg UpdateEmpUserParams) error

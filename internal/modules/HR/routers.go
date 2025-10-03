@@ -17,6 +17,14 @@ func (S *HRService) registerRoutes() {
 
 	// employee routes
 	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/employee/admin-preset", S.CreateAdminPreset, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employee/admin-preset/:slug", S.GetAdminPresetBySlug, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.GET("/employee/admin-preset", S.ListAdminPresets, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.POST("/employee/emp-link", S.CreateEmpLink, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.PUT("/employee/emp-link/approval", S.ApproveEmpLink, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employee/emp-link/:id", S.GetEmpLinkByID, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employee/emp-link", S.ListEmpLinks, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employee/create-employee", S.ApproveEmpLink, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/all", S.getEmployee, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.GET("/employee/:id", S.getEmployeeOne, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.GET("/employeefrombranch", S.getEmployeeByBranch, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
