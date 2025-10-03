@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 )
 
 const createEmpLink = `-- name: CreateEmpLink :exec
@@ -49,6 +50,54 @@ func (q *Queries) GetEmpLinkByID(ctx context.Context, id int64) (EmpLink, error)
 		&i.CreateDate,
 		&i.Email,
 		&i.UpdatedBy,
+	)
+	return i, err
+}
+
+const getEmpLinkData = `-- name: GetEmpLinkData :one
+SELECT 
+    el.id AS emp_link_id,
+    el.emp_data,
+    el.is_approved,
+    el.create_date,
+    el.updated_by,
+    el.email,
+    ap.id AS preset_id,
+    ap.preset_name,
+    ap.preset_value,
+    ap.slug
+FROM emp_link el
+JOIN Admin_Presets ap ON el.preset_id = ap.id
+WHERE el.id = ?
+`
+
+type GetEmpLinkDataRow struct {
+	EmpLinkID   int64           `json:"emp_link_id"`
+	EmpData     json.RawMessage `json:"emp_data"`
+	IsApproved  bool            `json:"is_approved"`
+	CreateDate  time.Time       `json:"create_date"`
+	UpdatedBy   sql.NullInt64   `json:"updated_by"`
+	Email       string          `json:"email"`
+	PresetID    int64           `json:"preset_id"`
+	PresetName  string          `json:"preset_name"`
+	PresetValue json.RawMessage `json:"preset_value"`
+	Slug        string          `json:"slug"`
+}
+
+func (q *Queries) GetEmpLinkData(ctx context.Context, id int64) (GetEmpLinkDataRow, error) {
+	row := q.db.QueryRowContext(ctx, getEmpLinkData, id)
+	var i GetEmpLinkDataRow
+	err := row.Scan(
+		&i.EmpLinkID,
+		&i.EmpData,
+		&i.IsApproved,
+		&i.CreateDate,
+		&i.UpdatedBy,
+		&i.Email,
+		&i.PresetID,
+		&i.PresetName,
+		&i.PresetValue,
+		&i.Slug,
 	)
 	return i, err
 }

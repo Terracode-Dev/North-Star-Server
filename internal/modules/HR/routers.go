@@ -24,6 +24,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.PUT("/employee/emp-link/approval", S.ApproveEmpLink, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employee/emp-link/:id", S.GetEmpLinkByID, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employee/emp-link", S.ListEmpLinks, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.GET("/employee/create-employee", S.ApproveEmpLink, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/all", S.getEmployee, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.GET("/employee/:id", S.getEmployeeOne, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))
 	hrRoute.GET("/employeefrombranch", S.getEmployeeByBranch, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))

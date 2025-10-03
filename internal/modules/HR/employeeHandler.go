@@ -36,7 +36,6 @@ func (S *HRService) createEmployee(c echo.Context) error {
 	if !ok {
 		return c.JSON(301, "Authentication issue")
 	}
-	fmt.Println(branch_id)
 	var emp EmpReqModel
 	if err := c.Bind(&emp); err != nil {
 		return err

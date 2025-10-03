@@ -94,6 +94,7 @@ type Querier interface {
 	GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) ([]GetEmpAdditionalSheduleByIDRow, error)
 	GetEmpFiles(ctx context.Context, employeeID int64) ([]GetEmpFilesRow, error)
 	GetEmpLinkByID(ctx context.Context, id int64) (EmpLink, error)
+	GetEmpLinkData(ctx context.Context, id int64) (GetEmpLinkDataRow, error)
 	GetEmpShedulleByID(ctx context.Context, empID int64) (GetEmpShedulleByIDRow, error)
 	GetEmployee(ctx context.Context, arg GetEmployeeParams) ([]GetEmployeeRow, error)
 	GetEmployeeAllowances(ctx context.Context, employeeID int64) ([]GetEmployeeAllowancesRow, error)
