@@ -15,7 +15,9 @@ func (h *HRService) CreateEmpLink(c echo.Context) error{
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(400, err.Error())
 	}
-	params, err := req.ToCreateEmpLinkParams()
+	updated_by := 1
+	params, err := req.ToCreateEmpLinkParams(int64(updated_by))
+
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}
