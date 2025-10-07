@@ -103,11 +103,16 @@ func (q *Queries) GetEmpLinkData(ctx context.Context, id int64) (GetEmpLinkDataR
 }
 
 const listEmpLinks = `-- name: ListEmpLinks :many
-SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link
+SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link LIMIT ? OFFSET ?
 `
 
-func (q *Queries) ListEmpLinks(ctx context.Context) ([]EmpLink, error) {
-	rows, err := q.db.QueryContext(ctx, listEmpLinks)
+type ListEmpLinksParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListEmpLinks(ctx context.Context, arg ListEmpLinksParams) ([]EmpLink, error) {
+	rows, err := q.db.QueryContext(ctx, listEmpLinks, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

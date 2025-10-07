@@ -41,7 +41,12 @@ func (h *HRService) GetEmpLinkByID(c echo.Context) error {
 }
 
 func (h *HRService) ListEmpLinks(c echo.Context) error {
-	links, err := h.q.ListEmpLinks(c.Request().Context())
+	var req database.ListEmpLinksParams
+	err := c.Bind(&req)
+	if err != nil{
+		return c.JSON(400, "error binding request")
+	}
+	links, err := h.q.ListEmpLinks(c.Request().Context(), req)
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}
