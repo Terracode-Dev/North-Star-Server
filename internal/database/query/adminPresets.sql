@@ -5,5 +5,5 @@ INSERT INTO Admin_Presets (preset_name, preset_value, slug) VALUES (?, ?, ?);
 SELECT id, preset_name, preset_value, slug FROM Admin_Presets WHERE slug = ?;
 
 -- name: ListAdminPresets :many
-SELECT id, preset_name, preset_value, slug FROM Admin_Presets;
+SELECT id, preset_name, preset_value, slug FROM Admin_Presets LIMIT ? OFFSET ?;
 

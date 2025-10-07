@@ -3,6 +3,7 @@ package hr
 import (
 	"fmt"
 
+	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +34,11 @@ func (h *HRService) GetAdminPresetBySlug(c echo.Context) error {
 }
 
 func (h *HRService) ListAdminPresets(c echo.Context) error {
-	presets, err := h.q.ListAdminPresets(c.Request().Context())
+	var req database.ListAdminPresetsParams
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(400, "error binding request")
+	}
+	presets, err := h.q.ListAdminPresets(c.Request().Context(), req)
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}

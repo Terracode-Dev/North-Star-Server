@@ -42,11 +42,16 @@ func (q *Queries) GetAdminPresetBySlug(ctx context.Context, slug string) (AdminP
 }
 
 const listAdminPresets = `-- name: ListAdminPresets :many
-SELECT id, preset_name, preset_value, slug FROM Admin_Presets
+SELECT id, preset_name, preset_value, slug FROM Admin_Presets LIMIT ? OFFSET ?
 `
 
-func (q *Queries) ListAdminPresets(ctx context.Context) ([]AdminPreset, error) {
-	rows, err := q.db.QueryContext(ctx, listAdminPresets)
+type ListAdminPresetsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListAdminPresets(ctx context.Context, arg ListAdminPresetsParams) ([]AdminPreset, error) {
+	rows, err := q.db.QueryContext(ctx, listAdminPresets, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
