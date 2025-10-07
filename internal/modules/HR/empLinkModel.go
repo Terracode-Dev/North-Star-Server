@@ -47,7 +47,6 @@ func (u *UpdateEmpLinkApprovalReqParams) ToUpdateEmpLinkApprovalParams(adminID i
 	updatedBy.Int64 = adminID
 	updatedBy.Valid = true
 	return db.UpdateEmpLinkApprovalParams{
-		IsApproved: u.IsApproved,
 		UpdatedBy:  updatedBy,
 		ID:         u.ID,
 	},nil

@@ -138,16 +138,15 @@ func (q *Queries) ListEmpLinks(ctx context.Context) ([]EmpLink, error) {
 }
 
 const updateEmpLinkApproval = `-- name: UpdateEmpLinkApproval :exec
-UPDATE emp_link SET is_approved = ?, updated_by = ? WHERE id = ?
+UPDATE emp_link SET is_approved = 1, updated_by = ? WHERE id = ?
 `
 
 type UpdateEmpLinkApprovalParams struct {
-	IsApproved bool          `json:"is_approved"`
-	UpdatedBy  sql.NullInt64 `json:"updated_by"`
-	ID         int64         `json:"id"`
+	UpdatedBy sql.NullInt64 `json:"updated_by"`
+	ID        int64         `json:"id"`
 }
 
 func (q *Queries) UpdateEmpLinkApproval(ctx context.Context, arg UpdateEmpLinkApprovalParams) error {
-	_, err := q.db.ExecContext(ctx, updateEmpLinkApproval, arg.IsApproved, arg.UpdatedBy, arg.ID)
+	_, err := q.db.ExecContext(ctx, updateEmpLinkApproval, arg.UpdatedBy, arg.ID)
 	return err
 }

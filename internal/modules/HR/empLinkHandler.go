@@ -183,10 +183,12 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 
 	benifitsParams, err := empLink.Benifits.convertToDbStruct(int64(updated_by))
 	if err != nil {
+		fmt.Printf("error %v", err)
 		return c.JSON(500, "Error converting employee benifits to db struct")
 	}
 	benifits := qtx.CreateEmpBenifits(c.Request().Context(), benifitsParams)
 	if benifits != nil {
+		fmt.Printf("error %v", benifits)
 		return c.JSON(500, "Error creating employee benifits")
 	}
 
