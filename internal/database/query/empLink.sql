@@ -8,7 +8,7 @@ SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM
 SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link;
 
 -- name: UpdateEmpLinkApproval :exec
-UPDATE emp_link SET is_approved = ?, updated_by = ? WHERE id = ?;
+UPDATE emp_link SET is_approved = 1, updated_by = ? WHERE id = ?;
 
 -- name: GetEmpLinkData :one
 SELECT 

@@ -1,6 +1,8 @@
 package hr
 
 import (
+	"fmt"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -9,6 +11,7 @@ func (h *HRService) CreateAdminPreset(c echo.Context) error{
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(400, err.Error())
 	}
+	fmt.Printf("Request %+v\n", req)
 	params, err := req.ToCreateAdminPresetParams()
 	if err != nil {
 		return c.JSON(500, err.Error())
