@@ -23,7 +23,7 @@ type CreateEmpLinkReqParams struct {
 	Email      string          `json:"email"`
 }
 
-func (c *CreateEmpLinkReqParams) ToCreateEmpLinkParams() (db.CreateEmpLinkParams, error) {
+func (c *CreateEmpLinkReqParams) ToCreateEmpLinkParams(updated_by int64) (db.CreateEmpLinkParams, error) {
 	empData, err := json.Marshal(c.EmpData)
 	if err != nil {
 		return db.CreateEmpLinkParams{}, fmt.Errorf("failed to marshal emp data: %w", err)
@@ -33,6 +33,7 @@ func (c *CreateEmpLinkReqParams) ToCreateEmpLinkParams() (db.CreateEmpLinkParams
 		PresetID:   c.PresetID,
 		IsApproved: c.IsApproved,
 		Email:      c.Email,
+		UpdatedBy: sql.NullInt64{Int64: updated_by, Valid: true},
 	}, nil
 }
 
