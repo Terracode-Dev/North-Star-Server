@@ -2,6 +2,7 @@ package hr
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/labstack/echo/v4"
@@ -42,5 +43,26 @@ func (h *HRService) ListAdminPresets(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}
-	return c.JSON(200, presets)
+	totalCount , err := h.q.TotalAdminPresetsCount(c.Request().Context())
+	if err != nil {
+		fmt.Printf("error getting total count: %v", err.Error())
+		return c.JSON(500, "error getting total count")
+	}
+	return c.JSON(200, map[string]interface{}{
+		"total_rows": totalCount,
+		"presets": presets,
+	})
+}
+
+func (h *HRService) DeleteAdminPreset(c echo.Context) error {
+	id , err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(400, "invalid id")
+	}
+	err = h.q.DeleteAdminPresetByID(c.Request().Context(), int64(id))
+	if err != nil {
+		fmt.Printf("error deleting preset: %v\n", err)
+		return c.JSON(500, "error deleting preset")
+	}
+	return c.JSON(200, "preset deleted successfully")
 }

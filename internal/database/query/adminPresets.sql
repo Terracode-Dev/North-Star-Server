@@ -5,5 +5,12 @@ INSERT INTO Admin_Presets (preset_name, preset_value, slug) VALUES (?, ?, ?);
 SELECT id, preset_name, preset_value, slug FROM Admin_Presets WHERE slug = ?;
 
 -- name: ListAdminPresets :many
-SELECT id, preset_name, preset_value, slug FROM Admin_Presets LIMIT ? OFFSET ?;
+SELECT id, preset_name, preset_value, slug FROM Admin_Presets
+LIMIT ? OFFSET ?;
+
+-- name: TotalAdminPresetsCount :one
+SELECT COUNT(*) FROM Admin_Presets;
+
+-- name: DeleteAdminPresetByID :exec
+DELETE FROM Admin_Presets WHERE id = ?;
 
