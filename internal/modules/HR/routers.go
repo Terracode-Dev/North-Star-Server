@@ -18,9 +18,9 @@ func (S *HRService) registerRoutes() {
 	// employee routes
 	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/admin-preset", S.CreateAdminPreset, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.GET("/employee/admin-preset/:slug", S.GetAdminPresetBySlug, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.GET("/employee/admin-preset/:slug", S.GetAdminPresetBySlug)
 	hrRoute.POST("/employee/admin-preset", S.ListAdminPresets, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
-	hrRoute.DELETE("/employee/admin-preset/:id", S.DeleteAdminPreset, rba.AuthMiddelware([]string{"admin","mod"}))
+	hrRoute.DELETE("/employee/admin-preset/:id", S.DeleteAdminPreset, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/emp-link", S.CreateEmpLink)
 	hrRoute.PUT("/employee/emp-link/approval", S.ApproveEmpLink, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/employee/emp-link/:id", S.GetEmpLinkByID, rba.AuthMiddelware([]string{"admin", "mod"}))
@@ -164,9 +164,9 @@ func (S *HRService) registerRoutes() {
 	hrAttendance.POST("/late", S.GetLateAttendanceForAll)
 	hrAttendance.POST("/all", S.GetAllAttendanceForAll)
 	hrAttendance.POST("/insufficient", S.GetInsufficientAttendanceForAll)
-	hrAttendance.GET("/getAttendanceCountForThisYear",S.GetAttendanceCountForThisYear)
+	hrAttendance.GET("/getAttendanceCountForThisYear", S.GetAttendanceCountForThisYear)
 
-	//reports 
+	//reports
 	hrReports := hrRoute.Group("/reports")
 	hrReports.POST("/salary-transfer", S.SalaryTransfer, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrReports.POST("/expired-visa-or-reports", S.GetExpiredVisaOrReports)
