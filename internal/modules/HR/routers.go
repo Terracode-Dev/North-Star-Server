@@ -59,7 +59,7 @@ func (S *HRService) registerRoutes() {
 	// service routes
 	hrRoute.POST("/service", S.createAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.GET("/service", S.getAdminServices)
-	hrRoute.GET("/service/:category", S.getOneAdminService, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrRoute.GET("/service/:category", S.getOneAdminService)
 	hrRoute.PUT("/service/:id", S.updateAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.DELETE("/service/:id", S.deleteAdminService, rba.AuthMiddelware([]string{"admin", "mod"}))
 
