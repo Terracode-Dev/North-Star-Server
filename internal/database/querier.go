@@ -61,6 +61,7 @@ type Querier interface {
 	DeleteEmpEmergencyDetails(ctx context.Context, employeeID int64) error
 	DeleteEmpExpatriate(ctx context.Context, employeeID int64) error
 	DeleteEmpFiles(ctx context.Context, arg DeleteEmpFilesParams) error
+	DeleteEmpLink(ctx context.Context, id int64) error
 	DeleteEmpSalary(ctx context.Context, employeeID int64) error
 	DeleteEmpStatus(ctx context.Context, employeeID int64) error
 	DeleteEmpUser(ctx context.Context, employeeID int64) error

@@ -140,11 +140,9 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 	empLink.Emergency.EmployeeID = employeeID
 	empLink.Bank.EmployeeID = employeeID
 	empLink.Salary.EmployeeID = employeeID
-	// emp.Certificates.EmployeeID = employeeID
 	empLink.Status.EmployeeID = employeeID
 	empLink.Benifits.EmployeeID = employeeID
 	empLink.User.EmployeeID = employeeID
-	// emp.Allowances.EmployeeID = employeeID
 	empLink.Expatriate.EmployeeID = employeeID
 	empLink.Accessiability.EmployeeID = employeeID
 	empLink.IsTrainer.EmployeeID = employeeID
@@ -175,15 +173,6 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 	if salary != nil {
 		return c.JSON(500, "Error creating employee salary"+salary.Error())
 	}
-
-	// certificatesParams, err := emp.Certificates.convertToDbStruct(int64(updated_by))
-	// if err != nil {
-	// 	return c.JSON(500, "Error converting employee certificates to db struct")
-	// }
-	// certificates := qtx.CreateEmpCertificates(c.Request().Context(), certificatesParams)
-	// if certificates != nil {
-	// 	return c.JSON(500, "Error creating employee certificates")
-	// }
 
 	statusParams, err := empLink.Status.convertToDbStruct(int64(updated_by))
 	if err != nil {
@@ -279,4 +268,17 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 	}
 
 	return c.JSON(200, "user created successfully")
+}
+
+func (h *HRService) DeleteEmpLink(c echo.Context) error {
+	id , err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		fmt.Printf("error converting id: %v", err.Error())
+	}
+	err = h.q.DeleteEmpLink(c.Request().Context(), int64(id))
+	if err != nil {
+		fmt.Printf("error deleting emp link: %v", err.Error())
+		return c.JSON(500, "error deleting emp link")
+	}
+	return c.JSON(200, "emplink deleted successfully")
 }
