@@ -142,6 +142,17 @@ func (q *Queries) ListEmpLinks(ctx context.Context, arg ListEmpLinksParams) ([]E
 	return items, nil
 }
 
+const totalEmpLinksCount = `-- name: TotalEmpLinksCount :one
+SELECT COUNT(*) FROM emp_link
+`
+
+func (q *Queries) TotalEmpLinksCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, totalEmpLinksCount)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const updateEmpLinkApproval = `-- name: UpdateEmpLinkApproval :exec
 UPDATE emp_link SET is_approved = 1, updated_by = ? WHERE id = ?
 `

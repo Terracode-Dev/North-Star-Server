@@ -50,7 +50,15 @@ func (h *HRService) ListEmpLinks(c echo.Context) error {
 	if err != nil {
 		return c.JSON(500, err.Error())
 	}
-	return c.JSON(200, links)
+	totalCount, err := h.q.TotalEmpLinksCount(c.Request().Context())
+	if err != nil {
+		fmt.Printf("error getting total count: %v", err.Error())
+		return c.JSON(500, "error getting total count")
+	}
+	return c.JSON(200, map[string]interface{}{
+		"total_rows": totalCount,
+		"links": links,
+	})
 }
 
 func (h *HRService) ApproveEmpLink(c echo.Context) error {

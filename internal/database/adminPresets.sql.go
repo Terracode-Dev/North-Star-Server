@@ -25,6 +25,15 @@ func (q *Queries) CreateAdminPreset(ctx context.Context, arg CreateAdminPresetPa
 	return err
 }
 
+const deleteAdminPresetByID = `-- name: DeleteAdminPresetByID :exec
+DELETE FROM Admin_Presets WHERE id = ?
+`
+
+func (q *Queries) DeleteAdminPresetByID(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteAdminPresetByID, id)
+	return err
+}
+
 const getAdminPresetBySlug = `-- name: GetAdminPresetBySlug :one
 SELECT id, preset_name, preset_value, slug FROM Admin_Presets WHERE slug = ?
 `
@@ -42,7 +51,8 @@ func (q *Queries) GetAdminPresetBySlug(ctx context.Context, slug string) (AdminP
 }
 
 const listAdminPresets = `-- name: ListAdminPresets :many
-SELECT id, preset_name, preset_value, slug FROM Admin_Presets LIMIT ? OFFSET ?
+SELECT id, preset_name, preset_value, slug FROM Admin_Presets
+LIMIT ? OFFSET ?
 `
 
 type ListAdminPresetsParams struct {
@@ -76,4 +86,15 @@ func (q *Queries) ListAdminPresets(ctx context.Context, arg ListAdminPresetsPara
 		return nil, err
 	}
 	return items, nil
+}
+
+const totalAdminPresetsCount = `-- name: TotalAdminPresetsCount :one
+SELECT COUNT(*) FROM Admin_Presets
+`
+
+func (q *Queries) TotalAdminPresetsCount(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, totalAdminPresetsCount)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }

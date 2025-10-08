@@ -50,6 +50,7 @@ type Querier interface {
 	CreateTax(ctx context.Context, arg CreateTaxParams) error
 	CreateTrainerEmp(ctx context.Context, arg CreateTrainerEmpParams) error
 	DeleteAdditionalSchedule(ctx context.Context, arg DeleteAdditionalScheduleParams) error
+	DeleteAdminPresetByID(ctx context.Context, id int64) error
 	DeleteAllAdditionalSchedules(ctx context.Context, empID int64) error
 	DeleteAllowance(ctx context.Context, id int64) error
 	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
@@ -149,6 +150,8 @@ type Querier interface {
 	SelectSessionWorkout(ctx context.Context, id int64) (SelectSessionWorkoutRow, error)
 	SelectpresetSessionAll(ctx context.Context) ([]SelectpresetSessionAllRow, error)
 	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
+	TotalAdminPresetsCount(ctx context.Context) (int64, error)
+	TotalEmpLinksCount(ctx context.Context) (int64, error)
 	UpdateAdditionalSchedule(ctx context.Context, arg UpdateAdditionalScheduleParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
 	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error

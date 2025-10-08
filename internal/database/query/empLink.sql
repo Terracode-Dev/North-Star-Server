@@ -7,6 +7,9 @@ SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM
 -- name: ListEmpLinks :many
 SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link LIMIT ? OFFSET ?;
 
+-- name: TotalEmpLinksCount :one
+SELECT COUNT(*) FROM emp_link;
+
 -- name: UpdateEmpLinkApproval :exec
 UPDATE emp_link SET is_approved = 1, updated_by = ? WHERE id = ?;
 
