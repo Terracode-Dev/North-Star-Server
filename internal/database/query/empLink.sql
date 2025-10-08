@@ -28,3 +28,6 @@ SELECT
 FROM emp_link el
 JOIN Admin_Presets ap ON el.preset_id = ap.id
 WHERE el.id = ?;
+
+-- name: DeleteEmpLink :exec
+DELETE FROM emp_link WHERE id = ?;

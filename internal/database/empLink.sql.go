@@ -35,6 +35,15 @@ func (q *Queries) CreateEmpLink(ctx context.Context, arg CreateEmpLinkParams) er
 	return err
 }
 
+const deleteEmpLink = `-- name: DeleteEmpLink :exec
+DELETE FROM emp_link WHERE id = ?
+`
+
+func (q *Queries) DeleteEmpLink(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteEmpLink, id)
+	return err
+}
+
 const getEmpLinkByID = `-- name: GetEmpLinkByID :one
 SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link WHERE id = ?
 `
