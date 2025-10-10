@@ -154,6 +154,7 @@ type Querier interface {
 	TotalAdminPresetsCount(ctx context.Context) (int64, error)
 	TotalEmpLinksCount(ctx context.Context) (int64, error)
 	UpdateAdditionalSchedule(ctx context.Context, arg UpdateAdditionalScheduleParams) error
+	UpdateAdminPresetByID(ctx context.Context, arg UpdateAdminPresetByIDParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
 	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
 	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
