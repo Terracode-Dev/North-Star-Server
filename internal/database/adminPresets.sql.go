@@ -98,3 +98,24 @@ func (q *Queries) TotalAdminPresetsCount(ctx context.Context) (int64, error) {
 	err := row.Scan(&count)
 	return count, err
 }
+
+const updateAdminPresetByID = `-- name: UpdateAdminPresetByID :exec
+UPDATE Admin_Presets SET preset_name = ?, preset_value = ?, slug = ? WHERE id = ?
+`
+
+type UpdateAdminPresetByIDParams struct {
+	PresetName  string          `json:"preset_name"`
+	PresetValue json.RawMessage `json:"preset_value"`
+	Slug        string          `json:"slug"`
+	ID          int64           `json:"id"`
+}
+
+func (q *Queries) UpdateAdminPresetByID(ctx context.Context, arg UpdateAdminPresetByIDParams) error {
+	_, err := q.db.ExecContext(ctx, updateAdminPresetByID,
+		arg.PresetName,
+		arg.PresetValue,
+		arg.Slug,
+		arg.ID,
+	)
+	return err
+}

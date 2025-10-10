@@ -8,6 +8,9 @@ SELECT id, preset_name, preset_value, slug FROM Admin_Presets WHERE slug = ?;
 SELECT id, preset_name, preset_value, slug FROM Admin_Presets
 LIMIT ? OFFSET ?;
 
+-- name: UpdateAdminPresetByID :exec
+UPDATE Admin_Presets SET preset_name = ?, preset_value = ?, slug = ? WHERE id = ?;
+
 -- name: TotalAdminPresetsCount :one
 SELECT COUNT(*) FROM Admin_Presets;
 

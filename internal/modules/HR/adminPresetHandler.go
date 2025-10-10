@@ -66,3 +66,25 @@ func (h *HRService) DeleteAdminPreset(c echo.Context) error {
 	}
 	return c.JSON(200, "preset deleted successfully")
 }
+
+func (h *HRService) UpdateAdminPresetByID(c echo.Context) error {
+	var req CreateAdminPresetReqParams
+	if err := c.Bind(&req); err != nil {
+		fmt.Printf("error binding request %v", err.Error())
+	}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(400, "id is required")
+	}
+	params , err := req.ToUpdateAdminPresetParams(int64(id))
+	if err != nil {
+		fmt.Printf("Error converting params %v", err.Error())
+		return c.JSON(500,"error converting params")
+	}
+	err = h.q.UpdateAdminPresetByID(c.Request().Context(), params)
+	if err != nil {
+		fmt.Printf("Error Updating preset: %v", err.Error())
+		return c.JSON(500, "error updating preset")
+	}
+	return c.JSON(200, "Preset Updated Successfully")
+}
