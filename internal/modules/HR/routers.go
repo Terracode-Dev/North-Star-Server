@@ -17,7 +17,7 @@ func (S *HRService) registerRoutes() {
 
 	// employee routes
 	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
-	hrRoute.POST("/employee/admin-preset", S.CreateAdminPreset, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/employee/create-admin-preset", S.CreateAdminPreset, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/admin-preset/:id", S.UpdateAdminPresetByID, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 	hrRoute.GET("/employee/admin-preset/:slug", S.GetAdminPresetBySlug)
 	hrRoute.POST("/employee/admin-preset", S.ListAdminPresets, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
@@ -50,7 +50,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.DELETE("/employee/:id", S.deleteEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.POST("/employee/login", S.employeeLogin)
 	hrRoute.PUT("/employee/empbank", S.empOnlyBankDetailsUpdate, rba.AuthMiddelware([]string{"emp"}))
-	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/checkTrainer", S.CheckIfEMPIsTrainer)
 	hrRoute.POST("/employee/ban", S.BanUser, rba.AuthMiddelware([]string{"admin", "mod"}))
 	// Delete employee certificates from the HR_FileSub,it table and S3
 	hrRoute.DELETE("/employee/deletefiles", S.DeleteEmployeeFiles, rba.AuthMiddelware([]string{"admin", "mod"}))
