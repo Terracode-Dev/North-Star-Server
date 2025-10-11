@@ -5,7 +5,19 @@ INSERT INTO emp_link (emp_data, preset_id, is_approved, email, updated_by) VALUE
 SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link WHERE id = ?;
 
 -- name: ListEmpLinks :many
-SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link LIMIT ? OFFSET ?;
+SELECT 
+    e.id,
+    e.emp_data,
+    e.preset_id,
+    p.preset_name,
+    e.is_approved,
+    e.create_date,
+    e.email,
+    e.updated_by
+FROM emp_link AS e
+LEFT JOIN Admin_Presets AS p ON e.preset_id = p.id
+LIMIT ? OFFSET ?;
+
 
 -- name: TotalEmpLinksCount :one
 SELECT COUNT(*) FROM emp_link;
