@@ -138,7 +138,7 @@ type Querier interface {
 	GetVisaOrPassportExpiringSoon(ctx context.Context, arg GetVisaOrPassportExpiringSoonParams) ([]GetVisaOrPassportExpiringSoonRow, error)
 	GetempployeeInsurance(ctx context.Context, arg GetempployeeInsuranceParams) ([]GetempployeeInsuranceRow, error)
 	ListAdminPresets(ctx context.Context, arg ListAdminPresetsParams) ([]AdminPreset, error)
-	ListEmpLinks(ctx context.Context, arg ListEmpLinksParams) ([]EmpLink, error)
+	ListEmpLinks(ctx context.Context, arg ListEmpLinksParams) ([]ListEmpLinksRow, error)
 	SelectAllPresetWorkouts(ctx context.Context) ([]SelectAllPresetWorkoutsRow, error)
 	SelectAllPresets(ctx context.Context) ([]SelectAllPresetsRow, error)
 	SelectAllSessionWorkouts(ctx context.Context) ([]SelectAllSessionWorkoutsRow, error)

@@ -112,7 +112,18 @@ func (q *Queries) GetEmpLinkData(ctx context.Context, id int64) (GetEmpLinkDataR
 }
 
 const listEmpLinks = `-- name: ListEmpLinks :many
-SELECT id, emp_data, preset_id, is_approved, create_date, email, updated_by FROM emp_link LIMIT ? OFFSET ?
+SELECT 
+    e.id,
+    e.emp_data,
+    e.preset_id,
+    p.preset_name,
+    e.is_approved,
+    e.create_date,
+    e.email,
+    e.updated_by
+FROM emp_link AS e
+LEFT JOIN Admin_Presets AS p ON e.preset_id = p.id
+LIMIT ? OFFSET ?
 `
 
 type ListEmpLinksParams struct {
@@ -120,19 +131,31 @@ type ListEmpLinksParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListEmpLinks(ctx context.Context, arg ListEmpLinksParams) ([]EmpLink, error) {
+type ListEmpLinksRow struct {
+	ID         int64           `json:"id"`
+	EmpData    json.RawMessage `json:"emp_data"`
+	PresetID   int64           `json:"preset_id"`
+	PresetName sql.NullString  `json:"preset_name"`
+	IsApproved bool            `json:"is_approved"`
+	CreateDate time.Time       `json:"create_date"`
+	Email      string          `json:"email"`
+	UpdatedBy  sql.NullInt64   `json:"updated_by"`
+}
+
+func (q *Queries) ListEmpLinks(ctx context.Context, arg ListEmpLinksParams) ([]ListEmpLinksRow, error) {
 	rows, err := q.db.QueryContext(ctx, listEmpLinks, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EmpLink
+	var items []ListEmpLinksRow
 	for rows.Next() {
-		var i EmpLink
+		var i ListEmpLinksRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.EmpData,
 			&i.PresetID,
+			&i.PresetName,
 			&i.IsApproved,
 			&i.CreateDate,
 			&i.Email,
