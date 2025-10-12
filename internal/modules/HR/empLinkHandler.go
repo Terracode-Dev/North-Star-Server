@@ -70,16 +70,7 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 	if !ok {
 		return c.JSON(301, "Authentication issue")
 	}
-	params, err := req.ToUpdateEmpLinkApprovalParams(int64(updated_by))
-	if err != nil {
-		fmt.Println("error creating to params", err.Error())
-		return c.JSON(500, err)
-	}
-	err = h.q.UpdateEmpLinkApproval(c.Request().Context(), params)
-	if err != nil {
-		fmt.Println("error approving emplink", err.Error())
-		return c.JSON(500, err)
-	}
+
 	linkData, err := h.q.GetEmpLinkData(c.Request().Context(), req.ID)
 
 	var empData EmpDataModel
@@ -123,6 +114,19 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 	}
 	defer tx.Rollback()
 	qtx := h.q.WithTx(tx)
+
+	params, err := req.ToUpdateEmpLinkApprovalParams(int64(updated_by))
+	if err != nil {
+		fmt.Println("error creating to params", err.Error())
+		return c.JSON(500, err)
+	}
+	
+	err = qtx.UpdateEmpLinkApproval(c.Request().Context(), params)
+	if err != nil {
+		fmt.Println("error approving emplink", err.Error())
+		return c.JSON(500, err)
+	}
+
 	empParams, err := empLink.Employee.convertToDbStruct(int64(updated_by))
 	if err != nil {
 		return c.JSON(500, "Error converting employee to db struct")
