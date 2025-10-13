@@ -89,6 +89,16 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 		return c.JSON(500, err)
 	}
 
+	TrainerData := &TrainerDataModel{
+		PresetData: presetData.IsTrainerAdmin,
+		LinkData: empData.IsTrainerLink,
+	}
+	IsTrainerReqModel, err := TrainerData.ToIsTrainerParams()
+	if err != nil {
+		fmt.Println("error converting to Istrainer model", err.Error())
+		return c.JSON(500, err)
+	}
+
 	empLink := EmpReqModel{
 		Employee : empData.Employee,
 		Emergency: empData.Emergency,
@@ -101,7 +111,7 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 		Expatriate: empData.Expatriate,
 		Accessiability: presetData.Accessiability,
 		FileSubmit: empData.FileSubmit,
-		IsTrainer: presetData.IsTrainer,
+		IsTrainer: IsTrainerReqModel,
 	}
 	branch_id, ok := c.Get("branch").(int)
 	if !ok {
