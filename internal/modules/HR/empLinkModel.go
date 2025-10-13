@@ -14,6 +14,13 @@ type EmpDataModel struct {
 	User           CreateEmpUserReqModel             `json:"user"`
 	Expatriate     CreateEmpExpatriateReqModel       `json:"expatriate"`
 	FileSubmit     []CreateFileSubmitReqModel		 `json:"file_submit"`
+	IsTrainerLink  IsTrainerLinkReqModel			 `json:"trainer_preset"`
+}
+
+type IsTrainerLinkReqModel struct {
+	AttendeeId int64 `json:"attendee_id"`
+	TrainerID int64 `json:"trainer_id"`
+	EmployeeID int64 `json:"employee_id"`
 }
 
 type CreateEmpLinkReqParams struct {
@@ -52,6 +59,19 @@ func (u *UpdateEmpLinkApprovalReqParams) ToUpdateEmpLinkApprovalParams(adminID i
 	},nil
 }
 
+type TrainerDataModel struct {
+	PresetData IsTrainerAdminReqModel
+	LinkData   IsTrainerLinkReqModel
+}
 
+func (t *TrainerDataModel) ToIsTrainerParams() (IsTrainerReqModel, error){
+	return IsTrainerReqModel{
+		IsTrainer: t.PresetData.IsTrainer,
+		AttendeeId: t.LinkData.AttendeeId,
+		TrainerID: t.LinkData.TrainerID,
+		EmployeeID: t.LinkData.EmployeeID,
+		Commission: t.PresetData.Commission,
+	},nil
+}
 
 
