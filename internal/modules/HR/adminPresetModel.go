@@ -13,7 +13,7 @@ type Preset struct {
 	Benifits       CreateEmpBenifitsReqModel         `json:"benifits"`
 	Allowances     []CreateEmpAllowancesReqModel     `json:"allowances"`
 	Accessiability CreateEmpAccessiabilityReqModel   `json:"accessiability"`
-	IsTrainerAdmin      IsTrainerAdminReqModel			 	 `json:"is_trainer"`
+	IsTrainerAdmin      IsTrainerAdminReqModel		 `json:"is_trainer"`
 }
 
 type IsTrainerAdminReqModel struct {
