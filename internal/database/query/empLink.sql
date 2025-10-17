@@ -16,6 +16,7 @@ SELECT
     e.updated_by
 FROM emp_link AS e
 LEFT JOIN Admin_Presets AS p ON e.preset_id = p.id
+ORDER BY e.updated_by ASC
 LIMIT ? OFFSET ?;
 
 
