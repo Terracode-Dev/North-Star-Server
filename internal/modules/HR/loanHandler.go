@@ -86,3 +86,22 @@ func (S *HRService) GetRequestForAdmin(c echo.Context) error {
 	}	
 	return c.JSON(200, loans)
 }
+
+func (S *HRService) UpdateStatus(c echo.Context) error {
+	var req UpdateRequestStatusReqParams
+	if err := c.Bind(&req); err != nil {
+		fmt.Printf("Error binding request %v\n", err.Error())
+		return c.JSON(500,"error binding request")
+	}
+	params, err := req.ToDbParams()
+	if err != nil {
+		fmt.Printf("Error creating to db struct: %v", err.Error())
+		return c.JSON(500, "Error converting to d struct")
+	}
+	err = S.q.UpdateRequestStatus(c.Request().Context(), params)
+	if err != nil {
+		fmt.Printf("Error updating loan data %v", err.Error())
+		return c.JSON(500, "error updating loan data")		
+	}
+	return c.JSON(200, "status updated successfully")
+}

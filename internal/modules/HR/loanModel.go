@@ -36,3 +36,20 @@ func (u *UpdateRequestReqParams) ToDbParams() (db.UpdateRequestParams, error) {
 		ID: u.ID,
 	},nil
 }
+
+type UpdateRequestStatusReqParams struct {
+	Status        string         `json:"status"`
+	DeclinedBy    int64          `json:"declined_by"`
+	DeclineReason string         `json:"decline_reason"`
+	ID            int64          `json:"id"`
+}
+
+func ( u *UpdateRequestStatusReqParams) ToDbParams() (db.UpdateRequestStatusParams, error) {
+	return db.UpdateRequestStatusParams{
+		Status: sql.NullString{String: u.Status, Valid: true},
+		DeclinedBy: sql.NullInt64{Int64: u.DeclinedBy, Valid: true},
+		DeclineReason: sql.NullString{String: u.DeclineReason, Valid: true},
+		ID: u.ID,
+	}, nil
+}
+
