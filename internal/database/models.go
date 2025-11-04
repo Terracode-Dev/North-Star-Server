@@ -91,6 +91,18 @@ type EmpLink struct {
 	UpdatedBy  sql.NullInt64   `json:"updated_by"`
 }
 
+type EmpLoanReq struct {
+	ID                int64          `json:"id"`
+	EmpID             int64          `json:"emp_id"`
+	Reason            sql.NullString `json:"reason"`
+	Amount            sql.NullString `json:"amount"`
+	Status            sql.NullString `json:"status"`
+	DeclinedBy        sql.NullInt64  `json:"declined_by"`
+	DeclineReason     sql.NullString `json:"decline_reason"`
+	RequestedDate     sql.NullTime   `json:"requested_date"`
+	StatusChangedDate sql.NullTime   `json:"status_changed_date"`
+}
+
 type ExchangeRate struct {
 	ID           int64           `json:"id"`
 	ExchangeRate decimal.Decimal `json:"exchange_rate"`
