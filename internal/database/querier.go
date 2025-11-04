@@ -44,6 +44,7 @@ type Querier interface {
 	CreatePreset(ctx context.Context, arg CreatePresetParams) error
 	CreatePresetSession(ctx context.Context, arg CreatePresetSessionParams) error
 	CreatePresetWorkout(ctx context.Context, arg CreatePresetWorkoutParams) error
+	CreateRequest(ctx context.Context, arg CreateRequestParams) error
 	CreateServices(ctx context.Context, arg CreateServicesParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) error
 	CreateSessionWorkout(ctx context.Context, arg CreateSessionWorkoutParams) error
@@ -76,6 +77,7 @@ type Querier interface {
 	DeletePreset(ctx context.Context, id int64) error
 	DeletePresetSession(ctx context.Context, id int64) error
 	DeletePresetWorkout(ctx context.Context, id int64) error
+	DeleteRequest(ctx context.Context, id int64) error
 	DeleteService(ctx context.Context, id int64) error
 	DeleteSession(ctx context.Context, id int64) error
 	DeleteSessionWorkout(ctx context.Context, id int64) error
@@ -127,6 +129,8 @@ type Querier interface {
 	GetOneHrBranch(ctx context.Context, id int64) ([]HrBranch, error)
 	GetOnePayroll(ctx context.Context, id int64) ([]GetOnePayrollRow, error)
 	GetPayrolls(ctx context.Context, arg GetPayrollsParams) ([]GetPayrollsRow, error)
+	GetRequests(ctx context.Context, arg GetRequestsParams) ([]EmpLoanReq, error)
+	GetRequestsAdmin(ctx context.Context, arg GetRequestsAdminParams) ([]GetRequestsAdminRow, error)
 	GetService(ctx context.Context, category string) ([]GetServiceRow, error)
 	GetServices(ctx context.Context) ([]HrCreateService, error)
 	GetStaffPayroll(ctx context.Context, arg GetStaffPayrollParams) ([]GetStaffPayrollRow, error)
@@ -177,6 +181,8 @@ type Querier interface {
 	UpdatePreset(ctx context.Context, arg UpdatePresetParams) error
 	UpdatePresetSession(ctx context.Context, arg UpdatePresetSessionParams) error
 	UpdatePresetWorkout(ctx context.Context, arg UpdatePresetWorkoutParams) error
+	UpdateRequest(ctx context.Context, arg UpdateRequestParams) error
+	UpdateRequestStatus(ctx context.Context, arg UpdateRequestStatusParams) error
 	UpdateService(ctx context.Context, arg UpdateServiceParams) error
 	UpdateSessionWorkout(ctx context.Context, arg UpdateSessionWorkoutParams) error
 	UpdateTax(ctx context.Context, arg UpdateTaxParams) error

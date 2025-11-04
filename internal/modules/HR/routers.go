@@ -173,4 +173,13 @@ func (S *HRService) registerRoutes() {
 	hrReports.POST("/soon-expiring-passports-and-reports", S.GetSoonExpiringPassportsAndReports)
 	hrReports.POST("/staff-payroll", S.GetStaffPayroll)
 	hrReports.POST("/employee-insurance/:branch_id", S.GetemployeeInsurance)
+
+	hrLoan := hrRoute.Group("/loan")
+	hrLoan.POST("/create-request", S.CreateLoanRequest)
+	hrLoan.DELETE("/cancel-request", S.CancelRequestByEmployee)
+	hrLoan.PUT("/update-request", S.UpdateRequest)
+	hrLoan.POST("/view-request", S.GetRequestForEmployee)
+	hrLoan.POST("/view-requestbyadmin", S.GetRequestForAdmin, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrLoan.PUT("/update-requeststatus", S.UpdateStatus, rba.AuthMiddelware([]string{"admin", "mod"}))
+
 }
