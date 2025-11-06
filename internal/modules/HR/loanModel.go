@@ -53,7 +53,27 @@ func ( u *UpdateRequestStatusReqParams) ToDbParams() (db.UpdateRequestStatusPara
 	}, nil
 }
 
+type GetRequestsReqParams struct {
+	FirstName string     `json:"firstname"`
+	LastName string      `json:"lastname"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
+}
+
+func (u *GetRequestsReqParams) ToDbParams() (db.GetRequestsParams, error) {
+	return db.GetRequestsParams{
+		Column1: u.FirstName,
+		CONCAT: u.FirstName,
+		Column3: u.LastName,
+		CONCAT_2: u.LastName,
+		Limit: u.Limit,
+		Offset: u.Offset,
+	},nil
+}
+
 type GetRequestsAdminReqParams struct {
+	FirstName string     `json:"firstname"`
+	LastName string      `json:"lastname"`
 	Limit  int32 `json:"limit"`
 	Offset int32 `json:"offset"`
 }
@@ -61,6 +81,10 @@ type GetRequestsAdminReqParams struct {
 func (u *GetRequestsAdminReqParams) ToDbParams(branchId int64) (db.GetRequestsAdminParams, error) {
 	return db.GetRequestsAdminParams{
 		ID: branchId,
+		Column2: u.FirstName,
+		CONCAT: u.FirstName,
+		Column4: u.LastName,
+		CONCAT_2: u.LastName,
 		Limit: u.Limit,
 		Offset: u.Offset,
 	},nil

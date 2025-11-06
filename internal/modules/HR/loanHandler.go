@@ -3,7 +3,6 @@ package hr
 import (
 	"fmt"
 	"strconv"
-	db "github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/labstack/echo/v4"
 )
 
@@ -60,12 +59,17 @@ func (S *HRService) UpdateRequest(c echo.Context) error {
 }
 
 func (S *HRService) GetRequestForEmployee(c echo.Context) error {
-	var req db.GetRequestsParams
+	var req GetRequestsReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
 		return c.JSON(500,"error binding request")
 	}
-	loans, err := S.q.GetRequests(c.Request().Context(), req)
+	params, err := req.ToDbParams()
+	if err != nil {
+		fmt.Printf("error converting to db struct %v", err.Error())
+		return c.JSON(500, "error converting to db struct")
+	}
+	loans, err := S.q.GetRequests(c.Request().Context(), params)
 	if err != nil {
 		fmt.Printf("Error Getting loan data %v", err.Error())
 		return c.JSON(500, "error getting loan data")
@@ -113,4 +117,16 @@ func (S *HRService) UpdateStatus(c echo.Context) error {
 		return c.JSON(500, "error updating loan data")		
 	}
 	return c.JSON(200, "status updated successfully")
+}
+
+func (S *HRService) GetTotalLoanRows(c echo.Context) error {
+	count, err := S.q.GetTotalLoanRows(c.Request().Context())
+	if err != nil {
+		fmt.Printf("Error fetching total row count %v", err.Error())
+		return c.JSON(500, "error fetching total row count")	
+	}
+	return c.JSON(200, map[string]interface{}{
+		"data": count,
+		"message":"rows fetched successfully",
+	})
 }
