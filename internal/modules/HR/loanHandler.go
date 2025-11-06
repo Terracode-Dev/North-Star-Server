@@ -74,12 +74,21 @@ func (S *HRService) GetRequestForEmployee(c echo.Context) error {
 }
 
 func (S *HRService) GetRequestForAdmin(c echo.Context) error {
-	var req db.GetRequestsAdminParams
+	var req GetRequestsAdminReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
 		return c.JSON(500,"error binding request")
 	}
-	loans, err := S.q.GetRequestsAdmin(c.Request().Context(), req)
+	branchId, ok := c.Get("branch").(int)
+	if !ok {
+		return c.JSON(500, "no branch id found in cookie")
+	}
+	params , err := req.ToDbParams(int64(branchId))
+	if err != nil {
+		fmt.Printf("Error converting to db struct %v", err.Error())
+		return c.JSON(500, "error converting to db struct")
+	}
+	loans, err := S.q.GetRequestsAdmin(c.Request().Context(), params)
 	if err != nil {
 		fmt.Printf("Error Getting loan data %v", err.Error())
 		return c.JSON(500, "error getting loan data")

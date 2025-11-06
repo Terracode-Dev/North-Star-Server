@@ -53,3 +53,15 @@ func ( u *UpdateRequestStatusReqParams) ToDbParams() (db.UpdateRequestStatusPara
 	}, nil
 }
 
+type GetRequestsAdminReqParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (u *GetRequestsAdminReqParams) ToDbParams(branchId int64) (db.GetRequestsAdminParams, error) {
+	return db.GetRequestsAdminParams{
+		ID: branchId,
+		Limit: u.Limit,
+		Offset: u.Offset,
+	},nil
+}
