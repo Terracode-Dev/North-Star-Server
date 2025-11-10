@@ -48,37 +48,67 @@ func (q *Queries) DeleteRequest(ctx context.Context, id int64) error {
 
 const getRequests = `-- name: GetRequests :many
 SELECT 
-    id,
-    emp_id,
-    reason,
-    amount,
-    status,
-    declined_by,
-    decline_reason,
-    requested_date,
-    status_changed_date
-FROM emp_loan_req 
+    e.id,
+    e.emp_id,
+    CONCAT(em.first_name, '' , em.last_name) AS name,
+    e.reason,
+    e.amount,
+    e.status,
+    e.declined_by,
+    e.decline_reason,
+    e.requested_date,
+    e.status_changed_date
+FROM emp_loan_req e
+JOIN HR_Employee em ON e.emp_id = em.id
+WHERE 
+    (? = '' OR em.first_name LIKE CONCAT('%',?,'%'))
+    AND(? = '' OR em.last_name LIKE CONCAT('%', ? ,'%'))    
 ORDER BY requested_date ASC
 LIMIT ? OFFSET ?
 `
 
 type GetRequestsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Column1  interface{} `json:"column_1"`
+	CONCAT   interface{} `json:"CONCAT"`
+	Column3  interface{} `json:"column_3"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
 }
 
-func (q *Queries) GetRequests(ctx context.Context, arg GetRequestsParams) ([]EmpLoanReq, error) {
-	rows, err := q.db.QueryContext(ctx, getRequests, arg.Limit, arg.Offset)
+type GetRequestsRow struct {
+	ID                int64          `json:"id"`
+	EmpID             int64          `json:"emp_id"`
+	Name              string         `json:"name"`
+	Reason            sql.NullString `json:"reason"`
+	Amount            sql.NullString `json:"amount"`
+	Status            sql.NullString `json:"status"`
+	DeclinedBy        sql.NullInt64  `json:"declined_by"`
+	DeclineReason     sql.NullString `json:"decline_reason"`
+	RequestedDate     sql.NullTime   `json:"requested_date"`
+	StatusChangedDate sql.NullTime   `json:"status_changed_date"`
+}
+
+func (q *Queries) GetRequests(ctx context.Context, arg GetRequestsParams) ([]GetRequestsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getRequests,
+		arg.Column1,
+		arg.CONCAT,
+		arg.Column3,
+		arg.CONCAT_2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EmpLoanReq
+	var items []GetRequestsRow
 	for rows.Next() {
-		var i EmpLoanReq
+		var i GetRequestsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.EmpID,
+			&i.Name,
 			&i.Reason,
 			&i.Amount,
 			&i.Status,
@@ -104,6 +134,7 @@ const getRequestsAdmin = `-- name: GetRequestsAdmin :many
 SELECT 
     e.id,
     e.emp_id,
+    CONCAT(em.first_name, '' , em.last_name) AS name,
     usr.branch_id,
     br.name,
     e.reason,
@@ -116,22 +147,31 @@ SELECT
 FROM emp_loan_req e
 JOIN HR_EMP_User usr ON e.emp_id = usr.employee_id
 JOIN HR_Branch br ON usr.branch_id = br.id
-WHERE (1=br.id OR br.id = ?)
+JOIN HR_Employee em ON e.emp_id = em.id
+WHERE 
+    (1=br.id OR br.id = ?)
+    AND(? = '' OR em.first_name LIKE CONCAT('%',?,'%'))
+    AND(? = '' OR em.last_name LIKE CONCAT('%', ? ,'%'))
 ORDER BY requested_date ASC
 LIMIT ? OFFSET ?
 `
 
 type GetRequestsAdminParams struct {
-	ID     int64 `json:"id"`
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	ID       int64       `json:"id"`
+	Column2  interface{} `json:"column_2"`
+	CONCAT   interface{} `json:"CONCAT"`
+	Column4  interface{} `json:"column_4"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	Limit    int32       `json:"limit"`
+	Offset   int32       `json:"offset"`
 }
 
 type GetRequestsAdminRow struct {
 	ID                int64          `json:"id"`
 	EmpID             int64          `json:"emp_id"`
-	BranchID          int64          `json:"branch_id"`
 	Name              string         `json:"name"`
+	BranchID          int64          `json:"branch_id"`
+	Name_2            string         `json:"name_2"`
 	Reason            sql.NullString `json:"reason"`
 	Amount            sql.NullString `json:"amount"`
 	Status            sql.NullString `json:"status"`
@@ -142,7 +182,15 @@ type GetRequestsAdminRow struct {
 }
 
 func (q *Queries) GetRequestsAdmin(ctx context.Context, arg GetRequestsAdminParams) ([]GetRequestsAdminRow, error) {
-	rows, err := q.db.QueryContext(ctx, getRequestsAdmin, arg.ID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, getRequestsAdmin,
+		arg.ID,
+		arg.Column2,
+		arg.CONCAT,
+		arg.Column4,
+		arg.CONCAT_2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -153,8 +201,9 @@ func (q *Queries) GetRequestsAdmin(ctx context.Context, arg GetRequestsAdminPara
 		if err := rows.Scan(
 			&i.ID,
 			&i.EmpID,
-			&i.BranchID,
 			&i.Name,
+			&i.BranchID,
+			&i.Name_2,
 			&i.Reason,
 			&i.Amount,
 			&i.Status,
@@ -174,6 +223,17 @@ func (q *Queries) GetRequestsAdmin(ctx context.Context, arg GetRequestsAdminPara
 		return nil, err
 	}
 	return items, nil
+}
+
+const getTotalLoanRows = `-- name: GetTotalLoanRows :one
+SELECT COUNT(*) AS Total_Rows FROM emp_loan_req
+`
+
+func (q *Queries) GetTotalLoanRows(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getTotalLoanRows)
+	var total_rows int64
+	err := row.Scan(&total_rows)
+	return total_rows, err
 }
 
 const updateRequest = `-- name: UpdateRequest :exec
