@@ -179,7 +179,7 @@ func (S *HRService) registerRoutes() {
 	hrLoan.DELETE("/cancel-request/:id", S.CancelRequestByEmployee)
 	hrLoan.PUT("/update-request", S.UpdateRequest)
 	hrLoan.GET("/rowcount", S.GetTotalLoanRows)
-	hrLoan.POST("/view-request", S.GetRequestForEmployee)
+	hrLoan.POST("/view-request", S.GetRequestForEmployee, rba.AuthMiddelware([]string{"emp"}))
 	hrLoan.POST("/view-requestbyadmin", S.GetRequestForAdmin, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrLoan.PUT("/update-requeststatus", S.UpdateStatus, rba.AuthMiddelware([]string{"admin", "mod"}))
 

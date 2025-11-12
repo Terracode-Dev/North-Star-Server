@@ -12,7 +12,12 @@ func (S *HRService) CreateLoanRequest(c echo.Context) error {
 		fmt.Printf("Error binding request %v\n", err.Error())
 		return c.JSON(500,"error binding request")
 	}
-	params, err := req.ToDbParams()
+	emp_id , ok := c.Get("user_id").(int)
+	if !ok {
+		fmt.Print("emp id",emp_id)
+		return c.JSON(500, "no user id found")
+	}
+	params, err := req.ToDbParams(int64(emp_id))
 	if err != nil {
 		fmt.Printf("Error creating to db struct: %v", err.Error())
 		return c.JSON(500, "Error converting to d struct")
@@ -66,6 +71,7 @@ func (S *HRService) GetRequestForEmployee(c echo.Context) error {
 	}
 	emp_id , ok := c.Get("user_id").(int)
 	if !ok {
+		fmt.Print("emp id",emp_id)
 		return c.JSON(500, "no user id found")
 	}
 	params, err := req.ToDbParams(int64(emp_id))

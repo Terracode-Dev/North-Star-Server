@@ -14,7 +14,6 @@ func (S *HRService) createAllowances(c echo.Context) error {
 		return c.JSON(400, err)
 	}
 
-
 	updated_by, ok := c.Get("user_id").(int)
 	if !ok {
 		return c.JSON(301, "authentication")

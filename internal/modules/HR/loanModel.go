@@ -7,14 +7,13 @@ import (
 )
 
 type CreateRequestReqParams struct {
-	EmpID         int64          `json:"emp_id"`
 	Reason        string         `json:"reason"`
 	Amount        string         `json:"amount"`
 }
 
-func (l *CreateRequestReqParams) ToDbParams() (db.CreateRequestParams, error){
+func (l *CreateRequestReqParams) ToDbParams(emp_id int64) (db.CreateRequestParams, error){
 	return db.CreateRequestParams{
-		EmpID: l.EmpID,
+		EmpID: emp_id,
 		Reason: sql.NullString{String: l.Reason, Valid: true},
 		Amount: sql.NullString{String: l.Amount, Valid: true},
 		Status: sql.NullString{String: "", Valid: false},
