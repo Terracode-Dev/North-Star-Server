@@ -18,7 +18,7 @@ WHERE id = ?;
 SELECT 
     e.id,
     e.emp_id,
-    CONCAT(em.first_name, '' , em.last_name) AS name,
+    CONCAT(em.first_name, " " , em.last_name) AS name,
     e.reason,
     e.amount,
     e.status,
