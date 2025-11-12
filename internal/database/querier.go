@@ -21,6 +21,7 @@ type Querier interface {
 	CreateAdditionalSchedule(ctx context.Context, arg CreateAdditionalScheduleParams) error
 	CreateAdminPreset(ctx context.Context, arg CreateAdminPresetParams) error
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
+	CreateConfirmation(ctx context.Context, empID int64) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
 	CreateEmpBankDetails(ctx context.Context, arg CreateEmpBankDetailsParams) error
@@ -95,6 +96,7 @@ type Querier interface {
 	GetAttendanceCountForThisYear(ctx context.Context) (int64, error)
 	GetBranchwiseEmpCount(ctx context.Context, id int64) (GetBranchwiseEmpCountRow, error)
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
+	GetConfirmation(ctx context.Context, arg GetConfirmationParams) ([]GetConfirmationRow, error)
 	GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) ([]GetEmpAdditionalSheduleByIDRow, error)
 	GetEmpFiles(ctx context.Context, employeeID int64) ([]GetEmpFilesRow, error)
 	GetEmpLinkByID(ctx context.Context, id int64) (EmpLink, error)
