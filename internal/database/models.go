@@ -81,6 +81,12 @@ type DoorLockUser struct {
 	AvatarUrl      sql.NullString `json:"avatar_url"`
 }
 
+type EmpConfirmationLetterTable struct {
+	ID        int64        `json:"id"`
+	EmpID     int64        `json:"emp_id"`
+	CreatedAt sql.NullTime `json:"created_at"`
+}
+
 type EmpLink struct {
 	ID         int64           `json:"id"`
 	EmpData    json.RawMessage `json:"emp_data"`
