@@ -30,7 +30,8 @@ FROM emp_loan_req e
 JOIN HR_Employee em ON e.emp_id = em.id
 WHERE 
     (? = '' OR em.first_name LIKE CONCAT('%',?,'%'))
-    AND(? = '' OR em.last_name LIKE CONCAT('%', ? ,'%'))    
+    AND(? = '' OR em.last_name LIKE CONCAT('%', ? ,'%')) 
+    AND e.emp_id = ?   
 ORDER BY requested_date ASC
 LIMIT ? OFFSET ?;
 

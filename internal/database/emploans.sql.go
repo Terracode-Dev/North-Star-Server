@@ -62,7 +62,8 @@ FROM emp_loan_req e
 JOIN HR_Employee em ON e.emp_id = em.id
 WHERE 
     (? = '' OR em.first_name LIKE CONCAT('%',?,'%'))
-    AND(? = '' OR em.last_name LIKE CONCAT('%', ? ,'%'))    
+    AND(? = '' OR em.last_name LIKE CONCAT('%', ? ,'%')) 
+    AND e.emp_id = ?   
 ORDER BY requested_date ASC
 LIMIT ? OFFSET ?
 `
@@ -72,6 +73,7 @@ type GetRequestsParams struct {
 	CONCAT   interface{} `json:"CONCAT"`
 	Column3  interface{} `json:"column_3"`
 	CONCAT_2 interface{} `json:"CONCAT_2"`
+	EmpID    int64       `json:"emp_id"`
 	Limit    int32       `json:"limit"`
 	Offset   int32       `json:"offset"`
 }
@@ -95,6 +97,7 @@ func (q *Queries) GetRequests(ctx context.Context, arg GetRequestsParams) ([]Get
 		arg.CONCAT,
 		arg.Column3,
 		arg.CONCAT_2,
+		arg.EmpID,
 		arg.Limit,
 		arg.Offset,
 	)
