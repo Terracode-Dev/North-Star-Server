@@ -38,7 +38,7 @@ LIMIT ? OFFSET ?;
 SELECT 
     e.id,
     e.emp_id,
-    CONCAT(em.first_name, '' , em.last_name) AS name,
+    CONCAT(em.first_name, " " , em.last_name) AS name,
     usr.branch_id,
     br.name,
     e.reason,
