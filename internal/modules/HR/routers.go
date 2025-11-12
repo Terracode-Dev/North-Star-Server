@@ -175,7 +175,7 @@ func (S *HRService) registerRoutes() {
 	hrReports.POST("/employee-insurance/:branch_id", S.GetemployeeInsurance)
 
 	hrLoan := hrRoute.Group("/loan")
-	hrLoan.POST("/create-request", S.CreateLoanRequest)
+	hrLoan.POST("/create-request", S.CreateLoanRequest, rba.AuthMiddelware([]string{"emp"}))
 	hrLoan.DELETE("/cancel-request/:id", S.CancelRequestByEmployee)
 	hrLoan.PUT("/update-request", S.UpdateRequest)
 	hrLoan.GET("/rowcount", S.GetTotalLoanRows)
