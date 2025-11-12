@@ -60,12 +60,13 @@ type GetRequestsReqParams struct {
 	Offset   int32       `json:"offset"`
 }
 
-func (u *GetRequestsReqParams) ToDbParams() (db.GetRequestsParams, error) {
+func (u *GetRequestsReqParams) ToDbParams(emp_id int64) (db.GetRequestsParams, error) {
 	return db.GetRequestsParams{
 		Column1: u.FirstName,
 		CONCAT: u.FirstName,
 		Column3: u.LastName,
 		CONCAT_2: u.LastName,
+		EmpID: emp_id,
 		Limit: u.Limit,
 		Offset: u.Offset,
 	},nil

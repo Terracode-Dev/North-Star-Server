@@ -64,7 +64,15 @@ func (S *HRService) GetRequestForEmployee(c echo.Context) error {
 		fmt.Printf("Error binding request %v\n", err.Error())
 		return c.JSON(500,"error binding request")
 	}
-	params, err := req.ToDbParams()
+	emp_id , ok := c.Get("user_id").(string)
+	if !ok {
+		return c.JSON(500, "no user id found")
+	}
+	emp_id_int64, err := strconv.Atoi(emp_id)
+	if err != nil {
+		return c.JSON(500, "error converting user id to int 64")
+	}
+	params, err := req.ToDbParams(int64(emp_id_int64))
 	if err != nil {
 		fmt.Printf("error converting to db struct %v", err.Error())
 		return c.JSON(500, "error converting to db struct")
