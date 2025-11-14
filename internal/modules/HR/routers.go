@@ -185,7 +185,7 @@ func (S *HRService) registerRoutes() {
 
 	hrConf := hrRoute.Group("/conf")
 	hrConf.GET("/create", S.CreateCert, rba.AuthMiddelware([]string{"emp"}))
-	hrConf.POST("/get", S.GetCert , rba.AuthMiddelware([]string{"admin","mod"}))
-	hrConf.DELETE("/delete", S.DeleteCert, rba.AuthMiddelware([]string{"admin","mod"}))
+	hrConf.POST("/get", S.GetCert, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrConf.DELETE("/delete/:id", S.DeleteCert, rba.AuthMiddelware([]string{"admin", "mod"}))
 
 }
