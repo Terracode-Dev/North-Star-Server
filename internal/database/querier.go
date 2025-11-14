@@ -55,6 +55,7 @@ type Querier interface {
 	DeleteAdminPresetByID(ctx context.Context, id int64) error
 	DeleteAllAdditionalSchedules(ctx context.Context, empID int64) error
 	DeleteAllowance(ctx context.Context, id int64) error
+	DeleteConfirmation(ctx context.Context, id int64) error
 	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
 	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
 	DeleteEmpBankDetails(ctx context.Context, employeeID int64) error

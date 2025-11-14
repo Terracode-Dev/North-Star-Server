@@ -21,11 +21,20 @@ func (q *Queries) CreateConfirmation(ctx context.Context, empID int64) error {
 	return err
 }
 
+const deleteConfirmation = `-- name: DeleteConfirmation :exec
+DELETE FROM emp_confirmation_letter_table WHERE id = ?
+`
+
+func (q *Queries) DeleteConfirmation(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteConfirmation, id)
+	return err
+}
+
 const getConfirmation = `-- name: GetConfirmation :many
 SELECT 
     c.id,
     c.emp_id,
-    CONCAT(e.file_name, " " ,e.last_name) AS name,
+    CONCAT(e.first_name, " " ,e.last_name) AS name,
     c.created_at
 FROM emp_confirmation_letter_table c
 JOIN HR_Employee e ON c.emp_id = e.id

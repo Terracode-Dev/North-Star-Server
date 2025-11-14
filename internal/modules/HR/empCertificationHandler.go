@@ -1,7 +1,10 @@
 package hr
 
 import (
+	"context"
 	"fmt"
+	"strconv"
+
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/labstack/echo/v4"
 )
@@ -57,4 +60,17 @@ func (a *HRService) GetCert(c echo.Context) error {
 		"data": cert,
 		"message": "confirmation data fetched successfully",
 	})
+}
+
+func (h *HRService) DeleteCert(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		fmt.Printf("no id found", err.Error())
+		return c.JSON(404, "id not found")
+	}
+	err = h.q.DeleteConfirmation(context.Background(), int64(id))
+	if err != nil {
+		return c.JSON(500, "error deleting confirmation")
+	}
+	return c.JSON(200, "successfully deleted")
 }
