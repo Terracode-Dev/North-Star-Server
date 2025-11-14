@@ -3,6 +3,7 @@ package hr
 import (
 	"fmt"
 	"strconv"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -10,11 +11,11 @@ func (S *HRService) CreateLoanRequest(c echo.Context) error {
 	var req CreateRequestReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
-		return c.JSON(500,"error binding request")
+		return c.JSON(500, "error binding request")
 	}
-	emp_id , ok := c.Get("user_id").(int)
+	emp_id, ok := c.Get("user_id").(int)
 	if !ok {
-		fmt.Print("emp id",emp_id)
+		fmt.Print("emp id", emp_id)
 		return c.JSON(500, "no user id found")
 	}
 	params, err := req.ToDbParams(int64(emp_id))
@@ -30,8 +31,8 @@ func (S *HRService) CreateLoanRequest(c echo.Context) error {
 	return c.JSON(200, "loan request created successfully")
 }
 
-func (S *HRService) CancelRequestByEmployee( c echo.Context) error {
-	loanId, err := strconv.Atoi(c.Param("id")) 
+func (S *HRService) CancelRequestByEmployee(c echo.Context) error {
+	loanId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		fmt.Printf("no id in parameters %v", err.Error())
 		return c.JSON(404, "no id found in parameters")
@@ -48,9 +49,9 @@ func (S *HRService) UpdateRequest(c echo.Context) error {
 	var req UpdateRequestReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
-		return c.JSON(500,"error binding request")
+		return c.JSON(500, "error binding request")
 	}
-	params , err := req.ToDbParams()
+	params, err := req.ToDbParams()
 	if err != nil {
 		fmt.Printf("Error creating to db struct: %v", err.Error())
 		return c.JSON(500, "Error converting to d struct")
@@ -67,11 +68,11 @@ func (S *HRService) GetRequestForEmployee(c echo.Context) error {
 	var req GetRequestsReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
-		return c.JSON(500,"error binding request")
+		return c.JSON(500, "error binding request")
 	}
-	emp_id , ok := c.Get("user_id").(int)
+	emp_id, ok := c.Get("user_id").(int)
 	if !ok {
-		fmt.Print("emp id",emp_id)
+		fmt.Print("emp id", emp_id)
 		return c.JSON(500, "no user id found")
 	}
 	params, err := req.ToDbParams(int64(emp_id))
@@ -83,7 +84,7 @@ func (S *HRService) GetRequestForEmployee(c echo.Context) error {
 	if err != nil {
 		fmt.Printf("Error Getting loan data %v", err.Error())
 		return c.JSON(500, "error getting loan data")
-	}	
+	}
 	return c.JSON(200, loans)
 }
 
@@ -91,13 +92,13 @@ func (S *HRService) GetRequestForAdmin(c echo.Context) error {
 	var req GetRequestsAdminReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
-		return c.JSON(500,"error binding request")
+		return c.JSON(500, "error binding request")
 	}
 	branchId, ok := c.Get("branch").(int)
 	if !ok {
 		return c.JSON(500, "no branch id found in cookie")
 	}
-	params , err := req.ToDbParams(int64(branchId))
+	params, err := req.ToDbParams(int64(branchId))
 	if err != nil {
 		fmt.Printf("Error converting to db struct %v", err.Error())
 		return c.JSON(500, "error converting to db struct")
@@ -106,7 +107,7 @@ func (S *HRService) GetRequestForAdmin(c echo.Context) error {
 	if err != nil {
 		fmt.Printf("Error Getting loan data %v", err.Error())
 		return c.JSON(500, "error getting loan data")
-	}	
+	}
 	return c.JSON(200, loans)
 }
 
@@ -114,9 +115,13 @@ func (S *HRService) UpdateStatus(c echo.Context) error {
 	var req UpdateRequestStatusReqParams
 	if err := c.Bind(&req); err != nil {
 		fmt.Printf("Error binding request %v\n", err.Error())
-		return c.JSON(500,"error binding request")
+		return c.JSON(500, "error binding request")
 	}
-	params, err := req.ToDbParams()
+	adminId, ok := c.Get("user_id").(int)
+	if !ok {
+		return c.JSON(500, "no user id found in cookie")
+	}
+	params, err := req.ToDbParams(int64(adminId))
 	if err != nil {
 		fmt.Printf("Error creating to db struct: %v", err.Error())
 		return c.JSON(500, "Error converting to d struct")
@@ -124,7 +129,7 @@ func (S *HRService) UpdateStatus(c echo.Context) error {
 	err = S.q.UpdateRequestStatus(c.Request().Context(), params)
 	if err != nil {
 		fmt.Printf("Error updating loan data %v", err.Error())
-		return c.JSON(500, "error updating loan data")		
+		return c.JSON(500, "error updating loan data")
 	}
 	return c.JSON(200, "status updated successfully")
 }
@@ -133,10 +138,10 @@ func (S *HRService) GetTotalLoanRows(c echo.Context) error {
 	count, err := S.q.GetTotalLoanRows(c.Request().Context())
 	if err != nil {
 		fmt.Printf("Error fetching total row count %v", err.Error())
-		return c.JSON(500, "error fetching total row count")	
+		return c.JSON(500, "error fetching total row count")
 	}
 	return c.JSON(200, map[string]interface{}{
-		"data": count,
-		"message":"rows fetched successfully",
+		"data":    count,
+		"message": "rows fetched successfully",
 	})
 }
