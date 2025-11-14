@@ -34,7 +34,7 @@ const getConfirmation = `-- name: GetConfirmation :many
 SELECT 
     c.id,
     c.emp_id,
-    CONCAT(e.file_name, " " ,e.last_name) AS name,
+    CONCAT(e.first_name, " " ,e.last_name) AS name,
     c.created_at
 FROM emp_confirmation_letter_table c
 JOIN HR_Employee e ON c.emp_id = e.id
