@@ -15,3 +15,6 @@ WHERE
     (? = '' OR e.first_name LIKE CONCAT('%',?,'%'))
     AND(? = '' OR e.last_name LIKE CONCAT('%', ? ,'%')) 
 LIMIT ? OFFSET ?;
+
+-- name: DeleteConfirmation :exec
+DELETE FROM emp_confirmation_letter_table WHERE id = ?;

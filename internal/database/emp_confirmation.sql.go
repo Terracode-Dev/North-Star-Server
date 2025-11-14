@@ -21,6 +21,15 @@ func (q *Queries) CreateConfirmation(ctx context.Context, empID int64) error {
 	return err
 }
 
+const deleteConfirmation = `-- name: DeleteConfirmation :exec
+DELETE FROM emp_confirmation_letter_table WHERE id = ?
+`
+
+func (q *Queries) DeleteConfirmation(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteConfirmation, id)
+	return err
+}
+
 const getConfirmation = `-- name: GetConfirmation :many
 SELECT 
     c.id,
