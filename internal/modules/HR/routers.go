@@ -184,7 +184,7 @@ func (S *HRService) registerRoutes() {
 	hrLoan.PUT("/update-requeststatus", S.UpdateStatus, rba.AuthMiddelware([]string{"admin", "mod"}))
 
 	hrConf := hrRoute.Group("/conf")
-	hrConf.POST("/create", S.CreateCert, rba.AuthMiddelware([]string{"emp"}))
+	hrConf.GET("/create", S.CreateCert, rba.AuthMiddelware([]string{"emp"}))
 	hrConf.POST("/get", S.GetCert , rba.AuthMiddelware([]string{"admin","mod"}))
 
 }
