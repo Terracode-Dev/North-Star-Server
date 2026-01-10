@@ -431,9 +431,9 @@ type CreateEmpBenifitsReqModel struct {
 	RetainmentPlan     string `json:"retainment_plan"`
 	RetainmentPlanFrom string `json:"retainment_plan_from"`
 	RetainmentPlanTill string `json:"retainment_plan_till"`
-	Benifits           string `json:"benifits"`
-	BenifitsFrom       string `json:"benifits_from"`
-	BenifitsTill       string `json:"benifits_till"`
+	Uniform            bool   `json:"uniform"`
+	UniformQuantity    int32  `json:"uniform_quantity"`
+	UniformRenewMonths int32  `json:"uniform_renew_months"`
 	UpdatedBy          *int64 `json:"updated_by"`
 	EmployeeID         int64  `json:"employee_id"`
 }
@@ -455,16 +455,6 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateE
 	}
 
 	retainmentPlanTill, err := time.Parse(time.RFC3339, M.RetainmentPlanTill)
-	if err != nil {
-		return db.CreateEmpBenifitsParams{}, err
-	}
-
-	benifitsFrom, err := time.Parse(time.RFC3339, M.BenifitsFrom)
-	if err != nil {
-		return db.CreateEmpBenifitsParams{}, err
-	}
-
-	benifitsTill, err := time.Parse(time.RFC3339, M.BenifitsTill)
 	if err != nil {
 		return db.CreateEmpBenifitsParams{}, err
 	}
@@ -491,9 +481,9 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateE
 		RetainmentPlan:     M.RetainmentPlan,
 		RetainmentPlanFrom: retainmentPlanFrom,
 		RetainmentPlanTill: retainmentPlanTill,
-		Benifits:           M.Benifits,
-		BenifitsFrom:       benifitsFrom,
-		BenifitsTill:       benifitsTill,
+		Uniform: sql.NullBool{Bool: M.Uniform, Valid: true},
+		UniformQuantity: sql.NullInt32{Int32: M.UniformQuantity, Valid: true},
+		UniformRenewMonths: sql.NullInt32{Int32: M.UniformRenewMonths, Valid: true},
 		UpdatedBy:          updated_by,
 		EmployeeID:         M.EmployeeID,
 	}, nil
@@ -520,15 +510,6 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.U
 		return db.UpdateEmpBenifitsParams{}, err
 	}
 
-	benifitsFrom, err := time.Parse(time.RFC3339, M.BenifitsFrom)
-	if err != nil {
-		return db.UpdateEmpBenifitsParams{}, err
-	}
-
-	benifitsTill, err := time.Parse(time.RFC3339, M.BenifitsTill)
-	if err != nil {
-		return db.UpdateEmpBenifitsParams{}, err
-	}
 
 	var updated_by sql.NullInt64
 	updated_by.Int64 = admin_id
@@ -553,9 +534,9 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.U
 		RetainmentPlan:     M.RetainmentPlan,
 		RetainmentPlanFrom: retainmentPlanFrom,
 		RetainmentPlanTill: retainmentPlanTill,
-		Benifits:           M.Benifits,
-		BenifitsFrom:       benifitsFrom,
-		BenifitsTill:       benifitsTill,
+		Uniform: sql.NullBool{Bool: M.Uniform, Valid: true},
+		UniformQuantity: sql.NullInt32{Int32: M.UniformQuantity, Valid: true},
+		UniformRenewMonths: sql.NullInt32{Int32: M.UniformRenewMonths, Valid: true},
 		UpdatedBy:          updated_by,
 		EmployeeID:         M.EmployeeID,
 	}, nil

@@ -228,15 +228,15 @@ type HrEmpBenifit struct {
 	RetainmentPlan     string         `json:"retainment_plan"`
 	RetainmentPlanFrom time.Time      `json:"retainment_plan_from"`
 	RetainmentPlanTill time.Time      `json:"retainment_plan_till"`
-	Benifits           string         `json:"benifits"`
-	BenifitsFrom       time.Time      `json:"benifits_from"`
-	BenifitsTill       time.Time      `json:"benifits_till"`
 	UpdatedBy          sql.NullInt64  `json:"updated_by"`
 	EmployeeID         int64          `json:"employee_id"`
 	CreatedAt          sql.NullTime   `json:"created_at"`
 	UpdatedAt          sql.NullTime   `json:"updated_at"`
 	LeaveType          sql.NullString `json:"leave_type"`
 	LeaveCount         sql.NullInt32  `json:"leave_count"`
+	Uniform            sql.NullBool   `json:"uniform"`
+	UniformQuantity    sql.NullInt32  `json:"uniform_quantity"`
+	UniformRenewMonths sql.NullInt32  `json:"uniform_renew_months"`
 }
 
 type HrEmpCertificate struct {

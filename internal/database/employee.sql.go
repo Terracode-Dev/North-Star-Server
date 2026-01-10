@@ -171,7 +171,7 @@ func (q *Queries) CreateEmpBankDetails(ctx context.Context, arg CreateEmpBankDet
 
 const createEmpBenifits = `-- name: CreateEmpBenifits :exec
 INSERT INTO HR_EMP_Benifits (
-    leave_status, leave_type, leave_count, health_insurance, insurance_from, insurance_till, retainment_plan, retainment_plan_from, retainment_plan_till, benifits, benifits_from, benifits_till, updated_by, employee_id
+    leave_status, leave_type, leave_count, health_insurance, insurance_from, insurance_till, retainment_plan, retainment_plan_from, retainment_plan_till, uniform, uniform_quantity, uniform_renew_months, updated_by, employee_id
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
@@ -187,9 +187,9 @@ type CreateEmpBenifitsParams struct {
 	RetainmentPlan     string         `json:"retainment_plan"`
 	RetainmentPlanFrom time.Time      `json:"retainment_plan_from"`
 	RetainmentPlanTill time.Time      `json:"retainment_plan_till"`
-	Benifits           string         `json:"benifits"`
-	BenifitsFrom       time.Time      `json:"benifits_from"`
-	BenifitsTill       time.Time      `json:"benifits_till"`
+	Uniform            sql.NullBool   `json:"uniform"`
+	UniformQuantity    sql.NullInt32  `json:"uniform_quantity"`
+	UniformRenewMonths sql.NullInt32  `json:"uniform_renew_months"`
 	UpdatedBy          sql.NullInt64  `json:"updated_by"`
 	EmployeeID         int64          `json:"employee_id"`
 }
@@ -205,9 +205,9 @@ func (q *Queries) CreateEmpBenifits(ctx context.Context, arg CreateEmpBenifitsPa
 		arg.RetainmentPlan,
 		arg.RetainmentPlanFrom,
 		arg.RetainmentPlanTill,
-		arg.Benifits,
-		arg.BenifitsFrom,
-		arg.BenifitsTill,
+		arg.Uniform,
+		arg.UniformQuantity,
+		arg.UniformRenewMonths,
 		arg.UpdatedBy,
 		arg.EmployeeID,
 	)
@@ -879,9 +879,9 @@ SELECT
     ben.retainment_plan, 
     ben.retainment_plan_from, 
     ben.retainment_plan_till, 
-    ben.benifits, 
-    ben.benifits_from, 
-    ben.benifits_till, 
+    ben.uniform, 
+    ben.uniform_quantity, 
+    ben.uniform_renew_months, 
 
     usr.email AS user_email, 
     usr.password AS user_password, 
@@ -970,9 +970,9 @@ type GetEmployeeByIDRow struct {
 	RetainmentPlan            sql.NullString `json:"retainment_plan"`
 	RetainmentPlanFrom        sql.NullTime   `json:"retainment_plan_from"`
 	RetainmentPlanTill        sql.NullTime   `json:"retainment_plan_till"`
-	Benifits                  sql.NullString `json:"benifits"`
-	BenifitsFrom              sql.NullTime   `json:"benifits_from"`
-	BenifitsTill              sql.NullTime   `json:"benifits_till"`
+	Uniform                   sql.NullBool   `json:"uniform"`
+	UniformQuantity           sql.NullInt32  `json:"uniform_quantity"`
+	UniformRenewMonths        sql.NullInt32  `json:"uniform_renew_months"`
 	UserEmail                 sql.NullString `json:"user_email"`
 	UserPassword              sql.NullString `json:"user_password"`
 	UserBranchID              sql.NullInt64  `json:"user_branch_id"`
@@ -1048,9 +1048,9 @@ func (q *Queries) GetEmployeeByID(ctx context.Context, id int64) (GetEmployeeByI
 		&i.RetainmentPlan,
 		&i.RetainmentPlanFrom,
 		&i.RetainmentPlanTill,
-		&i.Benifits,
-		&i.BenifitsFrom,
-		&i.BenifitsTill,
+		&i.Uniform,
+		&i.UniformQuantity,
+		&i.UniformRenewMonths,
 		&i.UserEmail,
 		&i.UserPassword,
 		&i.UserBranchID,
@@ -1262,7 +1262,7 @@ const updateEmpBenifits = `-- name: UpdateEmpBenifits :exec
 UPDATE HR_EMP_Benifits SET
     leave_status = ?, leave_type = ?, leave_count = ?, health_insurance = ?, 
     insurance_from = ?, insurance_till = ?, retainment_plan = ?, retainment_plan_from = ?, 
-    retainment_plan_till = ?, benifits = ?, benifits_from = ?, benifits_till = ?, updated_by = ?
+    retainment_plan_till = ?, uniform = ?, uniform_quantity = ?, uniform_renew_months = ?, updated_by = ?
 WHERE employee_id = ?
 `
 
@@ -1276,9 +1276,9 @@ type UpdateEmpBenifitsParams struct {
 	RetainmentPlan     string         `json:"retainment_plan"`
 	RetainmentPlanFrom time.Time      `json:"retainment_plan_from"`
 	RetainmentPlanTill time.Time      `json:"retainment_plan_till"`
-	Benifits           string         `json:"benifits"`
-	BenifitsFrom       time.Time      `json:"benifits_from"`
-	BenifitsTill       time.Time      `json:"benifits_till"`
+	Uniform            sql.NullBool   `json:"uniform"`
+	UniformQuantity    sql.NullInt32  `json:"uniform_quantity"`
+	UniformRenewMonths sql.NullInt32  `json:"uniform_renew_months"`
 	UpdatedBy          sql.NullInt64  `json:"updated_by"`
 	EmployeeID         int64          `json:"employee_id"`
 }
@@ -1294,9 +1294,9 @@ func (q *Queries) UpdateEmpBenifits(ctx context.Context, arg UpdateEmpBenifitsPa
 		arg.RetainmentPlan,
 		arg.RetainmentPlanFrom,
 		arg.RetainmentPlanTill,
-		arg.Benifits,
-		arg.BenifitsFrom,
-		arg.BenifitsTill,
+		arg.Uniform,
+		arg.UniformQuantity,
+		arg.UniformRenewMonths,
 		arg.UpdatedBy,
 		arg.EmployeeID,
 	)
