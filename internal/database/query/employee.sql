@@ -45,7 +45,7 @@ INSERT INTO HR_EMP_Status (
 
 -- name: CreateEmpBenifits :exec
 INSERT INTO HR_EMP_Benifits (
-    leave_status, leave_type, leave_count, health_insurance, insurance_from, insurance_till, retainment_plan, retainment_plan_from, retainment_plan_till, benifits, benifits_from, benifits_till, updated_by, employee_id
+    leave_status, leave_type, leave_count, health_insurance, insurance_from, insurance_till, retainment_plan, retainment_plan_from, retainment_plan_till, uniform, uniform_quantity, uniform_renew_months, updated_by, employee_id
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
@@ -168,9 +168,9 @@ SELECT
     ben.retainment_plan, 
     ben.retainment_plan_from, 
     ben.retainment_plan_till, 
-    ben.benifits, 
-    ben.benifits_from, 
-    ben.benifits_till, 
+    ben.uniform, 
+    ben.uniform_quantity, 
+    ben.uniform_renew_months, 
 
     usr.email AS user_email, 
     usr.password AS user_password, 
@@ -245,7 +245,7 @@ WHERE employee_id = ?;
 UPDATE HR_EMP_Benifits SET
     leave_status = ?, leave_type = ?, leave_count = ?, health_insurance = ?, 
     insurance_from = ?, insurance_till = ?, retainment_plan = ?, retainment_plan_from = ?, 
-    retainment_plan_till = ?, benifits = ?, benifits_from = ?, benifits_till = ?, updated_by = ?
+    retainment_plan_till = ?, uniform = ?, uniform_quantity = ?, uniform_renew_months = ?, updated_by = ?
 WHERE employee_id = ?;
 
 -- name: UpdateEmpUser :exec

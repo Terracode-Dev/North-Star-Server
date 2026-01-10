@@ -16,7 +16,7 @@ func (S *HRService) registerRoutes() {
 	hrRoute.POST("/admin/login", S.adminLogin)
 
 	// employee routes
-	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrRoute.POST("/employee", S.createEmployee, rba.AuthMiddelware([]string{"admin", "mod"})) // this
 	hrRoute.POST("/employee/create-admin-preset", S.CreateAdminPreset, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrRoute.PUT("/employee/admin-preset/:id", S.UpdateAdminPresetByID, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 	hrRoute.GET("/employee/admin-preset/:slug", S.GetAdminPresetBySlug)
