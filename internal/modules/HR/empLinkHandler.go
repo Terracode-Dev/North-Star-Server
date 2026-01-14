@@ -190,7 +190,7 @@ func (h *HRService) ApproveEmpLink(c echo.Context) error {
 
 	statusParams, err := empLink.Status.convertToDbStruct(int64(updated_by))
 	if err != nil {
-		return c.JSON(500, "Error converting employee status to db struct")
+		return c.JSON(500, "Error converting employee status to db struct"+err.Error())
 	}
 	status := qtx.CreateEmpStatus(c.Request().Context(), statusParams)
 	if status != nil {
