@@ -237,6 +237,8 @@ type HrEmpBenifit struct {
 	Uniform            sql.NullBool   `json:"uniform"`
 	UniformQuantity    sql.NullInt32  `json:"uniform_quantity"`
 	UniformRenewMonths sql.NullInt32  `json:"uniform_renew_months"`
+	Ticket             sql.NullBool   `json:"ticket"`
+	TicketQuantity     sql.NullInt32  `json:"ticket_quantity"`
 }
 
 type HrEmpCertificate struct {

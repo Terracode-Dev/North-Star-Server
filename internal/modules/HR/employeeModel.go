@@ -434,6 +434,8 @@ type CreateEmpBenifitsReqModel struct {
 	Uniform            bool   `json:"uniform"`
 	UniformQuantity    int32  `json:"uniform_quantity"`
 	UniformRenewMonths int32  `json:"uniform_renew_months"`
+	Ticket             bool   `json:"ticket"`
+	TicketQuantity     int32  `json:"ticket_quantity"`
 	UpdatedBy          *int64 `json:"updated_by"`
 	EmployeeID         int64  `json:"employee_id"`
 }
@@ -484,6 +486,8 @@ func (M CreateEmpBenifitsReqModel) convertToDbStruct(admin_id int64) (db.CreateE
 		Uniform: sql.NullBool{Bool: M.Uniform, Valid: true},
 		UniformQuantity: sql.NullInt32{Int32: M.UniformQuantity, Valid: true},
 		UniformRenewMonths: sql.NullInt32{Int32: M.UniformRenewMonths, Valid: true},
+		Ticket: sql.NullBool{Bool: M.Ticket, Valid: true},
+		TicketQuantity: sql.NullInt32{Int32: M.TicketQuantity, Valid: true},
 		UpdatedBy:          updated_by,
 		EmployeeID:         M.EmployeeID,
 	}, nil
@@ -537,6 +541,8 @@ func (M CreateEmpBenifitsReqModel) convertToUpdateDbStruct(admin_id int64) (db.U
 		Uniform: sql.NullBool{Bool: M.Uniform, Valid: true},
 		UniformQuantity: sql.NullInt32{Int32: M.UniformQuantity, Valid: true},
 		UniformRenewMonths: sql.NullInt32{Int32: M.UniformRenewMonths, Valid: true},
+		Ticket: sql.NullBool{Bool: M.Ticket, Valid: true},
+		TicketQuantity: sql.NullInt32{Int32: M.TicketQuantity, Valid: true},
 		UpdatedBy:          updated_by,
 		EmployeeID:         M.EmployeeID,
 	}, nil
