@@ -347,13 +347,6 @@ func (h *HRService) UpdateAirTicketRequestStatus(c echo.Context) error {
 
 // DeleteAirTicketRequest - Admin/Manager deletes a request
 func (h *HRService) DeleteAirTicketRequest(c echo.Context) error {
-	role := c.Get("role").(string)
-
-	// Only admins can delete
-	if role != "admin" {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions"})
-	}
-
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
