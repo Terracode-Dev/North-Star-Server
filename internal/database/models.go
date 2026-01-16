@@ -14,6 +14,49 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type EmpAirticketReqStatus string
+
+const (
+	EmpAirticketReqStatusPending  EmpAirticketReqStatus = "pending"
+	EmpAirticketReqStatusApproved EmpAirticketReqStatus = "approved"
+	EmpAirticketReqStatusRejected EmpAirticketReqStatus = "rejected"
+)
+
+func (e *EmpAirticketReqStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = EmpAirticketReqStatus(s)
+	case string:
+		*e = EmpAirticketReqStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for EmpAirticketReqStatus: %T", src)
+	}
+	return nil
+}
+
+type NullEmpAirticketReqStatus struct {
+	EmpAirticketReqStatus EmpAirticketReqStatus `json:"emp_airticket_req_status"`
+	Valid                 bool                  `json:"valid"` // Valid is true if EmpAirticketReqStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullEmpAirticketReqStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.EmpAirticketReqStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.EmpAirticketReqStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullEmpAirticketReqStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.EmpAirticketReqStatus), nil
+}
+
 type HrEmpAttendanceAttendanceType string
 
 const (
@@ -79,6 +122,23 @@ type DoorLockUser struct {
 	Phone          sql.NullString `json:"phone"`
 	Nic            sql.NullString `json:"nic"`
 	AvatarUrl      sql.NullString `json:"avatar_url"`
+}
+
+type EmpAirticketReq struct {
+	ID             int64                 `json:"id"`
+	PassengerName  string                `json:"passenger_name"`
+	PassengerEmail string                `json:"passenger_email"`
+	PassportNumber string                `json:"passport_number"`
+	DepartureDate  time.Time             `json:"departure_date"`
+	ReturnDate     time.Time             `json:"return_date"`
+	DepartureCity  string                `json:"departure_city"`
+	ArrivalCity    string                `json:"arrival_city"`
+	Reason         string                `json:"reason"`
+	EmpID          int64                 `json:"emp_id"`
+	BranchID       int64                 `json:"branch_id"`
+	Status         EmpAirticketReqStatus `json:"status"`
+	CreatedAt      sql.NullTime          `json:"created_at"`
+	UpdatedAt      sql.NullTime          `json:"updated_at"`
 }
 
 type EmpConfirmationLetterTable struct {

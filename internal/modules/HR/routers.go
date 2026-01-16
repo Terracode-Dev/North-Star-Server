@@ -166,7 +166,7 @@ func (S *HRService) registerRoutes() {
 	hrAttendance.POST("/insufficient", S.GetInsufficientAttendanceForAll)
 	hrAttendance.GET("/getAttendanceCountForThisYear", S.GetAttendanceCountForThisYear)
 
-	//reports
+	// reports
 	hrReports := hrRoute.Group("/reports")
 	hrReports.POST("/salary-transfer", S.SalaryTransfer, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrReports.POST("/expired-visa-or-reports", S.GetExpiredVisaOrReports)
@@ -188,4 +188,10 @@ func (S *HRService) registerRoutes() {
 	hrConf.POST("/get", S.GetCert, rba.AuthMiddelware([]string{"admin", "mod"}))
 	hrConf.DELETE("/delete/:id", S.DeleteCert, rba.AuthMiddelware([]string{"admin", "mod"}))
 
+	hrAirT := hrRoute.Group("/airticket")
+	hrAirT.POST("/create", S.CreateAirTicketRequest, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrAirT.PUT("/update/:id", S.UpdateAirTicketRequest, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
+	hrAirT.GET("/emp-view", S.GetMyAirTicketRequests, rba.AuthMiddelware([]string{"emp"}))
+	hrAirT.GET("/view", S.GetAirTicketRequestsByBranchAndStatus, rba.AuthMiddelware([]string{"admin", "mod"}))
+	hrAirT.DELETE("/delete/:id", S.DeleteAirTicketRequest, rba.AuthMiddelware([]string{"admin", "mod", "emp"}))
 }

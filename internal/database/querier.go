@@ -16,6 +16,10 @@ type Querier interface {
 	BanEmployee(ctx context.Context, arg BanEmployeeParams) error
 	CheckTrainerAssignmentAtTime(ctx context.Context, arg CheckTrainerAssignmentAtTimeParams) (bool, error)
 	CheckTrainerFromEmail(ctx context.Context, email sql.NullString) (CheckTrainerFromEmailRow, error)
+	CountEmpAirticketReqByBranch(ctx context.Context, branchID int64) (int64, error)
+	CountEmpAirticketReqByBranchAndStatus(ctx context.Context, arg CountEmpAirticketReqByBranchAndStatusParams) (int64, error)
+	CountEmpAirticketReqByEmpAndBranch(ctx context.Context, arg CountEmpAirticketReqByEmpAndBranchParams) (int64, error)
+	CountEmpAirticketReqByStatus(ctx context.Context, status EmpAirticketReqStatus) (int64, error)
 	// Count total employees for pagination (with same filters)
 	CountEmployeesWithFilters(ctx context.Context, arg CountEmployeesWithFiltersParams) (int64, error)
 	CreateAdditionalSchedule(ctx context.Context, arg CreateAdditionalScheduleParams) error
@@ -23,6 +27,7 @@ type Querier interface {
 	CreateAllowances(ctx context.Context, arg CreateAllowancesParams) error
 	CreateConfirmation(ctx context.Context, empID int64) error
 	CreateEmpAccessiability(ctx context.Context, arg CreateEmpAccessiabilityParams) error
+	CreateEmpAirticketReq(ctx context.Context, arg CreateEmpAirticketReqParams) (sql.Result, error)
 	CreateEmpAllowances(ctx context.Context, arg CreateEmpAllowancesParams) error
 	CreateEmpBankDetails(ctx context.Context, arg CreateEmpBankDetailsParams) error
 	CreateEmpBenifits(ctx context.Context, arg CreateEmpBenifitsParams) error
@@ -57,6 +62,7 @@ type Querier interface {
 	DeleteAllowance(ctx context.Context, id int64) error
 	DeleteConfirmation(ctx context.Context, id int64) error
 	DeleteEmpAccessiability(ctx context.Context, employeeID int64) error
+	DeleteEmpAirticketReq(ctx context.Context, id int64) error
 	DeleteEmpAllowances(ctx context.Context, employeeID int64) error
 	DeleteEmpBankDetails(ctx context.Context, employeeID int64) error
 	DeleteEmpBenifits(ctx context.Context, employeeID int64) error
@@ -99,6 +105,11 @@ type Querier interface {
 	GetCertificateFile(ctx context.Context, employeeID int64) (string, error)
 	GetConfirmation(ctx context.Context, arg GetConfirmationParams) ([]GetConfirmationRow, error)
 	GetEmpAdditionalSheduleByID(ctx context.Context, empID int64) ([]GetEmpAdditionalSheduleByIDRow, error)
+	GetEmpAirticketReqByBranch(ctx context.Context, arg GetEmpAirticketReqByBranchParams) ([]EmpAirticketReq, error)
+	GetEmpAirticketReqByBranchAndStatus(ctx context.Context, arg GetEmpAirticketReqByBranchAndStatusParams) ([]EmpAirticketReq, error)
+	GetEmpAirticketReqByEmpAndBranch(ctx context.Context, arg GetEmpAirticketReqByEmpAndBranchParams) ([]EmpAirticketReq, error)
+	GetEmpAirticketReqByID(ctx context.Context, id int64) (EmpAirticketReq, error)
+	GetEmpAirticketReqByStatus(ctx context.Context, arg GetEmpAirticketReqByStatusParams) ([]EmpAirticketReq, error)
 	GetEmpFiles(ctx context.Context, employeeID int64) ([]GetEmpFilesRow, error)
 	GetEmpLinkByID(ctx context.Context, id int64) (EmpLink, error)
 	GetEmpLinkData(ctx context.Context, id int64) (GetEmpLinkDataRow, error)
@@ -158,6 +169,7 @@ type Querier interface {
 	SelectSession(ctx context.Context, id int64) (SelectSessionRow, error)
 	SelectSessionWorkout(ctx context.Context, id int64) (SelectSessionWorkoutRow, error)
 	SelectpresetSessionAll(ctx context.Context) ([]SelectpresetSessionAllRow, error)
+	SetEmpAirticketReqStatus(ctx context.Context, arg SetEmpAirticketReqStatusParams) error
 	SuspendedHrAdmin(ctx context.Context, arg SuspendedHrAdminParams) error
 	TotalAdminPresetsCount(ctx context.Context) (int64, error)
 	TotalEmpLinksCount(ctx context.Context) (int64, error)
@@ -165,6 +177,7 @@ type Querier interface {
 	UpdateAdminPresetByID(ctx context.Context, arg UpdateAdminPresetByIDParams) error
 	UpdateAllowance(ctx context.Context, arg UpdateAllowanceParams) error
 	UpdateEmpAccessiability(ctx context.Context, arg UpdateEmpAccessiabilityParams) error
+	UpdateEmpAirticketReq(ctx context.Context, arg UpdateEmpAirticketReqParams) error
 	UpdateEmpAllowances(ctx context.Context, arg UpdateEmpAllowancesParams) error
 	UpdateEmpBankDetails(ctx context.Context, arg UpdateEmpBankDetailsParams) error
 	UpdateEmpBenifits(ctx context.Context, arg UpdateEmpBenifitsParams) error
