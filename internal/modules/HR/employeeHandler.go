@@ -1285,4 +1285,3 @@ func (S *HRService) GetEmpCountByBranch(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, count)
 }
-

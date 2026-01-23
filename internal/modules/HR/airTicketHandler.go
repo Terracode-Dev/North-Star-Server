@@ -2,6 +2,7 @@ package hr
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -47,8 +48,15 @@ type PaginationResponse struct {
 
 // CreateAirTicketRequest - Employee creates their own air ticket request
 func (h *HRService) CreateAirTicketRequest(c echo.Context) error {
-	userID := c.Get("user_id").(int64)
-	branchID := c.Get("branch").(int64)
+	userID, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		log.Printf("user_id %v", c.Get("user_id"))
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
+	branchID, ok := getInt64(c.Get("branch"))
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
 
 	var req CreateAirTicketReqDTO
 	if err := c.Bind(&req); err != nil {
@@ -98,8 +106,15 @@ func (h *HRService) CreateAirTicketRequest(c echo.Context) error {
 
 // GetMyAirTicketRequests - Employee gets their own requests (paginated)
 func (h *HRService) GetMyAirTicketRequests(c echo.Context) error {
-	userID := c.Get("user_id").(int64)
-	branchID := c.Get("branch").(int64)
+	userID, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		log.Printf("user_id %v", c.Get("user_id"))
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
+	branchID, ok := getInt64(c.Get("branch"))
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
 
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	if page < 1 {
@@ -371,7 +386,10 @@ func (h *HRService) DeleteAirTicketRequest(c echo.Context) error {
 
 // GetAirTicketRequestsByBranchAndStatus - Get by specific branch and status
 func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error {
-	branchID := c.Get("branch_id").(int64)
+	branchID, ok := getInt64(c.Get("branch"))
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
 
 	status := c.QueryParam("status")
 	if status == "" {
@@ -450,4 +468,20 @@ func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error 
 		PageSize:   pageSize,
 		TotalPages: totalPages,
 	})
+}
+
+func getInt64(v interface{}) (int64, bool) {
+	switch n := v.(type) {
+	case int:
+		return int64(n), true
+	case int64:
+		return n, true
+	case float64: // common with JWT / JSON
+		return int64(n), true
+	case string:
+		i, err := strconv.ParseInt(n, 10, 64)
+		return i, err == nil
+	default:
+		return 0, false
+	}
 }
