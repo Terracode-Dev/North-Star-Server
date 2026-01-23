@@ -1253,6 +1253,7 @@ func (S *HRService) CheckFortodayTrainerClientSession(c echo.Context) error {
 	}
 	params, err := req.ConvertToDbStruct()
 	if err != nil {
+		log.Printf("Error converting request to database struct: %v", err)
 		return c.JSON(http.StatusInternalServerError, "Error converting request to database struct")
 	}
 	value, err := S.q.CheckTrainerAssignmentAtTime(c.Request().Context(), params)
@@ -1285,4 +1286,3 @@ func (S *HRService) GetEmpCountByBranch(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, count)
 }
-
