@@ -2,6 +2,7 @@ package hr
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -47,8 +48,15 @@ type PaginationResponse struct {
 
 // CreateAirTicketRequest - Employee creates their own air ticket request
 func (h *HRService) CreateAirTicketRequest(c echo.Context) error {
-	userID := c.Get("user_id").(int64)
-	branchID := c.Get("branch").(int64)
+	userID, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		log.Printf("user_id %v", c.Get("user_id"))
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
+	branchID, ok := getInt64(c.Get("branch"))
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
 
 	var req CreateAirTicketReqDTO
 	if err := c.Bind(&req); err != nil {
@@ -98,8 +106,15 @@ func (h *HRService) CreateAirTicketRequest(c echo.Context) error {
 
 // GetMyAirTicketRequests - Employee gets their own requests (paginated)
 func (h *HRService) GetMyAirTicketRequests(c echo.Context) error {
-	userID := c.Get("user_id").(int64)
-	branchID := c.Get("branch").(int64)
+	userID, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		log.Printf("user_id %v", c.Get("user_id"))
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
+	branchID, ok := getInt64(c.Get("branch"))
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
 
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	if page < 1 {
@@ -295,13 +310,6 @@ func (h *HRService) UpdateAirTicketRequest(c echo.Context) error {
 
 // UpdateAirTicketRequestStatus - Admin/Manager updates status
 func (h *HRService) UpdateAirTicketRequestStatus(c echo.Context) error {
-	role := c.Get("role").(string)
-
-	// Only admins/managers can update status
-	if role != "admin" && role != "manager" {
-		return c.JSON(http.StatusForbidden, map[string]string{"error": "Insufficient permissions"})
-	}
-
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID"})
@@ -371,7 +379,10 @@ func (h *HRService) DeleteAirTicketRequest(c echo.Context) error {
 
 // GetAirTicketRequestsByBranchAndStatus - Get by specific branch and status
 func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error {
-	branchID := c.Get("branch_id").(int64)
+	branchID, ok := getInt64(c.Get("branch"))
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+	}
 
 	status := c.QueryParam("status")
 	if status == "" {
@@ -403,14 +414,14 @@ func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error 
 	}
 	var total int64
 	var err error
-	var requests []database.EmpAirticketReq
+	// var requests []database.GetEmpAirticketReqByStatusRow
 	if branchID == 1 {
 		total, err = h.q.CountEmpAirticketReqByStatus(c.Request().Context(), statusEnum)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch count"})
 		}
 
-		requests, err = h.q.GetEmpAirticketReqByStatus(c.Request().Context(), database.GetEmpAirticketReqByStatusParams{
+		requests, err := h.q.GetEmpAirticketReqByStatus(c.Request().Context(), database.GetEmpAirticketReqByStatusParams{
 			Status: statusEnum,
 			Limit:  int32(pageSize),
 			Offset: int32(offset),
@@ -418,6 +429,19 @@ func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error 
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch requests"})
 		}
+
+		totalPages := int(total) / pageSize
+		if int(total)%pageSize != 0 {
+			totalPages++
+		}
+
+		return c.JSON(http.StatusOK, PaginationResponse{
+			Data:       requests,
+			Total:      total,
+			Page:       page,
+			PageSize:   pageSize,
+			TotalPages: totalPages,
+		})
 	} else {
 		total, err = h.q.CountEmpAirticketReqByBranchAndStatus(c.Request().Context(), database.CountEmpAirticketReqByBranchAndStatusParams{
 			BranchID: branchID,
@@ -427,7 +451,7 @@ func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error 
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch count"})
 		}
 
-		requests, err = h.q.GetEmpAirticketReqByBranchAndStatus(c.Request().Context(), database.GetEmpAirticketReqByBranchAndStatusParams{
+		requests, err := h.q.GetEmpAirticketReqByBranchAndStatus(c.Request().Context(), database.GetEmpAirticketReqByBranchAndStatusParams{
 			BranchID: branchID,
 			Status:   statusEnum,
 			Limit:    int32(pageSize),
@@ -436,18 +460,34 @@ func (h *HRService) GetAirTicketRequestsByBranchAndStatus(c echo.Context) error 
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch requests"})
 		}
-	}
 
-	totalPages := int(total) / pageSize
-	if int(total)%pageSize != 0 {
-		totalPages++
-	}
+		totalPages := int(total) / pageSize
+		if int(total)%pageSize != 0 {
+			totalPages++
+		}
 
-	return c.JSON(http.StatusOK, PaginationResponse{
-		Data:       requests,
-		Total:      total,
-		Page:       page,
-		PageSize:   pageSize,
-		TotalPages: totalPages,
-	})
+		return c.JSON(http.StatusOK, PaginationResponse{
+			Data:       requests,
+			Total:      total,
+			Page:       page,
+			PageSize:   pageSize,
+			TotalPages: totalPages,
+		})
+	}
+}
+
+func getInt64(v interface{}) (int64, bool) {
+	switch n := v.(type) {
+	case int:
+		return int64(n), true
+	case int64:
+		return n, true
+	case float64: // common with JWT / JSON
+		return int64(n), true
+	case string:
+		i, err := strconv.ParseInt(n, 10, 64)
+		return i, err == nil
+	default:
+		return 0, false
+	}
 }
