@@ -62,15 +62,27 @@ SELECT COUNT(*) FROM emp_airticket_req
 WHERE branch_id = ?;
 
 -- name: GetEmpAirticketReqByBranchAndStatus :many
-SELECT * FROM emp_airticket_req
-WHERE branch_id = ? AND status = ?
-ORDER BY created_at DESC
+SELECT 
+    ear.*,
+    b.name AS branch_name,
+    e.email AS employee_email
+FROM emp_airticket_req ear
+JOIN HR_Branch b ON b.id = ear.branch_id
+JOIN HR_Employee e ON e.id = ear.emp_id
+WHERE ear.branch_id = ? AND ear.status = ?
+ORDER BY ear.created_at DESC
 LIMIT ? OFFSET ?;
 
 -- name: GetEmpAirticketReqByStatus :many
-SELECT * FROM emp_airticket_req
-WHERE status = ?
-ORDER BY created_at DESC
+SELECT 
+    ear.*,
+    b.name AS branch_name,
+    e.email AS employee_email
+FROM emp_airticket_req ear
+JOIN HR_Branch b ON b.id = ear.branch_id
+JOIN HR_Employee e ON e.id = ear.emp_id
+WHERE ear.status = ?
+ORDER BY ear.created_at DESC
 LIMIT ? OFFSET ?;
 
 -- name: CountEmpAirticketReqByBranchAndStatus :one
