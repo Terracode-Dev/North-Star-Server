@@ -350,6 +350,92 @@ func (q *Queries) GetEmployeeLeavesCount(ctx context.Context, arg GetEmployeeLea
 	return total_count, err
 }
 
+const getEmployeeLeavesEMP = `-- name: GetEmployeeLeavesEMP :many
+SELECT 
+    el.id as leave_id,
+    el.emp_id,
+    el.leave_type,
+    el.leave_date,
+    el.reason,
+    el.create_date
+FROM HR_EMP_LEAVES el
+WHERE el.emp_id = ?
+    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR YEAR(el.leave_date) = ?)
+ORDER BY 
+    CASE WHEN ? = 'date_asc' THEN el.leave_date END ASC,
+    CASE WHEN ? = 'date_desc' THEN el.leave_date END DESC,
+    CASE WHEN ? = 'type_asc' THEN el.leave_type END ASC,
+    CASE WHEN ? = 'type_desc' THEN el.leave_type END DESC,
+    el.leave_date DESC
+LIMIT ? OFFSET ?
+`
+
+type GetEmployeeLeavesEMPParams struct {
+	EmpID     int64       `json:"emp_id"`
+	Column2   interface{} `json:"column_2"`
+	CONCAT    interface{} `json:"CONCAT"`
+	Column4   interface{} `json:"column_4"`
+	LeaveDate time.Time   `json:"leave_date"`
+	Column6   interface{} `json:"column_6"`
+	Column7   interface{} `json:"column_7"`
+	Column8   interface{} `json:"column_8"`
+	Column9   interface{} `json:"column_9"`
+	Limit     int32       `json:"limit"`
+	Offset    int32       `json:"offset"`
+}
+
+type GetEmployeeLeavesEMPRow struct {
+	LeaveID    int64        `json:"leave_id"`
+	EmpID      int64        `json:"emp_id"`
+	LeaveType  string       `json:"leave_type"`
+	LeaveDate  time.Time    `json:"leave_date"`
+	Reason     string       `json:"reason"`
+	CreateDate sql.NullTime `json:"create_date"`
+}
+
+func (q *Queries) GetEmployeeLeavesEMP(ctx context.Context, arg GetEmployeeLeavesEMPParams) ([]GetEmployeeLeavesEMPRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEmployeeLeavesEMP,
+		arg.EmpID,
+		arg.Column2,
+		arg.CONCAT,
+		arg.Column4,
+		arg.LeaveDate,
+		arg.Column6,
+		arg.Column7,
+		arg.Column8,
+		arg.Column9,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEmployeeLeavesEMPRow
+	for rows.Next() {
+		var i GetEmployeeLeavesEMPRow
+		if err := rows.Scan(
+			&i.LeaveID,
+			&i.EmpID,
+			&i.LeaveType,
+			&i.LeaveDate,
+			&i.Reason,
+			&i.CreateDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLeaveById = `-- name: GetLeaveById :one
 SELECT 
     el.id,
@@ -422,5 +508,24 @@ func (q *Queries) UpdateLeave(ctx context.Context, arg UpdateLeaveParams) error 
 		arg.AddedBy,
 		arg.ID,
 	)
+	return err
+}
+
+const updateLeaveEMP = `-- name: UpdateLeaveEMP :exec
+UPDATE HR_EMP_LEAVES 
+SET 
+    leave_date = ?,
+    reason = ?
+WHERE id = ?
+`
+
+type UpdateLeaveEMPParams struct {
+	LeaveDate time.Time `json:"leave_date"`
+	Reason    string    `json:"reason"`
+	ID        int64     `json:"id"`
+}
+
+func (q *Queries) UpdateLeaveEMP(ctx context.Context, arg UpdateLeaveEMPParams) error {
+	_, err := q.db.ExecContext(ctx, updateLeaveEMP, arg.LeaveDate, arg.Reason, arg.ID)
 	return err
 }

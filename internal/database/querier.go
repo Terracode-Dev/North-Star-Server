@@ -125,6 +125,7 @@ type Querier interface {
 	GetEmployeeLeaveBenefits(ctx context.Context, employeeID int64) (GetEmployeeLeaveBenefitsRow, error)
 	GetEmployeeLeaves(ctx context.Context, arg GetEmployeeLeavesParams) ([]GetEmployeeLeavesRow, error)
 	GetEmployeeLeavesCount(ctx context.Context, arg GetEmployeeLeavesCountParams) (int64, error)
+	GetEmployeeLeavesEMP(ctx context.Context, arg GetEmployeeLeavesEMPParams) ([]GetEmployeeLeavesEMPRow, error)
 	GetEmployeeListWithWorkDays(ctx context.Context, arg GetEmployeeListWithWorkDaysParams) ([]GetEmployeeListWithWorkDaysRow, error)
 	GetEmployeeSalaryDetails(ctx context.Context, employeeID int64) (GetEmployeeSalaryDetailsRow, error)
 	GetEmployeeWorkDaysBreakdown(ctx context.Context, arg GetEmployeeWorkDaysBreakdownParams) (GetEmployeeWorkDaysBreakdownRow, error)
@@ -193,6 +194,7 @@ type Querier interface {
 	UpdateFileSubmit(ctx context.Context, arg UpdateFileSubmitParams) error
 	UpdateHrAdmin(ctx context.Context, arg UpdateHrAdminParams) error
 	UpdateLeave(ctx context.Context, arg UpdateLeaveParams) error
+	UpdateLeaveEMP(ctx context.Context, arg UpdateLeaveEMPParams) error
 	UpdatePayroll(ctx context.Context, arg UpdatePayrollParams) error
 	UpdatePayrollAllowance(ctx context.Context, arg UpdatePayrollAllowanceParams) error
 	UpdatePreset(ctx context.Context, arg UpdatePresetParams) error

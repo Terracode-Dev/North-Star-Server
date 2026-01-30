@@ -137,6 +137,12 @@ func (S *HRService) registerRoutes() {
 	leaves.GET("/:id/emp-leave", S.GetEmployeeLeavesHandler)
 	leaves.GET("/:id/benifit-leave", S.GetEmployeeLeaveBenefitsHandler)
 
+	empleave := hrRoute.Group("/leave-emp", rba.AuthMiddelware([]string{"emp"}))
+	empleave.GET("/employee", S.GetLeavesHandlerEMP)
+	empleave.POST("/employee", S.CreateLeaveHandlerEMP)
+	empleave.PUT("/employee/:id", S.UpdateLeaveHandlerEMP)
+	empleave.DELETE("/employee/:id", S.DeleteLeaveHandlerEMP)
+
 	empSchedule := hrRoute.Group("/schedule")
 
 	empSchedule.GET("/employee/:id", S.GetEmpSheduleByID, rba.AuthMiddelware([]string{"admin", "emp", "mod"}))

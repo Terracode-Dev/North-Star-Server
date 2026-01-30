@@ -2,11 +2,12 @@ package hr
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
-	"fmt"
+
 	"github.com/Terracode-Dev/North-Star-Server/internal/database"
 	"github.com/labstack/echo/v4"
 )
@@ -37,7 +38,7 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 		})
 	}
 
-	approvedLeaveCount, err := s.q.GetEmployeeApprovedLeaveCount(c.Request().Context(),database.GetEmployeeApprovedLeaveCountParams{
+	approvedLeaveCount, err := s.q.GetEmployeeApprovedLeaveCount(c.Request().Context(), database.GetEmployeeApprovedLeaveCountParams{
 		EmpID:     empId,
 		LeaveType: leaveData.LeaveType.String,
 	})
@@ -51,9 +52,9 @@ func (s *HRService) CheckValideteEmp(c echo.Context) error {
 	remainingLeaves := int64(leaveData.LeaveCount.Int32) - approvedLeaveCount
 
 	res := CheckValideteEmpRes{
-		EmpId:      empId,
-		LeaveType:  leaveData.LeaveType.String,
-		LeaveCount: int64(leaveData.LeaveCount.Int32),
+		EmpId:           empId,
+		LeaveType:       leaveData.LeaveType.String,
+		LeaveCount:      int64(leaveData.LeaveCount.Int32),
 		RemainingLeaves: remainingLeaves,
 	}
 	return c.JSON(http.StatusOK, res)
@@ -74,7 +75,7 @@ func (s *HRService) CreateLeaveHandler(c echo.Context) error {
 	}
 
 	var createdLeaves []map[string]interface{}
-	
+
 	// Process each leave request
 	for i, r := range req {
 		// Parse date
@@ -121,7 +122,7 @@ func (s *HRService) CreateLeaveHandler(c echo.Context) error {
 					"msg": fmt.Sprintf("Error getting leave count for request %d", i+1),
 				})
 			}
-			
+
 			if int64(leaveData.LeaveCount.Int32) <= dbCount {
 				return c.JSON(http.StatusConflict, map[string]string{
 					"err": "Leave quota exceeded",
@@ -166,7 +167,6 @@ func (s *HRService) CreateLeaveHandler(c echo.Context) error {
 	})
 }
 
-
 // =====================================================
 // GET ALL LEAVES HANDLER
 // =====================================================
@@ -190,11 +190,11 @@ func (s *HRService) GetAllLeavesHandler(c echo.Context) error {
 		limit = 10
 	}
 
-    if limit > 2147483647 { // Max value of int32
-        return c.JSON(http.StatusBadRequest, map[string]string{
-            "error": "Limit value too large",
-        })
-    }
+	if limit > 2147483647 { // Max value of int32
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Limit value too large",
+		})
+	}
 
 	offset := (page - 1) * limit
 
@@ -218,25 +218,25 @@ func (s *HRService) GetAllLeavesHandler(c echo.Context) error {
 
 	// Prepare parameters for GetAllLeaves
 	params := database.GetAllLeavesParams{
-		Column1:  searchName,
-		CONCAT:   searchName,
-		CONCAT_2: searchName,
-		Column4:  searchEmail,
-		CONCAT_3: searchEmail,
-		Column6:  searchLeaveType,
+		Column1:   searchName,
+		CONCAT:    searchName,
+		CONCAT_2:  searchName,
+		Column4:   searchEmail,
+		CONCAT_3:  searchEmail,
+		Column6:   searchLeaveType,
 		LeaveType: searchLeaveType,
-		Column8:  nil,
-		Column10: nil,
-		Column12: sortBy,
-		Column13: sortBy,
-		Column14: sortBy,
-		Column15: sortBy,
-		Column16: sortBy,
-		Column17: sortBy,
-		Column18: sortBy,
-		Column19: sortBy,
-		Limit:    int32(limit),
-		Offset:   int32(offset),
+		Column8:   nil,
+		Column10:  nil,
+		Column12:  sortBy,
+		Column13:  sortBy,
+		Column14:  sortBy,
+		Column15:  sortBy,
+		Column16:  sortBy,
+		Column17:  sortBy,
+		Column18:  sortBy,
+		Column19:  sortBy,
+		Limit:     int32(limit),
+		Offset:    int32(offset),
 	}
 
 	if dateFrom != "" {
@@ -386,7 +386,7 @@ func (s *HRService) GetEmployeeLeavesHandler(c echo.Context) error {
 			"error": "Limit value too large",
 		})
 	}
-	
+
 	offset := (page - 1) * limit
 
 	// Parse year
@@ -449,5 +449,255 @@ func (s *HRService) GetEmployeeLeaveBenefitsHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"data": benefits,
+	})
+}
+
+func (s *HRService) GetLeavesHandlerEMP(c echo.Context) error {
+	empId, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		log.Print("error parsing user_id")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID"})
+	}
+
+	// Parse query parameters
+	searchLeaveType := c.QueryParam("search_leave_type")
+	year := c.QueryParam("year")
+	sortBy := c.QueryParam("sort_by") // date_asc, date_desc, type_asc, type_desc
+
+	// Pagination
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	if page < 1 {
+		page = 1
+	}
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	if limit > 2147483647 { // Max value of int32
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Limit value too large",
+		})
+	}
+	offset := (page - 1) * limit
+
+	// Parse year
+	var yearPtr *time.Time
+	if year != "" {
+		parsedYear, err := time.Parse("2006", year)
+		if err != nil {
+			log.Printf("Invalid year format: %v", err)
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid year format"})
+		}
+		yearPtr = &parsedYear
+	}
+
+	// Prepare parameters
+	params := database.GetEmployeeLeavesEMPParams{
+		EmpID:   empId,
+		Column2: searchLeaveType,
+		CONCAT:  searchLeaveType,
+		Column4: yearPtr,
+		Column6: sortBy,
+		Column7: sortBy,
+		Column8: sortBy,
+		Column9: sortBy,
+		Limit:   int32(limit),
+		Offset:  int32(offset),
+	}
+
+	// Only set LeaveDate if year is provided
+	if yearPtr != nil {
+		params.LeaveDate = *yearPtr
+	}
+
+	// Fetch leaves from database
+	leaves, err := s.q.GetEmployeeLeavesEMP(c.Request().Context(), params)
+	if err != nil {
+		log.Printf("Failed to fetch employee leaves for empId %d: %v, params: %+v", empId, err, params)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to fetch employee leaves",
+		})
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"data": leaves,
+		"pagination": map[string]interface{}{
+			"page":   page,
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
+}
+
+func (s *HRService) CreateLeaveHandlerEMP(c echo.Context) error {
+	empId, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		log.Print("error parsing user_id")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID"})
+	}
+
+	var req CreateLeaveRequestEMP
+	if err := c.Bind(&req); err != nil {
+		log.Printf("Error binding request: %v", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	leaveDate, err := time.Parse("2006-01-02", req.LeaveDate)
+	if err != nil {
+		log.Printf("Error parsing leave date: %v", err)
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "Invalid date format for request. Use YYYY-MM-DD",
+		})
+	}
+
+	// Get employee leave benefits
+	leaveData, err := s.q.GetEmployeeLeaveBenefits(c.Request().Context(), empId)
+	if err != nil {
+		// Handle case where employee has no leave benefits assigned
+		if err == sql.ErrNoRows {
+			log.Printf("No leave benefits found for empId %d", empId)
+			return c.JSON(http.StatusNotFound, map[string]string{
+				"error": "No leave type assigned to this employee. Please contact HR to set up your leave benefits.",
+			})
+		}
+		// Handle other database errors
+		log.Printf("Error getting leave benefits for empId %d: %v", empId, err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to fetch employee leave benefits",
+		})
+	}
+
+	// Validate leave type exists
+	if !leaveData.LeaveType.Valid || leaveData.LeaveType.String == "" {
+		log.Printf("No valid leave type found for empId %d", empId)
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "No leave type assigned to employee. Please contact HR.",
+		})
+	}
+
+	// Validate leave count exists
+	if !leaveData.LeaveCount.Valid {
+		log.Printf("No valid leave count found for empId %d", empId)
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"error": "No leave quota assigned to employee. Please contact HR.",
+		})
+	}
+
+	// Setup timezone
+	maldivianTZ, err := time.LoadLocation("Indian/Maldives")
+	if err != nil {
+		log.Printf("Error loading Maldives timezone, using UTC+5: %v", err)
+		maldivianTZ = time.FixedZone("MVT", 5*60*60) // UTC+5
+	}
+
+	now := time.Now().In(maldivianTZ)
+	startOfYear := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, maldivianTZ)
+	endOfYear := time.Date(now.Year(), 12, 31, 23, 59, 59, 999999999, maldivianTZ)
+
+	// Prepare count parameters
+	params := database.GetEmployeeLeavesCountParams{
+		EmpID:       empId,
+		Column2:     leaveData.LeaveType.String,
+		CONCAT:      leaveData.LeaveType.String,
+		Column4:     startOfYear,
+		LeaveDate:   startOfYear,
+		Column6:     endOfYear,
+		LeaveDate_2: endOfYear,
+	}
+
+	// Get current leave count for the year
+	dbCount, err := s.q.GetEmployeeLeavesCount(c.Request().Context(), params)
+	if err != nil {
+		log.Printf("Error getting leave count for empId %d: %v, params: %+v", empId, err, params)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to fetch employee leave count",
+		})
+	}
+
+	// Check if quota exceeded
+	if int64(leaveData.LeaveCount.Int32) <= dbCount {
+		log.Printf("Leave quota exceeded for empId %d: used=%d, total=%d", empId, dbCount, leaveData.LeaveCount.Int32)
+		return c.JSON(http.StatusConflict, map[string]string{
+			"error": fmt.Sprintf("Leave quota exceeded. You have used %d out of %d leaves this year.", dbCount, leaveData.LeaveCount.Int32),
+		})
+	}
+
+	// Prepare insert parameters
+	dbParam := database.CreateLeaveParams{
+		EmpID:     empId,
+		LeaveType: leaveData.LeaveType.String,
+		LeaveDate: leaveDate,
+		Reason:    req.Reason,
+		AddedBy: sql.NullInt64{
+			Valid: true,
+			Int64: empId,
+		},
+	}
+
+	// Create leave
+	result, err := s.q.CreateLeave(c.Request().Context(), dbParam)
+	if err != nil {
+		log.Printf("Error creating leave for empId %d: %v, params: %+v", empId, err, dbParam)
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to create leave",
+		})
+	}
+
+	// Get the inserted ID
+	leaveId, _ := result.LastInsertId()
+	log.Printf("Leave created successfully for empId %d, leaveId: %d", empId, leaveId)
+
+	return c.JSON(http.StatusCreated, map[string]interface{}{
+		"message":  "Leave created successfully",
+		"leave_id": leaveId,
+	})
+}
+
+func (s *HRService) UpdateLeaveHandlerEMP(c echo.Context) error {
+	id, ok := getInt64(c.Get("user_id"))
+	if !ok {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid employee ID"})
+	}
+	var req UpdateLeaveRequestEMP
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+
+	// Parse date
+	leaveDate, err := time.Parse("2006-01-02", req.LeaveDate)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid date format. Use YYYY-MM-DD"})
+	}
+
+	// Prepare parameters
+	params := database.UpdateLeaveEMPParams{
+		ID:        id,
+		LeaveDate: leaveDate,
+		Reason:    req.Reason,
+	}
+
+	err = s.q.UpdateLeaveEMP(c.Request().Context(), params)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update leave"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Leave updated successfully",
+	})
+}
+
+func (s *HRService) DeleteLeaveHandlerEMP(c echo.Context) error {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid leave ID"})
+	}
+
+	err = s.q.DeleteLeave(c.Request().Context(), id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete leave"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{
+		"message": "Leave deleted successfully",
 	})
 }

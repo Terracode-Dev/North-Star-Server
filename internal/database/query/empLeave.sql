@@ -112,3 +112,31 @@ WHERE el.emp_id = ?
     AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
     AND (? IS NULL OR el.leave_date >= ?)
     AND (? IS NULL OR el.leave_date <= ?);
+
+
+-- name: UpdateLeaveEMP :exec
+UPDATE HR_EMP_LEAVES 
+SET 
+    leave_date = ?,
+    reason = ?
+WHERE id = ?;
+
+-- name: GetEmployeeLeavesEMP :many
+SELECT 
+    el.id as leave_id,
+    el.emp_id,
+    el.leave_type,
+    el.leave_date,
+    el.reason,
+    el.create_date
+FROM HR_EMP_LEAVES el
+WHERE el.emp_id = ?
+    AND (? = '' OR el.leave_type LIKE CONCAT('%', ?, '%'))
+    AND (? IS NULL OR YEAR(el.leave_date) = ?)
+ORDER BY 
+    CASE WHEN ? = 'date_asc' THEN el.leave_date END ASC,
+    CASE WHEN ? = 'date_desc' THEN el.leave_date END DESC,
+    CASE WHEN ? = 'type_asc' THEN el.leave_type END ASC,
+    CASE WHEN ? = 'type_desc' THEN el.leave_type END DESC,
+    el.leave_date DESC
+LIMIT ? OFFSET ?
